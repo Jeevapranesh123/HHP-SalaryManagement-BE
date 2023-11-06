@@ -11,6 +11,7 @@ class EmployeeResponse(BaseModel):
     name: str
     email: str
     phone: str
+    password: str
 
 
 class EmployeeCreateResponse(BaseResponse):

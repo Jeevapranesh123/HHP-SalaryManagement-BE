@@ -5,6 +5,7 @@ from app.core.config import Config
 MONGO_DATABASE = Config.MONGO_DATABASE
 USERS_COLLECTION = Config.USERS_COLLECTION
 TEMP_JWT_ID_COLLECTION = Config.TEMP_JWT_ID_COLLECTION
+import datetime
 
 
 async def check_if_email_exists(email, mongo):
@@ -51,4 +52,16 @@ async def find_jwt_id(uuid, type, mongo_client):
 async def delete_jwt_id(id, mongo_client):
     return await mongo_client[MONGO_DATABASE][TEMP_JWT_ID_COLLECTION].delete_one(
         {"jwt_id": id}
+    )
+
+
+async def change_password(email, mongo_client):
+    return await mongo_client[MONGO_DATABASE][USERS_COLLECTION].update_one(
+        {"email": email},
+        {
+            "$set": {
+                "changed_password_at_first_login": True,
+                "last_password_change": datetime.datetime.utcnow(),
+            }
+        },
     )

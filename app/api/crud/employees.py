@@ -20,7 +20,7 @@ async def create_employee(employee: EmployeeBase, mongo_client: AsyncIOMotorClie
     # password = generate_random_password()
 
     password = "string"
-    employee["password"] = hash_password(password)
+    employee["password"] = await hash_password(password)
 
     print(password)
 
@@ -33,7 +33,9 @@ async def create_employee(employee: EmployeeBase, mongo_client: AsyncIOMotorClie
     if await mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].insert_one(
         emp_in_db.model_dump()
     ):
-        return emp_in_db
+        res = emp_in_db.model_dump()
+        res["password"] = password
+        return res
 
 
 async def create_user(employee: dict, mongo_client: AsyncIOMotorClient):

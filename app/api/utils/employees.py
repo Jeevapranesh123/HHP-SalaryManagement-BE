@@ -9,9 +9,10 @@ from app.core.config import Config
 from datetime import datetime, timedelta
 import string
 import secrets
-import jwt
+
 from app.api.crud import auth as auth_crud
 import uuid
+import jwt
 
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 

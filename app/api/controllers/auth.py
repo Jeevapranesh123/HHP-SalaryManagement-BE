@@ -54,9 +54,13 @@ async def change_password(
             status_code=400, detail="New password and confirm password do not match"
         )
 
+    # FIXME: Check if new password is same as old password
+
     new_password = await hash_password(change_password_request.new_password)
 
     await auth_crud.update_password(user["email"], new_password, mongo_client)
+
+    await auth_crud.change_password(user["email"], mongo_client)
 
     return {"message": "Password Changed Successfully"}
 

@@ -30,5 +30,5 @@ async def create(
     return EmployeeCreateResponse(
         message="Employee Created Successfully",
         status_code=201,
-        data=res.model_dump(),
+        data=res,
     )
