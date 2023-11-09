@@ -8,9 +8,13 @@ class LoginRequest(BaseModel):
     password: str
 
 
-class LoginResponse(BaseResponse):
+class LoginResponseDict(BaseModel):
     email: str
     access_token: str
+
+
+class LoginResponse(BaseResponse):
+    data: LoginResponseDict
 
 
 class UserBase(BaseModel):

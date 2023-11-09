@@ -27,13 +27,14 @@ async def login(
     response: Response,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
 ):
-    data = await auth_controller.login(login_request, mongo_client)
+    res = await auth_controller.login(login_request, mongo_client)
+
+    data = {"email": res["email"], "access_token": res["token"]}
 
     return LoginResponse(
         message="Login Successful",
         status_code=200,
-        email=data["email"],
-        access_token=data["token"],
+        data=data,
     )
 
 
