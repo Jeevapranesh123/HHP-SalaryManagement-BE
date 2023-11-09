@@ -10,6 +10,9 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.database import mongo
 
+from fastapi.middleware.cors import CORSMiddleware
+
+
 # from fastapi_jwt_auth import AuthJWT
 
 # from app.core.config import Settings
@@ -69,5 +72,13 @@ async def websocket_endpoint(websocket: WebSocket):
 app.include_router(api_router, prefix="/api/v1")
 
 app.add_exception_handler(HTTPException, http_error_handler)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # app.add_exception_handler(Response,)
