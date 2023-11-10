@@ -14,6 +14,8 @@ async def login(login_request, mongo_client: AsyncIOMotorClient):
 
     user = await auth_crud.check_if_email_exists(email, mongo_client)
 
+    print(user)
+
     if not user:
         raise HTTPException(status_code=400, detail="Invalid Credentials")
 
@@ -24,6 +26,8 @@ async def login(login_request, mongo_client: AsyncIOMotorClient):
         data={
             "uuid": user["uuid"],
             "email": user["email"],
+            "changed_password_at_first_login": user["changed_password_at_first_login"],
+            "employee_id": user["employee_id"],
         },
         token_type="access",
         mongo_client=mongo_client,
