@@ -19,7 +19,6 @@ class EmployeeCreateRequest(EmployeeBase):
 
 
 class SalaryCreateRequest(SalaryBase):
-    # salary: SalaryBase
     pass
 
 

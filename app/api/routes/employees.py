@@ -32,3 +32,12 @@ async def create(
         status_code=201,
         data=res,
     )
+
+
+@router.get("/get/{employee_id}")
+async def get_employee(
+    employee_id: str, mongo_client: AsyncIOMotorClient = Depends(get_mongo)
+):
+    res = await employee_controller.get_employee(employee_id, mongo_client)
+
+    return res

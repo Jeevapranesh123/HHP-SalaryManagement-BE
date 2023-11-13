@@ -19,6 +19,8 @@ class Config(object):
 
     SALARY_COLLECTION = os.getenv("SALARY_COLLECTION") or "salary"
 
+    TEMP_SALARY_COLLECTION = os.getenv("TEMP_SALARY_COLLECTION") or "temp_salary"
+
     LEAVE_COLLECTION = os.getenv("LEAVE_COLLECTION") or "leave"
 
     LOAN_COLLECTION = os.getenv("LOAN_COLLECTION") or "loan"

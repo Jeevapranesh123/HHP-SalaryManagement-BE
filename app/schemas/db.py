@@ -18,6 +18,8 @@ class SalaryInDB(SalaryBase):
     id: str
     created_at: datetime.datetime = datetime.datetime.now()
     created_by: str = "admin"
+    updated_at: datetime.datetime = None
+    updated_by: str = None
 
 
 class LeaveInDB(LeaveBase):

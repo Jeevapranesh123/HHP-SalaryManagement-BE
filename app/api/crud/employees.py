@@ -52,3 +52,71 @@ async def create_user(employee: dict, mongo_client: AsyncIOMotorClient):
         return user
 
     return None
+
+
+async def get_employee(employee_id: str, mongo_client: AsyncIOMotorClient):
+    pipeline = [
+        {
+            "$lookup": {
+                "from": "salary",
+                "localField": "employee_id",
+                "foreignField": "employee_id",
+                "as": "salary_info",
+            }
+        },
+        {
+            "$lookup": {
+                "from": "temp_salary",
+                "localField": "employee_id",
+                "foreignField": "employee_id",
+                "as": "temp_salary_info",
+            }
+        },
+        {
+            "$addFields": {
+                "salary": {"$arrayElemAt": ["$salary_info", 0]},
+                "temp_salary": {"$arrayElemAt": ["$temp_salary_info", 0]},
+            }
+        },
+        {
+            "$addFields": {
+                "gross_salary": "$salary.gross",
+                "pf": "$salary.pf",
+                "esi": "$salary.esi",
+                "loss_of_pay": "$temp_salary.loss_of_pay",
+                "attendance_special_allowance": "$temp_salary.attendance_special_allowance",
+                "leave_cashback": "$temp_salary.leave_cashback",
+                "last_year_leave_cashback": "$temp_salary.last_year_leave_cashback",
+            }
+        },
+        {
+            "$project": {
+                "temp_salary_info": 0,
+                "salary_info": 0,
+                "salary": 0,
+                "temp_salary": 0,
+                "_id": 0,
+            }
+        },
+        {
+            "$addFields": {
+                "net_salary": {
+                    "$subtract": [
+                        {
+                            "$add": [
+                                "$gross_salary",
+                                "$attendance_special_allowance",
+                                "$leave_cashback",
+                                "$last_year_leave_cashback",
+                            ]
+                        },
+                        {"$add": ["$pf", "$esi", "$loss_of_pay"]},
+                    ]
+                }
+            }
+        },
+    ]
+
+    emp = mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].aggregate(pipeline)
+
+    return [e async for e in emp]

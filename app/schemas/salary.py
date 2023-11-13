@@ -5,12 +5,9 @@ from enum import Enum
 
 class SalaryBase(BaseModel):
     employee_id: str
-    basic: float
-    hra: Optional[float] = None
-    conveyance: Optional[float] = None
+    gross: float
     pf: float
     esi: float
-    net_salary: float
 
     # @root_validator
     # def validate_net_salary(cls, values):
@@ -27,3 +24,11 @@ class SalaryAdvanceBase(BaseModel):
     employee_id: str
     month: str
     amount: float
+
+
+class Temp(BaseModel):
+    employee_id: str
+    loss_of_pay: float
+    leave_cashback: float
+    last_year_leave_cashback: float
+    attendance_special_allowance: float

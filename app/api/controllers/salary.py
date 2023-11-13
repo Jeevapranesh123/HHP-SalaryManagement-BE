@@ -7,6 +7,7 @@ from app.schemas.request import (
 )
 from app.schemas.salary import SalaryBase
 
+from app.schemas.salary import Temp
 
 from app.api.crud import salary as salary_crud
 
@@ -22,6 +23,13 @@ async def create_salary(
     return await salary_crud.create_salary(salary_in_create, mongo_client)
 
 
+async def post_salary(
+    SalaryCreateRequest: SalaryCreateRequest, mongo_client: AsyncIOMotorClient
+):
+    salary_in_create = SalaryBase(**SalaryCreateRequest.model_dump())
+    return await salary_crud.update_salary(salary_in_create, mongo_client)
+
+
 async def request_advance(
     SalaryAdvanceRequest: SalaryAdvanceRequest, mongo_client: AsyncIOMotorClient
 ):
@@ -35,3 +43,11 @@ async def respond_salary_advance(
     return await salary_crud.respond_salary_advance(
         SalaryAdvanceRespondRequest, mongo_client
     )
+
+
+async def get_salary(employee_id: str, mongo_client: AsyncIOMotorClient):
+    return await salary_crud.get_salary(employee_id, mongo_client)
+
+
+async def create_temp(temp: Temp, mongo_client: AsyncIOMotorClient):
+    return await salary_crud.create_temp(temp, mongo_client)

@@ -20,8 +20,7 @@ class EmployeeCreateResponse(BaseResponse):
 
 class SalaryResponse(BaseModel):
     employee_id: str
-    basic: float
-    net_salary: float
+    gross: float
 
 
 class SalaryCreateResponse(BaseResponse):
