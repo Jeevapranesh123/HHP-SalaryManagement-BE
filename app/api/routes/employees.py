@@ -15,8 +15,12 @@ router = APIRouter()
 
 
 @router.get("/{employee_id}")
-async def get_employee(employee_id: str):
-    return {"message": "Hello World"}
+async def get_employee(
+    employee_id: str, mongo_client: AsyncIOMotorClient = Depends(get_mongo)
+):
+    res = await employee_controller.get_employee(employee_id, mongo_client)
+
+    return res
 
 
 @router.post("/create", response_model=EmployeeCreateResponse, status_code=201)
@@ -32,12 +36,3 @@ async def create(
         status_code=201,
         data=res,
     )
-
-
-@router.get("/get/{employee_id}")
-async def get_employee(
-    employee_id: str, mongo_client: AsyncIOMotorClient = Depends(get_mongo)
-):
-    res = await employee_controller.get_employee(employee_id, mongo_client)
-
-    return res

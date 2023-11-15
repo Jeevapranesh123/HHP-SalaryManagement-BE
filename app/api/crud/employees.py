@@ -57,6 +57,11 @@ async def create_user(employee: dict, mongo_client: AsyncIOMotorClient):
 async def get_employee(employee_id: str, mongo_client: AsyncIOMotorClient):
     pipeline = [
         {
+            "$match": {
+                "employee_id": employee_id,
+            }
+        },
+        {
             "$lookup": {
                 "from": "salary",
                 "localField": "employee_id",
