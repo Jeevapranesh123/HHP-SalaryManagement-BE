@@ -11,6 +11,14 @@ load_dotenv(".env")
 class Config(object):
     MONGO_HOST = os.getenv("MONGO_HOST") or "localhost"
 
+    MONGO_PORT = os.getenv("MONGO_PORT") or 27017
+
+    MONGO_DATABASE = os.getenv("MONGO_DATABASE") or "hhp-esm"
+
+    MONGO_USERNAME = os.getenv("MONGO_USERNAME") or "root"
+
+    MONGO_PASSWORD = os.getenv("MONGO_PASSWORD") or "root"
+
     MONGO_DATABASE = os.getenv("MONGO_DATABASE") or "hhp-esm"
 
     USERS_COLLECTION = os.getenv("USERS_COLLECTION") or "users"

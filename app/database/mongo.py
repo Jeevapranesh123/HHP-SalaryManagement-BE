@@ -7,9 +7,19 @@ from app.core.config import Config
 class MongoManger:
     client: AsyncIOMotorClient = None
 
+    def __init__(self):
+        self.mongo_uri = "mongodb://{}:{}@{}:{}".format(
+            Config.MONGO_USERNAME,
+            Config.MONGO_PASSWORD,
+            Config.MONGO_HOST,
+            Config.MONGO_PORT,
+        )
+        print(self.mongo_uri)
+
     async def connect_to_database(self):
         logger.info("Connect to the MongoDB...")
-        self.client = AsyncIOMotorClient(str(Config.MONGO_HOST))
+        # self.client = AsyncIOMotorClient("mongodb://root:zuvaLabs@localhost:27017/?authMechanism=DEFAULT")
+        self.client = AsyncIOMotorClient(self.mongo_uri)
         logger.info("Successfully connected to the MongoDB!")
 
     async def close_database_connection(self):
