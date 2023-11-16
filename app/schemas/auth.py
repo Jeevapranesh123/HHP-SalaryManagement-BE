@@ -22,6 +22,7 @@ class UserBase(BaseModel):
     uuid: str
     email: str
     password: str
+    roles: list = []
     verified: bool = False
     is_active: bool = True
     created_by: str = None
@@ -55,3 +56,13 @@ class ChangePasswordRequest(BaseModel):
     old_password: str
     new_password: str
     confirm_password: str
+
+
+class AssignRoleReq(BaseModel):
+    employee_id: str
+    role: str
+
+
+class RemoveRoleReq(BaseModel):
+    employee_id: str
+    role: str

@@ -5,17 +5,17 @@ from app.core.config import Config
 from app.api.utils.employees import generate_random_password, hash_password
 from app.schemas.auth import UserBase
 import uuid
+from fastapi import HTTPException
 
 
 MONGO_DATABASE = Config.MONGO_DATABASE
 EMPLOYEE_COLLECTION = Config.EMPLOYEE_COLLECTION
 USERS_COLLECTION = Config.USERS_COLLECTION
+ROLES_COLLECTION = Config.ROLES_COLLECTION
 
 
 async def create_employee(employee: EmployeeBase, mongo_client: AsyncIOMotorClient):
     employee = employee.model_dump()
-
-    role = "employee"
 
     employee["uuid"] = str(uuid.uuid4()).replace("-", "")
 
@@ -26,7 +26,10 @@ async def create_employee(employee: EmployeeBase, mongo_client: AsyncIOMotorClie
 
     print(password)
 
-    await create_user(employee, mongo_client)
+    await create_user(
+        employee,
+        mongo_client,
+    )
 
     # TODO: Send email with password to employee and insist on changing it on first login
 
@@ -41,11 +44,23 @@ async def create_employee(employee: EmployeeBase, mongo_client: AsyncIOMotorClie
 
 
 async def create_user(employee: dict, mongo_client: AsyncIOMotorClient):
+    role = "employee"
+
+    rolesdoc = await mongo_client[MONGO_DATABASE][ROLES_COLLECTION].find_one(
+        {"role": role}
+    )
+
+    if not rolesdoc:
+        raise HTTPException(
+            status_code=400, detail="Role '{}' does not exist".format(role)
+        )
+
     user = UserBase(
         employee_id=employee["employee_id"],
         uuid=employee["uuid"],
         email=employee["email"],
         password=employee["password"],
+        roles=[rolesdoc["_id"]],
     )
 
     if await mongo_client[MONGO_DATABASE][USERS_COLLECTION].insert_one(

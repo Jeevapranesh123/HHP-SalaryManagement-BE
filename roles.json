@@ -1,0 +1,19 @@
+{
+    "roles": [
+      {
+        "role": "employee",
+        "permissions":[]
+      },
+      {
+        "role": "HR",
+        "permissions":[]
+  
+      },
+      {
+        "role": "MD",
+        "permissions":[]
+  
+      }
+    ]
+  }
+  

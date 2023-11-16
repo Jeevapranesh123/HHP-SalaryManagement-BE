@@ -33,6 +33,8 @@ class Config(object):
 
     LOAN_COLLECTION = os.getenv("LOAN_COLLECTION") or "loan"
 
+    ROLES_COLLECTION = os.getenv("ROLES_COLLECTION") or "roles"
+
     TEMP_JWT_ID_COLLECTION = os.getenv("TEMP_JWT_ID_COLLECTION") or "jtis"
 
     OTHER_SALARY_COMPONENTS_COLLECTION = (

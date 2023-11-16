@@ -8,6 +8,8 @@ from app.schemas.auth import (
     ResetPasswordRequest,
     ResetPasswordResponse,
     ChangePasswordRequest,
+    AssignRoleReq,
+    RemoveRoleReq,
 )
 
 from app.database import get_mongo, AsyncIOMotorClient
@@ -115,3 +117,35 @@ async def get_logged_in_user(
         "status_code": 200,
         "data": res,
     }
+
+
+@router.post("/assign-role")
+async def assign_role(
+    role_request: AssignRoleReq,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+):
+    res = await auth_controller.assign_role(role_request, mongo_client)
+
+    if res:
+        return {
+            "message": "Role assigned successfully",
+            "status_code": 200,
+        }
+
+    raise HTTPException(status_code=400, detail="Role assignment failed")
+
+
+@router.delete("/remove-role")
+async def remove_role(
+    role_request: RemoveRoleReq,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+):
+    res = await auth_controller.remove_role(role_request, mongo_client)
+
+    if res:
+        return {
+            "message": "Role deleted successfully",
+            "status_code": 200,
+        }
+
+    raise HTTPException(status_code=400, detail="Role deletion failed")
