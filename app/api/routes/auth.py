@@ -108,7 +108,7 @@ async def get_logged_in_user(
     token: dict = Depends(verify_login_token),
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
 ):
-    res = await auth_controller.get_logged_in_user(token["email"], mongo_client)
+    res = await auth_controller.get_logged_in_user(token["employee_id"], mongo_client)
 
     return {
         "message": "Success",

@@ -15,6 +15,8 @@ USERS_COLLECTION = Config.USERS_COLLECTION
 async def create_employee(employee: EmployeeBase, mongo_client: AsyncIOMotorClient):
     employee = employee.model_dump()
 
+    role = "employee"
+
     employee["uuid"] = str(uuid.uuid4()).replace("-", "")
 
     # password = generate_random_password()

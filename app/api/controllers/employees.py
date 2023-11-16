@@ -23,7 +23,7 @@ async def create_employee(
     emp_in_create = EmployeeBase(**employee.model_dump())
 
     emp = await employee_crud.create_employee(emp_in_create, mongo_client)
-    print(emp)
+
     salary_create_req = SalaryBase(
         employee_id=emp["employee_id"],
         gross=0,
