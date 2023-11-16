@@ -38,3 +38,7 @@ async def create_employee(
 
 async def get_employee(employee_id: str, mongo_client: AsyncIOMotorClient):
     return await employee_crud.get_employee(employee_id, mongo_client)
+
+
+async def get_all_employees(mongo_client: AsyncIOMotorClient):
+    return await employee_crud.get_all_employees(mongo_client)

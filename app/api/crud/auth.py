@@ -4,6 +4,7 @@ from app.core.config import Config
 
 MONGO_DATABASE = Config.MONGO_DATABASE
 USERS_COLLECTION = Config.USERS_COLLECTION
+EMPLOYEE_COLLECTION = Config.EMPLOYEE_COLLECTION
 TEMP_JWT_ID_COLLECTION = Config.TEMP_JWT_ID_COLLECTION
 import datetime
 
@@ -65,3 +66,11 @@ async def change_password(email, mongo_client):
             }
         },
     )
+
+
+async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient):
+    emp = await mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].find_one(
+        {"employee_id": employee_id}, {"_id": 0}
+    )
+
+    return emp

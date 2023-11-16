@@ -125,3 +125,11 @@ async def get_employee(employee_id: str, mongo_client: AsyncIOMotorClient):
     emp = mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].aggregate(pipeline)
 
     return [e async for e in emp]
+
+
+async def get_all_employees(mongo_client):
+    emps = mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].find(
+        {}, {"employee_id": 1, "name": 1, "email": 1, "_id": 0}
+    )
+
+    return [e async for e in emps]

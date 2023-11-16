@@ -23,6 +23,17 @@ async def get_employee(
     return res
 
 
+@router.get("/")
+async def get_all_employees(mongo_client: AsyncIOMotorClient = Depends(get_mongo)):
+    res = await employee_controller.get_all_employees(mongo_client)
+
+    return {
+        "message": "Success",
+        "status_code": 200,
+        "data": res,
+    }
+
+
 @router.post("/create", response_model=EmployeeCreateResponse, status_code=201)
 async def create(
     employee: EmployeeCreateRequest,

@@ -116,3 +116,7 @@ async def reset_password(
     await auth_crud.delete_jwt_id(token_data["jti"], mongo_client)
 
     return {"message": "Password Reset Successful"}
+
+
+async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient):
+    return await auth_crud.get_logged_in_user(employee_id, mongo_client)

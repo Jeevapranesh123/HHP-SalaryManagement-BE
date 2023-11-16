@@ -101,3 +101,17 @@ async def logout(
     response.delete_cookie("Authorization")
 
     return {"message": "Logout Successful"}
+
+
+@router.get("/me")
+async def get_logged_in_user(
+    token: dict = Depends(verify_login_token),
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+):
+    res = await auth_controller.get_logged_in_user(token["email"], mongo_client)
+
+    return {
+        "message": "Success",
+        "status_code": 200,
+        "data": res,
+    }
