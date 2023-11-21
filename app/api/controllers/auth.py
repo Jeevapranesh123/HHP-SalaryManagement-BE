@@ -14,15 +14,18 @@ async def login(login_request, mongo_client: AsyncIOMotorClient):
 
     user = await auth_crud.check_if_email_exists(email, mongo_client)
 
+
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid Credentials")
+
     roles = await auth_crud.get_roles_with_id(user["roles"], mongo_client)
+
+    if not roles:
+        raise HTTPException(status_code=400, detail="Invalid Roles")
 
     for role in roles:
         print(role["role"])
 
-    # print(user["roles"])
-
-    if not user:
-        raise HTTPException(status_code=400, detail="Invalid Credentials")
 
     if not await verify_password(password, user["password"]):
         raise HTTPException(status_code=400, detail="Invalid Credentials")
