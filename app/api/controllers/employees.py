@@ -42,7 +42,7 @@ async def create_employee(
 async def get_employee(
     employee_id: str, formatted: bool, mongo_client: AsyncIOMotorClient
 ):
-    emp = await employee_crud.get_employee(employee_id, mongo_client)
+    emp = await employee_crud.get_employee_with_salary(employee_id, mongo_client)
     if formatted:
         res = {
             "information": {
@@ -81,7 +81,7 @@ async def update_employee(
     emp_in_update = EmployeeUpdateRequest(**employee_details.model_dump())
 
     emp_in_update = emp_in_update.model_dump(exclude_none=True)
-
+    print(emp_in_update)
     emp = await employee_crud.get_employee(employee_id, mongo_client)
 
     if not emp:
