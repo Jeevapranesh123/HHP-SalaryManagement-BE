@@ -90,7 +90,7 @@ async def create_user(employee: dict, mongo_client: AsyncIOMotorClient):
 
 async def get_employee(employee_id: str, mongo_client: AsyncIOMotorClient):
     emp = await mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].find_one(
-        {"employee_id": employee_id},
+        {"employee_id": employee_id}, {"_id": 0}
     )
 
     if emp:
@@ -101,11 +101,7 @@ async def get_employee(employee_id: str, mongo_client: AsyncIOMotorClient):
 
 async def get_employee_with_salary(employee_id: str, mongo_client: AsyncIOMotorClient):
     pipeline = [
-        {
-            "$match": {
-                "employee_id": employee_id,
-            }
-        },
+        {"$match": {"employee_id": employee_id}},
         {
             "$lookup": {
                 "from": "salary",
@@ -130,13 +126,17 @@ async def get_employee_with_salary(employee_id: str, mongo_client: AsyncIOMotorC
         },
         {
             "$addFields": {
-                "gross_salary": "$salary.gross",
-                "pf": "$salary.pf",
-                "esi": "$salary.esi",
-                "loss_of_pay": "$temp_salary.loss_of_pay",
-                "attendance_special_allowance": "$temp_salary.attendance_special_allowance",
-                "leave_cashback": "$temp_salary.leave_cashback",
-                "last_year_leave_cashback": "$temp_salary.last_year_leave_cashback",
+                "gross_salary": {"$ifNull": ["$salary.gross", 0]},
+                "pf": {"$ifNull": ["$salary.pf", 0]},
+                "esi": {"$ifNull": ["$salary.esi", 0]},
+                "loss_of_pay": {"$ifNull": ["$temp_salary.loss_of_pay", 0]},
+                "attendance_special_allowance": {
+                    "$ifNull": ["$temp_salary.attendance_special_allowance", 0]
+                },
+                "leave_cashback": {"$ifNull": ["$temp_salary.leave_cashback", 0]},
+                "last_year_leave_cashback": {
+                    "$ifNull": ["$temp_salary.last_year_leave_cashback", 0]
+                },
             }
         },
         {
@@ -179,7 +179,7 @@ async def get_employee_with_salary(employee_id: str, mongo_client: AsyncIOMotorC
             detail="Something went wrong, check get_employee function in crud/employees.py",
         )
     elif len(data) == 0:
-        print("Employee not foundagadfg")
+        print("Employee not found")
         raise HTTPException(status_code=404, detail="Employee not found")
 
     return None
