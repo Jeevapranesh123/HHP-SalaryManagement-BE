@@ -142,7 +142,19 @@ async def get_employee(employee_id: str, mongo_client: AsyncIOMotorClient):
 
     emp = mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].aggregate(pipeline)
 
-    return [e async for e in emp][0]
+    data = [e async for e in emp]
+
+    if len(data) == 1:
+        return data[0]
+    elif len(data) > 1:
+        raise HTTPException(
+            status_code=404,
+            detail="Something went wrong, check get_employee function in crud/employees.py",
+        )
+    elif len(data) == 0:
+        raise HTTPException(status_code=404, detail="Employee not found")
+
+    return None
 
 
 async def get_all_employees(mongo_client):
