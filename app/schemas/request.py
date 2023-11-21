@@ -48,9 +48,9 @@ class EmployeeUpdateRequest(BaseModel):
     govt_id_proofs: Optional[GovtIDProofs] = None
     # TODO: Father/Husband Phone Number (Optional) - decide on how to store this
 
-    @validator("phone")
+    @validator('phone', always=True)
     def phone_validator(cls, v):
-        if len(v) != 10:
+        if v is not None and len(v) != 10:
             raise HTTPException(
                 status_code=400, detail="Phone number must be 10 digits"
             )
