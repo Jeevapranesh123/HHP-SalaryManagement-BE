@@ -2,6 +2,7 @@ from fastapi import HTTPException
 from app.database import AsyncIOMotorClient
 
 from app.api.crud import auth as auth_crud
+from app.api.crud import employees as employee_crud
 
 from app.api.utils.employees import *
 
@@ -133,7 +134,9 @@ async def reset_password(
 
 
 async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient):
-    return await auth_crud.get_logged_in_user(employee_id, mongo_client)
+    emp = await employee_crud.get_employee_with_salary(employee_id, mongo_client)
+
+    return emp
 
 
 async def assign_role(role_req, mongo_client: AsyncIOMotorClient):

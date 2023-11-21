@@ -89,6 +89,17 @@ async def create_user(employee: dict, mongo_client: AsyncIOMotorClient):
 
 
 async def get_employee(employee_id: str, mongo_client: AsyncIOMotorClient):
+    emp = await mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].find_one(
+        {"employee_id": employee_id},
+    )
+
+    if emp:
+        return emp
+
+    return None
+
+
+async def get_employee_with_salary(employee_id: str, mongo_client: AsyncIOMotorClient):
     pipeline = [
         {
             "$match": {
