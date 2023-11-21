@@ -13,19 +13,18 @@ async def login(login_request, mongo_client: AsyncIOMotorClient):
     password = login_request.password
 
     user = await auth_crud.check_if_email_exists(email, mongo_client)
-
-
+    user_roles = len(user["roles"])
     if not user:
         raise HTTPException(status_code=400, detail="Invalid Credentials")
+    if not len(user["roles"]) == 0:
+        roles = await auth_crud.get_roles_with_id(user["roles"], mongo_client)
 
-    roles = await auth_crud.get_roles_with_id(user["roles"], mongo_client)
-
-    if not roles:
-        raise HTTPException(status_code=400, detail="Invalid Roles")
-
-    for role in roles:
-        print(role["role"])
-
+        if not roles:
+            raise HTTPException(status_code=400, detail="Invalid Roles")
+    if user_roles != 0:
+        token_roles = [role["role"] for role in roles]
+    else:
+        token_roles = []
 
     if not await verify_password(password, user["password"]):
         raise HTTPException(status_code=400, detail="Invalid Credentials")
@@ -36,7 +35,7 @@ async def login(login_request, mongo_client: AsyncIOMotorClient):
             "email": user["email"],
             "changed_password_at_first_login": user["changed_password_at_first_login"],
             "employee_id": user["employee_id"],
-            "roles": [role["role"] for role in roles],
+            "roles": token_roles,
         },
         token_type="access",
         mongo_client=mongo_client,

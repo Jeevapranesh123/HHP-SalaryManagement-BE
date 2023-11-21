@@ -21,7 +21,7 @@ async def get_employee(
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
 ):
     res = await employee_controller.get_employee(employee_id, formatted, mongo_client)
-
+    # return res
     return {
         "message": "Success",
         "status_code": 200,
