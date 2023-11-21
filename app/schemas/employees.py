@@ -36,9 +36,9 @@ class EmployeeBase(BaseModel):  # TODO: Add relevant fields in the future
     phone: str
     department: Optional[str] = None
     designation: Optional[str] = None
-    bank_details: Optional[BankDetails] = BankDetails
-    address: Optional[Address] = Address
-    govt_id_proofs: Optional[GovtIDProofs] = GovtIDProofs
+    bank_details: Optional[BankDetails]
+    address: Optional[Address]
+    govt_id_proofs: Optional[GovtIDProofs]
     # TODO: Father/Husband Phone Number (Optional) - decide on how to store this
 
     @validator("phone")
