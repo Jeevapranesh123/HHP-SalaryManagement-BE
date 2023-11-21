@@ -98,30 +98,7 @@ async def update_employee(
     return emp
 
 
-# # Function to get fields of a Pydantic model, including nested fields
-# # Function to get fields of a Pydantic model, including nested fields
-# def get_model_fields(model: Type[BaseModel], prefix: str = '') -> List[str]:
-#     fields = []
-#     for field_name, field_model in model.__fields__.items():
-#         if issubclass(field_model.type_, BaseModel):
-#             # Recursive call for nested fields
-#             nested_model = create_model(field_name, **{f.name: (f.outer_type_, ...) for f in field_model.type_.__fields__.values()})
-#             fields.extend(get_model_fields(nested_model, prefix=f"{prefix}{field_name}."))
-#         else:
-#             fields.append(f"{prefix}{field_name}")
-#     return fields
-
-# # Function to get editable fields
-# def get_editable_fields() -> List[str]:
-#     all_fields = get_model_fields(EmployeeBase)
-#     # Exclude non-editable fields
-#     editable_fields = [field for field in all_fields if field not in ["phone", "email"]]
-#     return editable_fields
-
-
 async def get_editable_fields():
-    # return ["name", "department", "designation", "bank_details", "address", "govt_id_proofs"]
-
     return [
         {"name": True},
         {"phone": True},
