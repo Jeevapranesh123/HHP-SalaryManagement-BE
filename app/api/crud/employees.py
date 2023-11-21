@@ -45,23 +45,39 @@ async def create_employee(employee: EmployeeBase, mongo_client: AsyncIOMotorClie
 
 
 async def create_user(employee: dict, mongo_client: AsyncIOMotorClient):
-    role = "employee"
+    primary_role = "employee"
+    secondary_role = ["employee"]
 
-    rolesdoc = await mongo_client[MONGO_DATABASE][ROLES_COLLECTION].find_one(
-        {"role": role}
+    primary_role_doc = await mongo_client[MONGO_DATABASE][ROLES_COLLECTION].find_one(
+        {"role": primary_role}
     )
 
-    if not rolesdoc:
+    if not primary_role_doc:
         raise HTTPException(
-            status_code=400, detail="Role '{}' does not exist".format(role)
+            status_code=400, detail="Role '{}' does not exist".format(primary_role)
         )
+
+    secondary_role_doc = []
+
+    for role in secondary_role:
+        role_doc = await mongo_client[MONGO_DATABASE][ROLES_COLLECTION].find_one(
+            {"role": role}
+        )
+
+        if not role_doc:
+            raise HTTPException(
+                status_code=400, detail="Role '{}' does not exist".format(role)
+            )
+
+        secondary_role_doc.append(role_doc["_id"])
 
     user = UserBase(
         employee_id=employee["employee_id"],
         uuid=employee["uuid"],
         email=employee["email"],
         password=employee["password"],
-        roles=[rolesdoc["_id"]],
+        primary_role=primary_role_doc["_id"],
+        secondary_roles=secondary_role_doc,
     )
 
     if await mongo_client[MONGO_DATABASE][USERS_COLLECTION].insert_one(
@@ -152,6 +168,7 @@ async def get_employee(employee_id: str, mongo_client: AsyncIOMotorClient):
             detail="Something went wrong, check get_employee function in crud/employees.py",
         )
     elif len(data) == 0:
+        print("Employee not foundagadfg")
         raise HTTPException(status_code=404, detail="Employee not found")
 
     return None

@@ -34,8 +34,8 @@ class EmployeeBase(BaseModel):  # TODO: Add relevant fields in the future
     name: str
     email: str
     phone: str
-    department: str
-    designation: str
+    department: Optional[str] = None
+    designation: Optional[str] = None
     bank_details: Optional[BankDetails] = None
     address: Optional[Address] = None
     govt_id_proofs: Optional[GovtIDProofs] = None

@@ -13,18 +13,23 @@ async def login(login_request, mongo_client: AsyncIOMotorClient):
     password = login_request.password
 
     user = await auth_crud.check_if_email_exists(email, mongo_client)
-    user_roles = len(user["roles"])
     if not user:
         raise HTTPException(status_code=400, detail="Invalid Credentials")
-    if not len(user["roles"]) == 0:
-        roles = await auth_crud.get_roles_with_id(user["roles"], mongo_client)
 
-        if not roles:
-            raise HTTPException(status_code=400, detail="Invalid Roles")
-    if user_roles != 0:
-        token_roles = [role["role"] for role in roles]
-    else:
-        token_roles = []
+    primary_role = None
+    secondary_roles = []
+
+    if user["primary_role"]:
+        primary_role = await auth_crud.get_role_with_id(
+            user["primary_role"], mongo_client
+        )
+        primary_role = primary_role["role"]
+
+    if user["secondary_roles"]:
+        secondary_roles = await auth_crud.get_roles_with_id(
+            user["secondary_roles"], mongo_client
+        )
+        secondary_roles = [role["role"] for role in secondary_roles]
 
     if not await verify_password(password, user["password"]):
         raise HTTPException(status_code=400, detail="Invalid Credentials")
@@ -35,7 +40,8 @@ async def login(login_request, mongo_client: AsyncIOMotorClient):
             "email": user["email"],
             "changed_password_at_first_login": user["changed_password_at_first_login"],
             "employee_id": user["employee_id"],
-            "roles": token_roles,
+            "primary_role": primary_role,
+            "secondary_roles": secondary_roles,
         },
         token_type="access",
         mongo_client=mongo_client,
@@ -148,9 +154,18 @@ async def assign_role(role_req, mongo_client: AsyncIOMotorClient):
     if not role:
         raise HTTPException(status_code=400, detail="Role does not exist")
 
-    update = await auth_crud.assign_role(
-        employee["employee_id"], role["_id"], mongo_client
-    )
+    if role_req.type.value == "primary":
+        update = await auth_crud.assign_primary_role(
+            employee["employee_id"], role["_id"], mongo_client
+        )
+
+    elif role_req.type.value == "secondary":
+        update = await auth_crud.assign_secondary_role(
+            employee["employee_id"], role["_id"], mongo_client
+        )
+
+    else:
+        raise HTTPException(status_code=400, detail="Invalid Role Type")
 
     if update:
         return True
@@ -174,9 +189,18 @@ async def remove_role(role_req, mongo_client: AsyncIOMotorClient):
     if not role:
         raise HTTPException(status_code=400, detail="Role does not exist")
 
-    update = await auth_crud.remove_role(
-        employee["employee_id"], role["_id"], mongo_client
-    )
+    if role_req.type.value == "primary":
+        update = await auth_crud.remove_primary_role(
+            employee["employee_id"], role["_id"], mongo_client
+        )
+
+    elif role_req.type.value == "secondary":
+        update = await auth_crud.remove_secondary_role(
+            employee["employee_id"], role["_id"], mongo_client
+        )
+
+    else:
+        raise HTTPException(status_code=400, detail="Invalid Role Type")
 
     if update:
         return True
