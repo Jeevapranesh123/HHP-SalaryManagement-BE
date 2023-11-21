@@ -2,7 +2,9 @@ import json
 from pymongo import MongoClient
 
 # Connect to MongoDB
-client = MongoClient("mongodb://localhost:27017/")
+# client = MongoClient("mongodb://localhost:27017/")
+client = MongoClient("mongodb://root:zuvaLabs@lab.zuvatech.com:27017/")
+
 
 # Select database and collection
 db = client["hhp-esm"]
