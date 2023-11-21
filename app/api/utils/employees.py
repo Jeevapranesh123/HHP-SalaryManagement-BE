@@ -65,8 +65,14 @@ async def validate_update_employee(
     employee_details: EmployeeUpdateRequest,
     mongo_client: AsyncIOMotorClient,
 ):
-    if await check_if_phone_exists(employee_details.phone, mongo_client):
-        return False, "Phone already exists"
+    emp = await check_if_employee_id_exists(employee_id, mongo_client)
+    if not emp:
+        return False, "Employee ID does not exist"
+
+    if not employee_details.phone == emp["phone"]:
+        if await check_if_phone_exists(employee_details.phone, mongo_client):
+            return False, "Phone already exists"
+
     return True, "Validated"
 
 

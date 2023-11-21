@@ -36,8 +36,34 @@ async def create_employee(
     return emp
 
 
-async def get_employee(employee_id: str, mongo_client: AsyncIOMotorClient):
-    return await employee_crud.get_employee(employee_id, mongo_client)
+async def get_employee(
+    employee_id: str, formatted: bool, mongo_client: AsyncIOMotorClient
+):
+    emp = await employee_crud.get_employee(employee_id, mongo_client)
+    if formatted:
+        res = {
+            "information": {
+                "employee_id": "EMP67890",
+                "name": "Alice Smith",
+                "email": "alicesmith@example.com",
+                "phone": "9876543210",
+                "department": "Human Resources",
+                "designation": "HR Manager",
+            },
+            "bank_details": emp["bank_details"],
+            "address": emp["address"],
+            "govt_id_proofs": emp["govt_id_proofs"],
+            "salary_details": {
+                "gross_salary": emp["gross_salary"],
+                "pf": emp["pf"],
+                "esi": emp["esi"],
+                "net_salary": emp["net_salary"],
+            },
+        }
+
+        return res
+
+    return emp
 
 
 async def get_all_employees(mongo_client: AsyncIOMotorClient):
@@ -50,6 +76,8 @@ async def update_employee(
     mongo_client: AsyncIOMotorClient,
 ):
     emp_in_update = EmployeeUpdateRequest(**employee_details.model_dump())
+
+    emp_in_update = emp_in_update.model_dump(exclude_none=True)
 
     emp = await employee_crud.get_employee(employee_id, mongo_client)
 

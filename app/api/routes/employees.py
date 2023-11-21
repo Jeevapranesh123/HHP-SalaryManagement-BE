@@ -16,11 +16,17 @@ router = APIRouter()
 
 @router.get("/{employee_id}")
 async def get_employee(
-    employee_id: str, mongo_client: AsyncIOMotorClient = Depends(get_mongo)
+    employee_id: str,
+    formatted: bool = False,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
 ):
-    res = await employee_controller.get_employee(employee_id, mongo_client)
+    res = await employee_controller.get_employee(employee_id, formatted, mongo_client)
 
-    return res
+    return {
+        "message": "Success",
+        "status_code": 200,
+        "data": res,
+    }
 
 
 @router.get("/")
@@ -61,7 +67,5 @@ async def update(
     )
 
     return EmployeeUpdateResponse(
-        message="Employee Updated Successfully",
-        status_code=200,
-        data=res.model_dump(),
+        message="Employee Updated Successfully", status_code=200, data=res
     )

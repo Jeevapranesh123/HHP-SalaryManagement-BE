@@ -26,7 +26,7 @@ class EmployeeCreateResponse(BaseResponse):
 
 
 class EmployeeUpdateResponse(BaseResponse):
-    data: EmployeeUpdateRes
+    data: dict
 
 
 class SalaryResponse(BaseModel):

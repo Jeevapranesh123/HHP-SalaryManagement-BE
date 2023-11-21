@@ -142,7 +142,7 @@ async def get_employee(employee_id: str, mongo_client: AsyncIOMotorClient):
 
     emp = mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].aggregate(pipeline)
 
-    return [e async for e in emp]
+    return [e async for e in emp][0]
 
 
 async def get_all_employees(mongo_client):
@@ -153,11 +153,7 @@ async def get_all_employees(mongo_client):
     return [e async for e in emps]
 
 
-async def update_employee(
-    employee_id: str, employee_details: EmployeeUpdateRequest, mongo_client
-):
-    employee_details = employee_details.model_dump()
-
+async def update_employee(employee_id: str, employee_details, mongo_client):
     if await mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].update_one(
         {"employee_id": employee_id}, {"$set": employee_details}
     ):
