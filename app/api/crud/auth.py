@@ -89,7 +89,7 @@ async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient)
 async def get_role(role, mongo_client):
     role = await mongo_client[MONGO_DATABASE][ROLES_COLLECTION].find_one({"role": role})
 
-    return
+    return role
 
 
 async def get_roles_with_id(roles, mongo_client):
