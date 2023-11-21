@@ -92,15 +92,24 @@ async def get_role(role, mongo_client):
     return role
 
 
-async def get_roles_with_id(roles, mongo_client):
-    roles = mongo_client[MONGO_DATABASE][ROLES_COLLECTION].find({"_id": {"$in": roles}})
+async def get_role_with_id(role_id, mongo_client):
+    role = await mongo_client[MONGO_DATABASE][ROLES_COLLECTION].find_one(
+        {"_id": role_id}
+    )
+    return role
+
+
+async def get_roles_with_id(role_ids, mongo_client):
+    roles = mongo_client[MONGO_DATABASE][ROLES_COLLECTION].find(
+        {"_id": {"$in": role_ids}}
+    )
     return [x async for x in roles]
 
 
-async def assign_role(employee_id, role_id, mongo_client):
+async def assign_primary_role(employee_id, role_id, mongo_client):
     update = await mongo_client[MONGO_DATABASE][USERS_COLLECTION].update_one(
         {"employee_id": employee_id},
-        {"$addToSet": {"roles": role_id}},
+        {"$set": {"primary_role": role_id}},
     )
 
     print(update.matched_count)
@@ -108,10 +117,30 @@ async def assign_role(employee_id, role_id, mongo_client):
     return update
 
 
-async def remove_role(employee_id, role_id, mongo_client):
+async def assign_secondary_role(employee_id, role_id, mongo_client):
+    update = await mongo_client[MONGO_DATABASE][USERS_COLLECTION].update_one(
+        {"employee_id": employee_id},
+        {"$addToSet": {"secondary_roles": role_id}},
+    )
+
+    print(update.matched_count)
+
+    return update
+
+
+async def remove_primary_role(employee_id, role_id, mongo_client):
     remove = await mongo_client[MONGO_DATABASE][USERS_COLLECTION].update_one(
         {"employee_id": employee_id},
-        {"$pull": {"roles": role_id}},
+        {"$set": {"primary_role": None}},
+    )
+
+    return remove
+
+
+async def remove_secondary_role(employee_id, role_id, mongo_client):
+    remove = await mongo_client[MONGO_DATABASE][USERS_COLLECTION].update_one(
+        {"employee_id": employee_id},
+        {"$pull": {"secondary_roles": role_id}},
     )
 
     return remove

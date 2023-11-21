@@ -69,3 +69,25 @@ async def update(
     return EmployeeUpdateResponse(
         message="Employee Updated Successfully", status_code=200, data=res
     )
+
+
+@router.get("/info/editable")
+async def get_editable_fields():
+    res = await employee_controller.get_editable_fields()
+
+    return {
+        "message": "Success",
+        "status_code": 200,
+        "data": res,
+    }
+
+
+@router.get("/info/create-required")
+async def get_create_required_fields():
+    res = await employee_controller.get_create_required_fields()
+
+    return {
+        "message": "Success",
+        "status_code": 200,
+        "data": res,
+    }
