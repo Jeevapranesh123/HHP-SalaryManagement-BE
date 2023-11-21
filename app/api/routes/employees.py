@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, Response, Request
 
 # Import all the Schemas
-from app.schemas.request import EmployeeCreateRequest
-from app.schemas.response import EmployeeCreateResponse
+from app.schemas.request import EmployeeCreateRequest, EmployeeUpdateRequest
+from app.schemas.response import EmployeeCreateResponse, EmployeeUpdateResponse
 
 # import DB Utils
 from app.database import get_mongo, AsyncIOMotorClient
@@ -46,4 +46,22 @@ async def create(
         message="Employee Created Successfully",
         status_code=201,
         data=res,
+    )
+
+
+@router.put("/update")
+async def update(
+    employee_id: str,
+    employee_details: EmployeeUpdateRequest,
+    response: Response,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+):
+    res = await employee_controller.update_employee(
+        employee_id, employee_details, mongo_client
+    )
+
+    return EmployeeUpdateResponse(
+        message="Employee Updated Successfully",
+        status_code=200,
+        data=res.model_dump(),
     )

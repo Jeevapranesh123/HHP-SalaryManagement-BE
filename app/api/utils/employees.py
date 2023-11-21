@@ -1,4 +1,5 @@
 from app.schemas.employees import EmployeeBase
+from app.schemas.request import EmployeeUpdateRequest
 from app.database import AsyncIOMotorClient
 from fastapi import HTTPException, Security, Header
 
@@ -29,38 +30,42 @@ ALGORITHM = (
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-async def check_if_employee_exists(
-    employee: EmployeeBase, mongo_client: AsyncIOMotorClient
-):
+async def check_if_employee_id_exists(employee_id, mongo_client: AsyncIOMotorClient):
     return await mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].find_one(
-        {"employee_id": employee.employee_id}
+        {"employee_id": employee_id}
     )
 
 
-async def check_if_email_exists(
-    employee: EmployeeBase, mongo_client: AsyncIOMotorClient
-):
+async def check_if_email_exists(email, mongo_client: AsyncIOMotorClient):
     return await mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].find_one(
-        {"email": employee.email}
+        {"email": email}
     )
 
 
-async def check_if_phone_exists(
-    employee: EmployeeBase, mongo_client: AsyncIOMotorClient
-):
+async def check_if_phone_exists(phone, mongo_client: AsyncIOMotorClient):
     return await mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].find_one(
-        {"phone": employee.phone}
+        {"phone": phone}
     )
 
 
 async def validate_new_employee(
     employee: EmployeeBase, mongo_client: AsyncIOMotorClient
 ):
-    if await check_if_employee_exists(employee, mongo_client):
+    if await check_if_employee_id_exists(employee.employee_id, mongo_client):
         return False, "Employee ID already exists"
-    if await check_if_email_exists(employee, mongo_client):
+    if await check_if_email_exists(employee.email, mongo_client):
         return False, "Email already exists"
-    if await check_if_phone_exists(employee, mongo_client):
+    if await check_if_phone_exists(employee.phone, mongo_client):
+        return False, "Phone already exists"
+    return True, "Validated"
+
+
+async def validate_update_employee(
+    employee_id,
+    employee_details: EmployeeUpdateRequest,
+    mongo_client: AsyncIOMotorClient,
+):
+    if await check_if_phone_exists(employee_details.phone, mongo_client):
         return False, "Phone already exists"
     return True, "Validated"
 

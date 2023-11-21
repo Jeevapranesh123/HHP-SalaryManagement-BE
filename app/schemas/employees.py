@@ -1,4 +1,4 @@
-from pydantic import BaseModel, model_validator, root_validator
+from pydantic import BaseModel, model_validator, root_validator, validator
 from typing import List, Optional
 import datetime
 
@@ -39,3 +39,13 @@ class EmployeeBase(BaseModel):  # TODO: Add relevant fields in the future
     address: Optional[Address] = None
     govt_id_proofs: Optional[GovtIDProofs] = None
     # TODO: Father/Husband Phone Number (Optional) - decide on how to store this
+
+    @validator("phone")
+    def phone_validator(cls, v):
+        if len(v) != 10:
+            raise ValueError("Phone number must be 10 digits")
+        return v
+
+    # FIXME: Add validation for aadhar, pan, voter_id, driving_license, passport
+    # FIXME: Add validation for bank_name, account_number, ifsc_code, branch, address
+    # FIXME: Add validation for email

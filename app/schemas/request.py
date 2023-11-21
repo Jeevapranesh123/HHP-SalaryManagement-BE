@@ -7,15 +7,27 @@ from app.schemas.loan import LoanBase
 
 from enum import Enum
 
-from pydantic import Field
+from pydantic import Field, create_model
 
 
 from typing import Optional
+
+exclude_fields_for_employee_update = ["employee_id", "email"]
 
 
 class EmployeeCreateRequest(EmployeeBase):
     # employees: Employee
     pass
+
+
+EmployeeUpdateRequest = create_model(
+    "EmployeeUpdateRequest",
+    **{
+        name: (field, ...)
+        for name, field in EmployeeBase.__annotations__.items()
+        if name not in exclude_fields_for_employee_update
+    }
+)
 
 
 class SalaryCreateRequest(SalaryBase):

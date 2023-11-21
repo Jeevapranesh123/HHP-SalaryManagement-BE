@@ -19,8 +19,8 @@ class MongoManger:
     async def connect_to_database(self):
         logger.info("Connect to the MongoDB...")
         # self.client = AsyncIOMotorClient("mongodb://root:zuvaLabs@mongodb:27017/?authMechanism=DEFAULT")
-        self.client = AsyncIOMotorClient(self.mongo_uri)
-        # self.client = AsyncIOMotorClient(Config.MONGO_HOST)
+        # self.client = AsyncIOMotorClient(self.mongo_uri)
+        self.client = AsyncIOMotorClient(Config.MONGO_HOST)
         logger.info("Successfully connected to the MongoDB!")
 
     async def close_database_connection(self):

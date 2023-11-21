@@ -1,5 +1,6 @@
 from app.schemas.employees import EmployeeBase
 from app.schemas.db import EmployeeInDB
+from app.schemas.request import EmployeeUpdateRequest
 from app.database import AsyncIOMotorClient
 from app.core.config import Config
 from app.api.utils.employees import generate_random_password, hash_password
@@ -150,3 +151,16 @@ async def get_all_employees(mongo_client):
     )
 
     return [e async for e in emps]
+
+
+async def update_employee(
+    employee_id: str, employee_details: EmployeeUpdateRequest, mongo_client
+):
+    employee_details = employee_details.model_dump()
+
+    if await mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].update_one(
+        {"employee_id": employee_id}, {"$set": employee_details}
+    ):
+        return await get_employee(employee_id, mongo_client)
+
+    return None

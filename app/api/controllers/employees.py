@@ -2,12 +2,12 @@ from fastapi import HTTPException
 
 from app.database import AsyncIOMotorClient
 
-from app.api.utils.employees import validate_new_employee
+from app.api.utils.employees import validate_new_employee, validate_update_employee
 
 from app.api.crud import employees as employee_crud
 from app.api.controllers import salary as salary_controller
 
-from app.schemas.request import EmployeeCreateRequest
+from app.schemas.request import EmployeeCreateRequest, EmployeeUpdateRequest
 from app.schemas.employees import EmployeeBase
 
 from app.schemas.salary import SalaryBase
@@ -42,3 +42,26 @@ async def get_employee(employee_id: str, mongo_client: AsyncIOMotorClient):
 
 async def get_all_employees(mongo_client: AsyncIOMotorClient):
     return await employee_crud.get_all_employees(mongo_client)
+
+
+async def update_employee(
+    employee_id,
+    employee_details: EmployeeUpdateRequest,
+    mongo_client: AsyncIOMotorClient,
+):
+    emp_in_update = EmployeeUpdateRequest(**employee_details.model_dump())
+
+    emp = await employee_crud.get_employee(employee_id, mongo_client)
+
+    if not emp:
+        raise HTTPException(status_code=404, detail="Employee not found")
+
+    is_valid, message = await validate_update_employee(
+        employee_id, employee_details, mongo_client
+    )
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=message)
+
+    emp = await employee_crud.update_employee(employee_id, emp_in_update, mongo_client)
+
+    return emp
