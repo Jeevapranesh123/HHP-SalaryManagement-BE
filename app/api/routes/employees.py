@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Response, Request
+from fastapi import APIRouter, Depends, Response
 
 # Import all the Schemas
 from app.schemas.request import EmployeeCreateRequest, EmployeeUpdateRequest
@@ -40,7 +40,7 @@ async def get_all_employees(mongo_client: AsyncIOMotorClient = Depends(get_mongo
     }
 
 
-@router.post("/create", response_model=EmployeeCreateResponse, status_code=201)
+@router.post("/create", status_code=201)
 async def create(
     employee: EmployeeCreateRequest,
     response: Response,
