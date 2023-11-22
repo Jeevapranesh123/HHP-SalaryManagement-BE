@@ -11,43 +11,6 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.database import mongo
 
 from fastapi.middleware.cors import CORSMiddleware
-import json
-import pika
-import threading
-import socketio
-
-
-class SocketIOManager:
-    def __init__(self):
-        self.sio = socketio.AsyncServer(async_mode="asgi")
-        self.app = socketio.ASGIApp(self.sio)
-
-    async def on_connect(self, sid, environ):
-        print("Client connected", sid)
-        while True:
-            await self.sio.sleep(1)
-            await self.sio.emit("notification", {"message": "Hello"}, to=sid)
-        # Perform authentication and other checks here
-        # user = self.authenticate_user(environ)
-        # if user:
-        #     await self.setup_rabbitmq_consumer(sid, user)
-
-    async def on_disconnect(self, sid):
-        print("Client disconnected", sid)
-        # Cleanup, e.g., stop RabbitMQ consumer thread
-
-    # async def authenticate_user(self, environ):
-    #     # Implement user authentication logic
-    #     # Return user object if authenticated
-    #     pass
-
-    # async def setup_rabbitmq_consumer(self, sid, user):
-    #     thread = threading.Thread(target=self.start_rabbitmq_consumer, args=(sid, user))
-    #     thread.start()
-
-    # def start_rabbitmq_consumer(self, sid, user):
-    #     def callback(ch, method, properties, body):
-    #         async_to_sync(self.sio.emit)('notification', {'message': body.decode()}, to=sid)
 
 
 app = FastAPI(
@@ -55,26 +18,6 @@ app = FastAPI(
     description="This is a very fancy project, with auto docs for the API and everything",
     version="0.0.1",
 )
-
-# sio = socketio.AsyncServer(async_mode="asgi")
-# socket_app = socketio.ASGIApp(sio)
-
-# # Mount the Socket.IO application
-# app.mount("/socket", socket_app)
-
-
-# # Socket.IO events
-# @sio.event
-# async def connect(sid, environ):
-#     print("Client connected", sid)
-#     # while True:
-#     #     await sio.sleep(1)
-#     #     await sio.emit('notification', {'message': 'Hello'}, to=sid)
-
-
-# @sio.event
-# async def disconnect(sid):
-#     print("Client disconnected", sid)
 
 
 class StatusCodeMiddleware(BaseHTTPMiddleware):
