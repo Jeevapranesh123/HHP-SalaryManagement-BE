@@ -111,6 +111,5 @@ async def respond_advance(
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
-    res = await salary_controller.respond_salary_advance(
-        SalaryAdvanceRespondRequest, mongo_client
-    )
+    sal_obj = SalaryController(payload, mongo_client)
+    res = await sal_obj.respond_salary_advance(SalaryAdvanceRespondRequest)
