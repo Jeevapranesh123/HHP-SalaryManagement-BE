@@ -3,17 +3,6 @@ from pydantic import BaseModel, root_validator
 from enum import Enum
 
 
-class SalaryBase(BaseModel):
-    employee_id: str
-    gross: float
-    pf: float
-    esi: float
-
-    # @root_validator
-    # def validate_net_salary(cls, values):
-    #     net = values["basic"] + values["hra"] + values["conveyance"] - values["pf"]*12 - values["esi"]*12
-
-
 class SalaryAdvanceApplicationStatus(str, Enum):
     pending = "pending"
     approved = "approved"
@@ -26,9 +15,25 @@ class SalaryAdvanceBase(BaseModel):
     amount: float
 
 
-class Temp(BaseModel):
+class SalaryBase(BaseModel):
     employee_id: str
-    loss_of_pay: float
-    leave_cashback: float
-    last_year_leave_cashback: float
-    attendance_special_allowance: float
+    gross_salary: Optional[float] = 0.0
+    pf: Optional[float] = 0.0
+    esi: Optional[float] = 0.0
+
+
+class MonthlyCompensationBase(BaseModel):
+    employee_id: str
+    loss_of_pay: Optional[float] = 0.0
+    leave_cashback: Optional[float] = 0.0
+    last_year_leave_cashback: Optional[float] = 0.0
+    attendance_special_allowance: Optional[float] = 0.0
+    other_special_allowance: Optional[float] = 0.0
+    overtime: Optional[float] = 0.0
+
+
+class SalaryIncentivesBase(BaseModel):
+    employee_id: str
+    allowance: Optional[float] = 0.0
+    increment: Optional[float] = 0.0
+    bonus: Optional[float] = 0.0

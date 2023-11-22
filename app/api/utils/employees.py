@@ -101,7 +101,7 @@ async def create_access_token(
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+        expire = datetime.utcnow() + timedelta(hours=24)
 
     id = str(uuid.uuid4()).replace("-", "")
 
@@ -132,6 +132,8 @@ async def verify_login_token(
 
         if payload.get("exp") < int(datetime.utcnow().timestamp()):
             raise HTTPException(status_code=401, detail="Token has expired")
+
+        # FIXME: Check if a user with the uuid exists in the database
 
         return payload  # or any specific user data you need from the payload
     except jwt.PyJWTError as e:

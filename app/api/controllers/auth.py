@@ -7,6 +7,7 @@ from app.api.crud import employees as employee_crud
 from app.api.utils.employees import *
 
 from app.api.utils.employees import verify_password
+from app.schemas.salary import SalaryBase, MonthlyCompensationBase, SalaryIncentivesBase
 
 
 async def login(login_request, mongo_client: AsyncIOMotorClient):
@@ -136,7 +137,34 @@ async def reset_password(
 async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient):
     emp = await employee_crud.get_employee_with_salary(employee_id, mongo_client)
 
-    return emp
+    salary_base = SalaryBase(**emp)
+    salary_base = salary_base.model_dump(exclude={"employee_id"})
+    salary_base["net_salary"] = emp["net_salary"]
+
+    monthly_compensation_base = MonthlyCompensationBase(**emp)
+    monthly_compensation_base = monthly_compensation_base.model_dump(
+        exclude={"employee_id"}
+    )
+
+    salary_incentives_base = SalaryIncentivesBase(**emp)
+    salary_incentives_base = salary_incentives_base.model_dump(exclude={"employee_id"})
+
+    return {
+        "basic_details": {
+            "employee_id": emp["employee_id"],
+            "name": emp["name"],
+            "email": emp["email"],
+            "phone": emp["phone"],
+            "department": emp["department"],
+            "designation": emp["designation"],
+        },
+        "bank_details": emp["bank_details"],
+        "address": emp["address"],
+        "govt_id_proofs": emp["govt_id_proofs"],
+        "basic_salary": salary_base,
+        "monthly_compensation": monthly_compensation_base,
+        "salary_incentives": salary_incentives_base,
+    }
 
 
 async def assign_role(role_req, mongo_client: AsyncIOMotorClient):

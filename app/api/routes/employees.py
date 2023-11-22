@@ -8,7 +8,8 @@ from app.schemas.response import EmployeeCreateResponse, EmployeeUpdateResponse
 from app.database import get_mongo, AsyncIOMotorClient
 
 # import Controllers
-from app.api.controllers import employees as employee_controller
+from app.api.controllers.employees import EmployeeController
+from app.api.utils.employees import verify_login_token
 
 
 router = APIRouter()
@@ -19,9 +20,11 @@ async def get_employee(
     employee_id: str,
     formatted: bool = False,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
 ):
-    res = await employee_controller.get_employee(employee_id, formatted, mongo_client)
-    # return res
+    obj = EmployeeController(payload, mongo_client)
+    res = await obj.get_employee(employee_id)
+
     return {
         "message": "Success",
         "status_code": 200,
@@ -30,8 +33,12 @@ async def get_employee(
 
 
 @router.get("/")
-async def get_all_employees(mongo_client: AsyncIOMotorClient = Depends(get_mongo)):
-    res = await employee_controller.get_all_employees(mongo_client)
+async def get_all_employees(
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    obj = EmployeeController(payload, mongo_client)
+    res = await obj.get_all_employees()
 
     return {
         "message": "Success",
@@ -45,8 +52,14 @@ async def create(
     employee: EmployeeCreateRequest,
     response: Response,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    # payload: dict = Depends(verify_login_token),
 ):
-    res = await employee_controller.create_employee(employee, mongo_client)
+    payload = {
+        "employee_id": "EMP12345",
+        "primary_role": "HR",
+    }
+    obj = EmployeeController(payload, mongo_client)
+    res = await obj.create_employee(employee)
 
     return EmployeeCreateResponse(
         message="Employee Created Successfully",
@@ -61,10 +74,10 @@ async def update(
     employee_details: EmployeeUpdateRequest,
     response: Response,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
 ):
-    res = await employee_controller.update_employee(
-        employee_id, employee_details, mongo_client
-    )
+    obj = EmployeeController(payload, mongo_client)
+    res = await obj.update_employee(employee_id, employee_details)
 
     return EmployeeUpdateResponse(
         message="Employee Updated Successfully", status_code=200, data=res
@@ -72,8 +85,12 @@ async def update(
 
 
 @router.get("/info/editable")
-async def get_editable_fields():
-    res = await employee_controller.get_editable_fields()
+async def get_editable_fields(
+    payload: dict = Depends(verify_login_token),
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+):
+    obj = EmployeeController(payload, mongo_client)
+    res = await obj.get_editable_fields()
 
     return {
         "message": "Success",
@@ -83,9 +100,12 @@ async def get_editable_fields():
 
 
 @router.get("/info/create-required")
-async def get_create_required_fields():
-    res = await employee_controller.get_create_required_fields()
-
+async def get_create_required_fields(
+    payload: dict = Depends(verify_login_token),
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+):
+    obj = EmployeeController(payload, mongo_client)
+    res = await obj.get_create_required_fields()
     return {
         "message": "Success",
         "status_code": 200,

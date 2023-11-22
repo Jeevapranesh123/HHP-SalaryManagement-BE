@@ -112,8 +112,6 @@ async def assign_primary_role(employee_id, role_id, mongo_client):
         {"$set": {"primary_role": role_id}},
     )
 
-    print(update.matched_count)
-
     return update
 
 
@@ -122,8 +120,6 @@ async def assign_secondary_role(employee_id, role_id, mongo_client):
         {"employee_id": employee_id},
         {"$addToSet": {"secondary_roles": role_id}},
     )
-
-    print(update.matched_count)
 
     return update
 

@@ -3,11 +3,18 @@ from app.schemas.salary import (
     SalaryBase,
     SalaryAdvanceBase,
     SalaryAdvanceApplicationStatus,
+    MonthlyCompensationBase,
+    SalaryIncentivesBase,
 )
 from app.schemas.leave import LeaveBase, PermissionBase, LeaveApplicationStatus
 from app.schemas.loan import LoanBase, LoanApplicationStatus
 import datetime
 from typing import Optional
+
+
+def first_day_of_current_month():
+    now = datetime.datetime.now()
+    return datetime.datetime(now.year, now.month, 1, 0, 0, 0)
 
 
 class EmployeeInDB(EmployeeBase):
@@ -16,6 +23,24 @@ class EmployeeInDB(EmployeeBase):
 
 class SalaryInDB(SalaryBase):
     id: str
+    created_at: datetime.datetime = datetime.datetime.now()
+    created_by: str = "admin"
+    updated_at: datetime.datetime = None
+    updated_by: str = None
+
+
+class MonthlyCompensationInDB(MonthlyCompensationBase):
+    id: str
+    month: datetime.datetime = first_day_of_current_month()
+    created_at: datetime.datetime = datetime.datetime.now()
+    created_by: str = "admin"
+    updated_at: datetime.datetime = None
+    updated_by: str = None
+
+
+class SalaryIncentivesInDB(SalaryIncentivesBase):
+    id: str
+    month: datetime.datetime = first_day_of_current_month()
     created_at: datetime.datetime = datetime.datetime.now()
     created_by: str = "admin"
     updated_at: datetime.datetime = None
