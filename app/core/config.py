@@ -27,11 +27,21 @@ class Config(object):
 
     SALARY_COLLECTION = os.getenv("SALARY_COLLECTION") or "salary"
 
-    TEMP_SALARY_COLLECTION = os.getenv("TEMP_SALARY_COLLECTION") or "temp_salary"
+    MONTHLY_COMPENSATION_COLLECTION = (
+        os.getenv("MONTHLY_COMPENSATION_COLLECTION") or "monthly_compensation"
+    )
+
+    SALARY_INCENTIVES_COLLECTION = (
+        os.getenv("SALARY_INCENTIVES_COLLECTION") or "salary_incentives"
+    )
 
     LEAVE_COLLECTION = os.getenv("LEAVE_COLLECTION") or "leave"
 
     LOAN_COLLECTION = os.getenv("LOAN_COLLECTION") or "loan"
+
+    SALARY_ADVANCE_COLLECTION = (
+        os.getenv("SALARY_ADVANCE_COLLECTION") or "salary_advance"
+    )
 
     ROLES_COLLECTION = os.getenv("ROLES_COLLECTION") or "roles"
 

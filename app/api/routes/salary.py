@@ -4,93 +4,112 @@ from fastapi import APIRouter, Depends, Response, Request
 # import DB Utils
 from app.database import get_mongo, AsyncIOMotorClient
 
-from app.api.controllers import salary as salary_controller
+from app.api.controllers.salary import SalaryController
 
 from app.schemas.request import (
-    SalaryCreateRequest,
+    PostSalaryRequest,
+    PostMonthlyCompensationRequest,
+    PostSalaryIncentivesRequest,
     SalaryAdvanceRequest,
     SalaryAdvanceRespondRequest,
 )
 from app.schemas.salary import (
-    Temp,
+    MonthlyCompensationBase,
+    SalaryIncentivesBase,
 )  # FIXME: Create a Request and Response Schema for Temp Salary
-from app.schemas.response import SalaryCreateResponse, SalaryResponse
-
+from app.schemas.response import (
+    PostSalaryResponse,
+    PostMonthlyCompensationResponse,
+    PostSalaryIncentivesResponse,
+)
+from app.api.utils.employees import verify_login_token
 
 router = APIRouter()
 
 
 @router.get("/", status_code=200)
-async def get_all_salaries(mongo_client: AsyncIOMotorClient = Depends(get_mongo)):
-    return await salary_controller.get_all_salaries(mongo_client)
+async def get_all_salaries(
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    sal_obj = SalaryController(payload, mongo_client)
+    return await sal_obj.get_all_salaries()
+
+
+@router.get("/get_salary/{employee_id}", status_code=200)
+async def get_salary(
+    employee_id: str,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    sal_obj = SalaryController(payload, mongo_client)
+    return await sal_obj.get_salary(employee_id)
 
 
 @router.put("/post_salary")
 async def post_salary(
-    SalaryCreateRequest: SalaryCreateRequest,
+    PostSalaryRequest: PostSalaryRequest,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
 ):
-    res = await salary_controller.post_salary(SalaryCreateRequest, mongo_client)
+    sal_obj = SalaryController(payload, mongo_client)
+    res = await sal_obj.post_salary(PostSalaryRequest)
 
-    return SalaryCreateResponse(
+    return PostSalaryResponse(
         message="Salary Updated successfully",
         status_code=200,
-        data=SalaryResponse(
-            employee_id=res["employee_id"],
-            gross=res["gross"],
-        ),
+        data=res,
     )
 
 
-@router.post("/temp", status_code=201)
-async def create_temp(
-    temp: Temp,
+@router.put("/post_monthly_compensation")
+async def post_monthly_compensation(
+    PostMonthlyCompensationRequest: PostMonthlyCompensationRequest,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
 ):
-    res = await salary_controller.create_temp(temp, mongo_client)
+    sal_obj = SalaryController(payload, mongo_client)
+    res = await sal_obj.post_monthly_compensation(PostMonthlyCompensationRequest)
 
-    # return SalaryCreateResponse(
-    #     message="Salary created successfully",
-    #     status_code=201,
-    #     data=SalaryResponse(
-    #         employee_id=res["employee_id"],
-    #         gross=res["gross"],
-    #         net_salary=res["net_salary"]
-    #     ),
-    # )
-    return res
+    return PostMonthlyCompensationResponse(
+        message="Monthly Compensation Updated successfully",
+        status_code=200,
+        data=res,
+    )
 
 
-# @router.post("/", status_code=201, response_model=SalaryCreateResponse)
-# async def create_salary(
-#     SalaryCreateRequest: SalaryCreateRequest,
-#     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
-# ):
-#     res = await salary_controller.create_salary(SalaryCreateRequest, mongo_client)
+@router.put("/post_salary_incentives")
+async def post_salary_incentives(
+    PostSalaryIncentivesRequest: PostSalaryIncentivesRequest,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    sal_obj = SalaryController(payload, mongo_client)
+    res = await sal_obj.post_salary_incentives(PostSalaryIncentivesRequest)
 
-#     return SalaryCreateResponse(
-#         message="Salary created successfully",
-#         status_code=201,
-#         data=SalaryResponse(
-#             employee_id=res.employee_id,
-#             basic=res.basic,
-#             net_salary=res.net_salary,
-#         ),
-#     )
+    return PostSalaryIncentivesResponse(
+        message="Salary Incentives Updated successfully",
+        status_code=200,
+        data=res,
+    )
 
 
 @router.post("/request_advance")
 async def request_advance(
     SalaryAdvanceRequest: SalaryAdvanceRequest,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
 ):
-    res = await salary_controller.request_advance(SalaryAdvanceRequest, mongo_client)
+    sal_obj = SalaryController(payload, mongo_client)
+    res = await sal_obj.request_advance(SalaryAdvanceRequest)
+    # res = await salary_controller.request_advance(SalaryAdvanceRequest, mongo_client)
 
 
 @router.post("/respond_advance")
 async def respond_advance(
     SalaryAdvanceRespondRequest: SalaryAdvanceRespondRequest,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
 ):
     res = await salary_controller.respond_salary_advance(
         SalaryAdvanceRespondRequest, mongo_client

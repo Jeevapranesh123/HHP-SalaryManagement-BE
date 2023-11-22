@@ -7,6 +7,7 @@ from app.api.utils.employees import generate_random_password, hash_password
 from app.schemas.auth import UserBase
 import uuid
 from fastapi import HTTPException
+from datetime import datetime, timezone
 
 
 MONGO_DATABASE = Config.MONGO_DATABASE
@@ -25,12 +26,7 @@ async def create_employee(employee: EmployeeBase, mongo_client: AsyncIOMotorClie
     password = "string"
     employee["password"] = await hash_password(password)
 
-    print(password)
-
-    await create_user(
-        employee,
-        mongo_client,
-    )
+    await create_user(employee, mongo_client)
 
     # TODO: Send email with password to employee and insist on changing it on first login
 
@@ -100,8 +96,15 @@ async def get_employee(employee_id: str, mongo_client: AsyncIOMotorClient):
 
 
 async def get_employee_with_salary(employee_id: str, mongo_client: AsyncIOMotorClient):
+    current_month = datetime.now(tz=timezone.utc).replace(
+        day=1, hour=0, minute=0, second=0, microsecond=0
+    )
     pipeline = [
-        {"$match": {"employee_id": employee_id}},
+        {
+            "$match": {
+                "employee_id": employee_id,
+            }
+        },
         {
             "$lookup": {
                 "from": "salary",
@@ -112,39 +115,93 @@ async def get_employee_with_salary(employee_id: str, mongo_client: AsyncIOMotorC
         },
         {
             "$lookup": {
-                "from": "temp_salary",
+                "from": "monthly_compensation",
                 "localField": "employee_id",
                 "foreignField": "employee_id",
-                "as": "temp_salary_info",
+                "as": "monthly_compensation_info",
+                "let": {
+                    "employeeId": "$employee_id",
+                    "targetDate": current_month,
+                },
+                "pipeline": [
+                    {
+                        "$match": {
+                            "$expr": {
+                                "$and": [
+                                    {"$eq": ["$employee_id", "$$employeeId"]},
+                                    {"$eq": ["$month", "$$targetDate"]},
+                                ]
+                            }
+                        }
+                    }
+                ],
+            }
+        },
+        {
+            "$lookup": {
+                "from": "salary_incentives",
+                "localField": "employee_id",
+                "foreignField": "employee_id",
+                "as": "salary_incentives_info",
+                "let": {
+                    "employeeId": "$employee_id",
+                    "targetDate": current_month,
+                },
+                "pipeline": [
+                    {
+                        "$match": {
+                            "$expr": {
+                                "$and": [
+                                    {"$eq": ["$employee_id", "$$employeeId"]},
+                                    {"$eq": ["$month", "$$targetDate"]},
+                                ]
+                            }
+                        }
+                    }
+                ],
             }
         },
         {
             "$addFields": {
                 "salary": {"$arrayElemAt": ["$salary_info", 0]},
-                "temp_salary": {"$arrayElemAt": ["$temp_salary_info", 0]},
+                "monthly_compensation": {
+                    "$arrayElemAt": ["$monthly_compensation_info", 0]
+                },
+                "salary_incentives": {"$arrayElemAt": ["$salary_incentives_info", 0]},
             }
         },
         {
             "$addFields": {
-                "gross_salary": {"$ifNull": ["$salary.gross", 0]},
+                "gross_salary": {"$ifNull": ["$salary.gross_salary", 0]},
                 "pf": {"$ifNull": ["$salary.pf", 0]},
                 "esi": {"$ifNull": ["$salary.esi", 0]},
-                "loss_of_pay": {"$ifNull": ["$temp_salary.loss_of_pay", 0]},
-                "attendance_special_allowance": {
-                    "$ifNull": ["$temp_salary.attendance_special_allowance", 0]
+                "loss_of_pay": {"$ifNull": ["$monthly_compensation.loss_of_pay", 0]},
+                "leave_cashback": {
+                    "$ifNull": ["$monthly_compensation.leave_cashback", 0]
                 },
-                "leave_cashback": {"$ifNull": ["$temp_salary.leave_cashback", 0]},
                 "last_year_leave_cashback": {
-                    "$ifNull": ["$temp_salary.last_year_leave_cashback", 0]
+                    "$ifNull": ["$monthly_compensation.last_year_leave_cashback", 0]
                 },
+                "attendance_special_allowance": {
+                    "$ifNull": ["$monthly_compensation.attendance_special_allowance", 0]
+                },
+                "other_special_allowance": {
+                    "$ifNull": ["$monthly_compensation.other_special_allowance", 0]
+                },
+                "overtime": {"$ifNull": ["$monthly_compensation.overtime", 0]},
+                "allowance": {"$ifNull": ["$salary_incentives.allowance", 0]},
+                "increment": {"$ifNull": ["$salary_incentives.increment", 0]},
+                "bonus": {"$ifNull": ["$salary_incentives.bonus", 0]},
             }
         },
         {
             "$project": {
-                "temp_salary_info": 0,
                 "salary_info": 0,
+                "monthly_compensation_info": 0,
+                "salary_incentives_info": 0,
                 "salary": 0,
-                "temp_salary": 0,
+                "monthly_compensation": 0,
+                "salary_incentives": 0,
                 "_id": 0,
             }
         },
@@ -158,6 +215,11 @@ async def get_employee_with_salary(employee_id: str, mongo_client: AsyncIOMotorC
                                 "$attendance_special_allowance",
                                 "$leave_cashback",
                                 "$last_year_leave_cashback",
+                                "$other_special_allowance",
+                                "$overtime",
+                                "$allowance",
+                                "$increment",
+                                "$bonus",
                             ]
                         },
                         {"$add": ["$pf", "$esi", "$loss_of_pay"]},
@@ -166,7 +228,6 @@ async def get_employee_with_salary(employee_id: str, mongo_client: AsyncIOMotorC
             }
         },
     ]
-
     emp = mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].aggregate(pipeline)
 
     data = [e async for e in emp]
@@ -194,9 +255,11 @@ async def get_all_employees(mongo_client):
 
 
 async def update_employee(employee_id: str, employee_details, mongo_client):
-    if await mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].update_one(
+    update = await mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].update_one(
         {"employee_id": employee_id}, {"$set": employee_details}
-    ):
-        return await get_employee(employee_id, mongo_client)
+    )
+
+    if update.matched_count == 1:
+        return employee_details
 
     return None

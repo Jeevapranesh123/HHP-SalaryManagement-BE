@@ -1,0 +1,14 @@
+{
+    "employee_id": "string",
+        "basic": {
+            "data":{            
+            "gross": 0,
+            "pf": 0,
+            "esi": 0
+        },
+        "meta":{
+            "method":"PUT",
+            "url":"https://api.paysack.com/v1/employee/basic"
+        }
+    }
+}

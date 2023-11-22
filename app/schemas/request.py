@@ -48,7 +48,7 @@ class EmployeeUpdateRequest(BaseModel):
     govt_id_proofs: Optional[GovtIDProofs] = None
     # TODO: Father/Husband Phone Number (Optional) - decide on how to store this
 
-    @validator('phone', always=True)
+    @validator("phone", always=True)
     def phone_validator(cls, v):
         if v is not None and len(v) != 10:
             raise HTTPException(
@@ -57,8 +57,32 @@ class EmployeeUpdateRequest(BaseModel):
         return v
 
 
-class SalaryCreateRequest(SalaryBase):
-    pass
+# class SalaryCreateRequest(SalaryBase):
+#     pass
+
+
+class PostSalaryRequest(BaseModel):
+    employee_id: str
+    gross_salary: Optional[float] = None
+    pf: Optional[float] = None
+    esi: Optional[float] = None
+
+
+class PostMonthlyCompensationRequest(BaseModel):
+    employee_id: str
+    loss_of_pay: Optional[float] = None
+    leave_cashback: Optional[float] = None
+    last_year_leave_cashback: Optional[float] = None
+    attendance_special_allowance: Optional[float] = None
+    other_special_allowance: Optional[float] = None
+    overtime: Optional[float] = None
+
+
+class PostSalaryIncentivesRequest(BaseModel):
+    employee_id: str
+    allowance: Optional[float] = None
+    increment: Optional[float] = None
+    bonus: Optional[float] = None
 
 
 class LeaveCreateRequest(LeaveBase):
