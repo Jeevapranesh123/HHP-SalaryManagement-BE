@@ -43,7 +43,12 @@ async def get_salary(
     payload: dict = Depends(verify_login_token),
 ):
     sal_obj = SalaryController(payload, mongo_client)
-    return await sal_obj.get_salary(employee_id)
+    res = await sal_obj.get_salary(employee_id)
+    return {
+        "message": "Salary fetched successfully",
+        "status_code": 200,
+        "data": res,
+    }
 
 
 @router.put("/post_salary")
