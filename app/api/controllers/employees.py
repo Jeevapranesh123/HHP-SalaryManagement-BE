@@ -64,10 +64,9 @@ class EmployeeController:
             exclude={"employee_id"}
         )
 
-        monthly_leave_days
-        total_leave_days,
-        total_permission_hours
-        monthly_permission_hours = 0
+        monthly_leave_days = (
+            total_leave_days
+        ) = total_permission_hours = monthly_permission_hours = 0
 
         current_month = first_day_of_current_month()
 
