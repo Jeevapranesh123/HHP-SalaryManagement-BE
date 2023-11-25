@@ -12,6 +12,14 @@ from app.schemas.employees import EmployeeBase
 
 from app.schemas.salary import SalaryBase, MonthlyCompensationBase, SalaryIncentivesBase
 
+from app.core.config import Config
+from app.api.utils import *
+
+import datetime
+
+MONGO_DATABASE = Config.MONGO_DATABASE
+LEAVE_COLLECTION = Config.LEAVE_COLLECTION
+
 
 class EmployeeController:
     def __init__(self, payload, mongo_client: AsyncIOMotorClient):
@@ -56,6 +64,39 @@ class EmployeeController:
             exclude={"employee_id"}
         )
 
+        monthly_leave_days
+        total_leave_days,
+        total_permission_hours
+        monthly_permission_hours = 0
+
+        current_month = first_day_of_current_month()
+
+        docs = self.mongo_client[MONGO_DATABASE][LEAVE_COLLECTION].find(
+            {
+                "employee_id": employee_id,
+                "status": "approved",
+            }
+        )
+
+        async for i in docs:
+            if i["type"] == "permission":
+                if i["month"] == current_month:
+                    monthly_permission_hours += i["no_of_hours"]
+                total_permission_hours += i["no_of_hours"]
+            else:
+                if i["month"] == current_month:
+                    monthly_leave_days += i["no_of_days"]
+                total_leave_days += i["no_of_days"]
+
+        monthly_permission_hours = "{} Hours {} Minutes".format(
+            str(datetime.timedelta(hours=monthly_permission_hours)).split(":")[0],
+            str(datetime.timedelta(hours=monthly_permission_hours)).split(":")[1],
+        )
+        total_permission_hours = "{} Hours {} Minutes".format(
+            str(datetime.timedelta(hours=total_permission_hours)).split(":")[0],
+            str(datetime.timedelta(hours=total_permission_hours)).split(":")[1],
+        )
+
         res = {
             "basic_information": {
                 "employee_id": emp["employee_id"],
@@ -71,6 +112,12 @@ class EmployeeController:
             "basic_salary": salary_base,
             "monthly_compensation": monthly_compensation_base,
             "salary_incentives": salary_incentives_base,
+            "leaves_and_permissions": {
+                "total_leave_days": total_leave_days,
+                "monthly_leave_days": monthly_leave_days,
+                "total_permission_hours": total_permission_hours,
+                "monthly_permission_hours": monthly_permission_hours,
+            },
         }
 
         if self.employee_role == "HR" and self.employee_id == employee_id:

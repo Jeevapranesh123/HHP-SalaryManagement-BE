@@ -27,6 +27,7 @@ async def post_leave(
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
+    print(LeaveCreateRequest)
     leave_controller = LeaveController(payload, mongo_client)
     res = await leave_controller.post_leave(LeaveCreateRequest, mongo_client)
     return PostLeaveResponse(

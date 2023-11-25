@@ -82,13 +82,21 @@ class LeaveCreateRequest(LeaveBase):
         start_date_str = values.get("start_date")
         end_date_str = values.get("end_date")
         if start_date_str and end_date_str:
-            values["no_of_days"] = (
-                datetime.datetime.strptime(end_date_str, "%Y-%m-%d").date()
-                - datetime.datetime.strptime(start_date_str, "%Y-%m-%d").date()
-            ).days
+            print(1)
+            if start_date_str == end_date_str:
+                print(2)
+                values["no_of_days"] = 1
+            else:
+                values["no_of_days"] = (
+                    datetime.datetime.strptime(end_date_str, "%Y-%m-%d").date()
+                    - datetime.datetime.strptime(start_date_str, "%Y-%m-%d").date()
+                ).days
         if start_date_str and not end_date_str:
+            print(3)
             values["end_date"] = start_date_str
             values["no_of_days"] = 1
+
+        print(values)
         return values
 
 

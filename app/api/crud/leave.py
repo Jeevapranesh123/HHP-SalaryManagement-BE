@@ -81,6 +81,8 @@ async def request_leave(
 
     leave_in_db = LeaveInDB(**leave)
 
+    print(leave_in_db.model_dump())
+
     if await mongo_client[MONGO_DATABASE][LEAVE_COLLECTION].insert_one(
         leave_in_db.model_dump()
     ):
@@ -119,10 +121,11 @@ async def request_permission(
     requested_by=None,
 ):
     permission = Permission.model_dump()
-
     permission["id"] = str(uuid.uuid4()).replace("-", "")
-    permission["date"] = datetime.datetime.combine(permission["date"], datetime.time())
-
+    permission["date"] = datetime.datetime.combine(
+        permission["start_time"], datetime.time()
+    )
+    permission["month"] = permission["date"].replace(day=1)
     if type == "request":
         permission["requested_by"] = requested_by
         permission["requested_at"] = datetime.datetime.now()

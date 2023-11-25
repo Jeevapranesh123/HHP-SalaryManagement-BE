@@ -65,9 +65,10 @@ class LeaveInDB(LeaveBase):
 class PermissionInDB(PermissionBase):
     id: str
     type: str = "permission"
-    date: datetime.datetime
     start_time: datetime.datetime
     end_time: datetime.datetime
+    date: datetime.datetime
+    month: datetime.datetime
     status: Optional[LeaveApplicationStatus] = "pending"
     remarks: Optional[str] = ""
     requested_at: datetime.datetime = datetime.datetime.now()
