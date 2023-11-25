@@ -34,6 +34,17 @@ async def get_all_salaries(mongo_client: AsyncIOMotorClient):
     )
 
 
+async def get_salary_advance_history(employee_id, mongo_client: AsyncIOMotorClient):
+    salary_advance_history = (
+        await mongo_client[MONGO_DATABASE][SALARY_ADVANCE_COLLECTION]
+        .find({"employee_id": employee_id}, {"_id": 0})
+        .sort("requested_at", -1)
+        .to_list(length=100)
+    )
+
+    return salary_advance_history
+
+
 async def create_salary(SalaryBase: SalaryBase, mongo_client: AsyncIOMotorClient):
     dict_salary = SalaryBase.model_dump()
     dict_salary["id"] = str(uuid.uuid4()).replace("-", "")

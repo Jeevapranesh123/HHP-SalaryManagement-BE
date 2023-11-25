@@ -47,7 +47,7 @@ class SalaryController:
 
     async def get_salary(self, employee_id: str):
         if not self.employee_role in ["HR", "MD"] and employee_id != self.employee_id:
-            raise HTTPException(status_code=403, detail="Forbidden")
+            raise HTTPException(status_code=403, detail="Not enough permissions")
         emp = await employee_crud.get_employee_with_salary(
             employee_id, self.mongo_client
         )
@@ -90,6 +90,28 @@ class SalaryController:
             res.pop("salary_incentives")
 
         return res
+
+    async def get_salary_advance_history(self, employee_id: str):
+        if not self.employee_role in ["MD"] and employee_id != self.employee_id:
+            raise HTTPException(status_code=403, detail="Not enough permissions")
+        return await salary_crud.get_salary_advance_history(
+            employee_id, self.mongo_client
+        )
+
+    async def get_salary_advance(self, salary_advance_id: str):
+        salary_advance = await salary_crud.get_salary_advance(
+            salary_advance_id, self.mongo_client
+        )
+        if not salary_advance:
+            raise HTTPException(
+                status_code=404, detail="Salary Advance Record not found"
+            )
+        if (
+            not self.employee_role in ["MD"]
+            and salary_advance["employee_id"] != self.employee_id
+        ):
+            raise HTTPException(status_code=403, detail="Not enough permissions")
+        return salary_advance
 
     async def create_all_salaries(self, emp_in_create):
         emp_in_create = emp_in_create.model_dump()

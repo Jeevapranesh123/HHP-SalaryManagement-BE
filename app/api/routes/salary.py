@@ -148,3 +148,33 @@ async def respond_advance(
         status_code=200,
         data=res,
     )
+
+
+@router.get("/advance/history", status_code=200)
+async def get_salary_advance_history(
+    employee_id: str,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    sal_obj = SalaryController(payload, mongo_client)
+    res = await sal_obj.get_salary_advance_history(employee_id)
+    return {
+        "message": "Salary Advance History fetched successfully",
+        "status_code": 200,
+        "data": res,
+    }
+
+
+@router.get("/advance/{salary_advance_id}", status_code=200)
+async def get_salary_advance(
+    salary_advance_id: str,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    sal_obj = SalaryController(payload, mongo_client)
+    res = await sal_obj.get_salary_advance(salary_advance_id)
+    return {
+        "message": "Salary Advance fetched successfully",
+        "status_code": 200,
+        "data": res,
+    }
