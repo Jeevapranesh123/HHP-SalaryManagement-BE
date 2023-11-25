@@ -1,4 +1,4 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, root_validator
 from fastapi import HTTPException
 from app.schemas.employees import EmployeeBase, BankDetails, Address, GovtIDProofs
 from app.schemas.salary import SalaryBase, SalaryAdvanceBase
@@ -7,9 +7,8 @@ from app.schemas.loan import LoanBase
 
 from enum import Enum
 
-from pydantic import Field, create_model
-
-
+from pydantic import Field, create_model, ValidationError
+import datetime
 from typing import Optional
 
 exclude_fields_for_employee_update = ["employee_id", "email"]
@@ -26,16 +25,6 @@ def validate_phone_number(cls, value, field):
 class EmployeeCreateRequest(EmployeeBase):
     # employees: Employee
     pass
-
-
-# EmployeeUpdateRequest = create_model(
-#     "EmployeeUpdateRequest",
-#     **{
-#         name: (Optional[EmployeeBase.__annotations__[name]], None)
-#         for name, field in EmployeeBase.__annotations__.items()
-#         if name not in exclude_fields_for_employee_update
-#     }
-# )
 
 
 class EmployeeUpdateRequest(BaseModel):
@@ -86,10 +75,21 @@ class PostSalaryIncentivesRequest(BaseModel):
 
 
 class LeaveCreateRequest(LeaveBase):
-    status: Optional[str] = Field(None, exclude=True)
+    no_of_days: Optional[int] = None
 
-    class Config:
-        exclude = {"status"}
+    @root_validator(pre=True)
+    def calculate_no_of_days(cls, values):
+        start_date_str = values.get("start_date")
+        end_date_str = values.get("end_date")
+        if start_date_str and end_date_str:
+            values["no_of_days"] = (
+                datetime.datetime.strptime(end_date_str, "%Y-%m-%d").date()
+                - datetime.datetime.strptime(start_date_str, "%Y-%m-%d").date()
+            ).days
+        if start_date_str and not end_date_str:
+            values["end_date"] = start_date_str
+            values["no_of_days"] = 1
+        return values
 
 
 class LeaveResponse(str, Enum):
@@ -104,10 +104,31 @@ class LeaveRespondRequest(BaseModel):
 
 
 class PermissionCreateRequest(PermissionBase):
-    status: Optional[str] = Field(None, exclude=True)
+    @root_validator(pre=True)
+    def calculate_no_of_hours(cls, values):
+        start_time = values.get("start_time")
+        end_time = values.get("end_time")
+        # Ensure start_time and end_time are datetime.datetime objects
+        if isinstance(start_time, str):
+            try:
+                start_time = datetime.datetime.fromisoformat(start_time)
+                values["start_time"] = start_time  # Update the values dictionary
+            except ValueError:
+                raise ValidationError(f"Invalid start_time format: {start_time}")
 
-    class Config:
-        exclude = {"status"}
+        if isinstance(end_time, str):
+            try:
+                end_time = datetime.datetime.fromisoformat(end_time)
+                values["end_time"] = end_time  # Update the values dictionary
+            except ValueError:
+                raise ValidationError(f"Invalid end_time format: {end_time}")
+
+        if start_time > end_time:
+            raise ValueError("start_time must be less than end_time")
+        if start_time and end_time:
+            values["no_of_hours"] = (end_time - start_time).seconds / 3600
+
+        return values
 
 
 class PermissionResponse(str, Enum):

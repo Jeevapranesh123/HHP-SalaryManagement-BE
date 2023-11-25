@@ -52,8 +52,12 @@ class LeaveInDB(LeaveBase):
     type: str = "leave"
     start_date: datetime.datetime
     end_date: datetime.datetime
+    # FIXME: Store the month and year in which the leave was taken
+    month: datetime.datetime
     status: Optional[LeaveApplicationStatus] = "pending"
+    remarks: Optional[str] = ""
     requested_at: datetime.datetime = datetime.datetime.now()
+    requested_by: str
     approved_or_rejected_by: str = "admin"
     approved_or_rejected_at: datetime.datetime = None
 
@@ -65,7 +69,9 @@ class PermissionInDB(PermissionBase):
     start_time: datetime.datetime
     end_time: datetime.datetime
     status: Optional[LeaveApplicationStatus] = "pending"
+    remarks: Optional[str] = ""
     requested_at: datetime.datetime = datetime.datetime.now()
+    requested_by: str
     approved_or_rejected_by: str = "admin"
     approved_or_rejected_at: datetime.datetime = None
 
