@@ -77,6 +77,11 @@ class LeaveController:
         self, LeaveCreateRequest: LeaveCreateRequest, mongo_client: AsyncIOMotorClient
     ):
         leave_in_create = LeaveBase(**LeaveCreateRequest.model_dump())
+        if (
+            not self.employee_role in ["HR", "MD"]
+            and leave_in_create.employee_id != self.employee_id
+        ):
+            raise HTTPException(status_code=403, detail="Not enough permissions")
         if not await employee_crud.get_employee(
             leave_in_create.employee_id, mongo_client
         ):
@@ -84,11 +89,7 @@ class LeaveController:
                 status_code=404,
                 detail="Employee '{}' not found".format(leave_in_create.employee_id),
             )
-        if (
-            not self.employee_role in ["HR", "MD"]
-            and leave_in_create.employee_id != self.employee_id
-        ):
-            raise HTTPException(status_code=403, detail="Not enough permissions")
+
         res = await leave_crud.request_leave(
             leave_in_create, mongo_client, type="request", requested_by=self.employee_id
         )

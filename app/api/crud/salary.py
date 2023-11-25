@@ -75,32 +75,78 @@ async def create_salary_incentives(
 
 
 async def request_advance(
-    SalaryAdvanceRequest: SalaryAdvanceBase, mongo_client: AsyncIOMotorClient
+    salary_advance, mongo_client: AsyncIOMotorClient, type: str, requester: str
 ):
-    salary = SalaryAdvanceRequest.model_dump()
+    salary = salary_advance
     salary["id"] = str(uuid.uuid4()).replace("-", "")
+
+    salary["requested_by"] = requester
+    salary["requested_at"] = datetime.datetime.now()
+
+    salary["month"] = datetime.datetime.combine(salary["month"], datetime.time())
+
+    if type == "request":
+        salary["status"] = "pending"
+        salary["remarks"] = ""
+    elif type == "post":
+        salary["status"] = "approved"
+        salary["approved_or_rejected_by"] = requester
+        salary["approved_or_rejected_at"] = datetime.datetime.now()
+    else:
+        raise HTTPException(status_code=400, detail="Invalid Request Type")
+
     salary_advance_in_db = SalaryAdvanceInDB(**salary)
 
     if await mongo_client[MONGO_DATABASE][SALARY_ADVANCE_COLLECTION].insert_one(
         salary_advance_in_db.model_dump()
     ):
-        return salary_advance_in_db
+        return salary_advance_in_db.model_dump()
 
 
 async def respond_salary_advance(salary, mongo_client: AsyncIOMotorClient):
-    salary = salary.model_dump()
+    already_approved_or_rejected = await mongo_client[MONGO_DATABASE][
+        SALARY_ADVANCE_COLLECTION
+    ].find_one({"id": salary["salary_advance_id"], "status": {"$ne": "pending"}})
+
+    if already_approved_or_rejected:
+        raise HTTPException(
+            status_code=400,
+            detail="Salary Advance has already been approved or rejected",
+        )
+
+    new_data = salary.get("data_change", None)
 
     data_change = {
         "status": salary["status"],
         "remarks": salary["remarks"],
         "approved_or_rejected_at": datetime.datetime.now(),
     }
+    change = False
+    if new_data:
+        update = await mongo_client[MONGO_DATABASE][
+            SALARY_ADVANCE_COLLECTION
+        ].update_one(
+            {"id": salary["salary_advance_id"]},
+            {"$set": new_data},
+        )
+        if update.modified_count == 1:
+            change = True
+            # FIXME: Notify the employee regarding the change in amount or month
+            pass
 
-    if await mongo_client[MONGO_DATABASE][LOAN_COLLECTION].update_one(
-        {"id": salary["salary_advance_id"]},
-        {"$set": data_change},
-    ):
-        return salary
+    update = await mongo_client[MONGO_DATABASE][
+        SALARY_ADVANCE_COLLECTION
+    ].find_one_and_update(
+        {"id": salary["salary_advance_id"]}, {"$set": data_change}, return_document=True
+    )
+
+    update["salary_advance_id"] = update["id"]
+    update.pop("_id")
+    if change:
+        update["data_changed"] = True
+    return update
+
+    # FIXME: If not update decide the response
 
 
 async def get_salary(employee_id: str, mongo_client: AsyncIOMotorClient):
@@ -190,3 +236,13 @@ async def update_salary_incentives(
     ):
         salary["employee_id"] = employee_id
         return salary
+
+
+async def get_salary_advance(salary_advance_id: str, mongo_client: AsyncIOMotorClient):
+    data = await mongo_client[MONGO_DATABASE][SALARY_ADVANCE_COLLECTION].find_one(
+        {"id": salary_advance_id}, {"_id": 0}
+    )
+    if not data:
+        return None
+
+    return data

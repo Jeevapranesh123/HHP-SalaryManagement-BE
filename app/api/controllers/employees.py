@@ -110,6 +110,10 @@ class EmployeeController:
             "govt_id_proofs": emp["govt_id_proofs"],
             "basic_salary": salary_base,
             "monthly_compensation": monthly_compensation_base,
+            "loan_and_advance": {
+                # "loan": emp["loan"],
+                "salary_advance": emp["salary_advance"],
+            },
             "salary_incentives": salary_incentives_base,
             "leaves_and_permissions": {
                 "total_leave_days": total_leave_days,

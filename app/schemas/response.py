@@ -150,3 +150,31 @@ class GetPermissionResponse(BaseResponse):
 class PermissionHistoryResponse(BaseResponse):
     message: str = "Permission history retrieved successfully"
     data: list
+
+
+class SalaryAdvanceResponse(BaseModel):
+    salary_advance_id: str
+    employee_id: str
+    amount: float
+    month: str
+    status: str
+    remarks: str
+    data_changed: bool = None
+
+    @root_validator(pre=True)
+    def convert_date_to_str(cls, values):
+        date = values.get("month")
+        values["month"] = datetime.strftime(date, "%Y-%m-%d")
+        return values
+
+
+class PostSalaryAdvanceResponse(BaseResponse):
+    data: SalaryAdvanceResponse
+
+
+class RequestSalaryAdvanceResponse(BaseResponse):
+    data: SalaryAdvanceResponse
+
+
+class SalaryAdvanceRespondResponse(BaseResponse):
+    data: SalaryAdvanceResponse

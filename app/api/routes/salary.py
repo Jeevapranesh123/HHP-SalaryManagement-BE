@@ -21,6 +21,9 @@ from app.schemas.response import (
     PostSalaryResponse,
     PostMonthlyCompensationResponse,
     PostSalaryIncentivesResponse,
+    PostSalaryAdvanceResponse,
+    RequestSalaryAdvanceResponse,
+    SalaryAdvanceRespondResponse,
 )
 from app.api.utils.employees import verify_login_token
 
@@ -99,18 +102,39 @@ async def post_salary_incentives(
     )
 
 
-@router.post("/request_advance")
-async def request_advance(
+@router.post("/advance")
+async def post_advance(
     SalaryAdvanceRequest: SalaryAdvanceRequest,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
     sal_obj = SalaryController(payload, mongo_client)
+    res = await sal_obj.post_advance(SalaryAdvanceRequest)
+    return PostSalaryAdvanceResponse(
+        message="Salary Advance Updated successfully",
+        status_code=200,
+        data=res,
+    )
+
+
+@router.post("/advance/request")
+async def request_advance(
+    SalaryAdvanceRequest: SalaryAdvanceRequest,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    SalaryAdvanceRequest.remarks = ""
+    sal_obj = SalaryController(payload, mongo_client)
     res = await sal_obj.request_advance(SalaryAdvanceRequest)
-    # res = await salary_controller.request_advance(SalaryAdvanceRequest, mongo_client)
+
+    return RequestSalaryAdvanceResponse(
+        message="Salary Advance Requested successfully",
+        status_code=200,
+        data=res,
+    )
 
 
-@router.post("/respond_advance")
+@router.post("/advance/respond")
 async def respond_advance(
     SalaryAdvanceRespondRequest: SalaryAdvanceRespondRequest,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
@@ -118,3 +142,9 @@ async def respond_advance(
 ):
     sal_obj = SalaryController(payload, mongo_client)
     res = await sal_obj.respond_salary_advance(SalaryAdvanceRespondRequest)
+    print(res)
+    return SalaryAdvanceRespondResponse(
+        message="Salary Advance Responded successfully",
+        status_code=200,
+        data=res,
+    )

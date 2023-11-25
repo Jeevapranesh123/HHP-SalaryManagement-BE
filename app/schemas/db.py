@@ -80,16 +80,24 @@ class PermissionInDB(PermissionBase):
 class LoanInDB(LoanBase):
     id: str
     type: str = "loan"
+    month: datetime.datetime
     status: Optional[LoanApplicationStatus] = "pending"
+    remarks: Optional[str] = ""
     requested_at: datetime.datetime = datetime.datetime.now()
+    requested_by: str
     approved_or_rejected_by: str = "admin"
     approved_or_rejected_at: datetime.datetime = None
+    is_completed: bool = False
+    loan_schedule: Optional[list] = None
 
 
 class SalaryAdvanceInDB(SalaryAdvanceBase):
     id: str
+    month: datetime.datetime
     type: str = "salary_advance"
     status: Optional[SalaryAdvanceApplicationStatus] = "pending"
+    remarks: Optional[str] = ""
     requested_at: datetime.datetime = datetime.datetime.now()
+    requested_by: str
     approved_or_rejected_by: str = "admin"
     approved_or_rejected_at: datetime.datetime = None

@@ -126,15 +126,14 @@ async def request_permission(
         permission["start_time"], datetime.time()
     )
     permission["month"] = permission["date"].replace(day=1)
+    permission["requested_by"] = requested_by
+    permission["requested_at"] = datetime.datetime.now()
+
     if type == "request":
-        permission["requested_by"] = requested_by
-        permission["requested_at"] = datetime.datetime.now()
         permission["status"] = "pending"
         permission["remarks"] = ""
 
     elif type == "post":
-        permission["requested_by"] = requested_by
-        permission["requested_at"] = datetime.datetime.now()
         permission["status"] = "approved"
         permission["approved_or_rejected_by"] = requested_by
         permission["approved_or_rejected_at"] = datetime.datetime.now()

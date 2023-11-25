@@ -150,11 +150,35 @@ class PermissionRespondRequest(BaseModel):
     remarks: Optional[str] = None
 
 
-class LoanCreateRequest(LoanBase):
-    status: Optional[str] = Field(None, exclude=True)
+class PaybackType(str, Enum):
+    emi = "emi"
+    tenure = "tenure"
 
-    class Config:
-        exclude = {"status"}
+
+class LoanCreateRequest(LoanBase):
+    payback_type: PaybackType
+
+    @root_validator(pre=True)
+    def calculate_emi_or_tenure(cls, values):
+        amount = values.get("amount")
+        tenure = values.get("tenure")
+        emi = values.get("emi")
+        payback_type = values.get("payback_type")
+
+        if payback_type == "emi":
+            if not emi:
+                raise ValueError("EMI must be provided for EMI payback type")
+            values["tenure"] = amount % emi if amount % emi == 0 else amount // emi + 1
+
+        elif payback_type == "tenure":
+            if not tenure:
+                raise ValueError("Tenure must be provided for tenure payback type")
+            values["emi"] = amount / tenure
+
+        else:
+            raise ValueError("Invalid payback type")
+
+        return values
 
 
 class LoanResponse(str, Enum):
@@ -181,3 +205,4 @@ class SalaryAdvanceRespondRequest(BaseModel):
     salary_advance_id: str
     status: SalaryAdvanceResponse
     remarks: Optional[str] = None
+    data_change: Optional[dict] = None
