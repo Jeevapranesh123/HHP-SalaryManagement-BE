@@ -59,3 +59,9 @@ app.add_middleware(
 )
 
 # app.add_exception_handler(Response,)
+
+# FIXME: LOAN_SCHEDULE_INDEX = employee_id + loan_id + month
+# FIXME: Add increment to next month gross salary
+
+# TODO: Loan Repayment adjustment to next month
+# TODO: Admin APIs for rules and complete monitoring

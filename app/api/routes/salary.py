@@ -13,10 +13,8 @@ from app.schemas.request import (
     SalaryAdvanceRequest,
     SalaryAdvanceRespondRequest,
 )
-from app.schemas.salary import (
-    MonthlyCompensationBase,
-    SalaryIncentivesBase,
-)  # FIXME: Create a Request and Response Schema for Temp Salary
+
+# FIXME: Create a Request and Response Schema for Temp Salary
 from app.schemas.response import (
     PostSalaryResponse,
     PostMonthlyCompensationResponse,

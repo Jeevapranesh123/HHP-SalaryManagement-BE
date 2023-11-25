@@ -88,7 +88,7 @@ class LoanInDB(LoanBase):
     approved_or_rejected_by: str = "admin"
     approved_or_rejected_at: datetime.datetime = None
     is_completed: bool = False
-    loan_schedule: Optional[list] = None
+    repayment_schedule: Optional[list] = None
 
 
 class SalaryAdvanceInDB(SalaryAdvanceBase):

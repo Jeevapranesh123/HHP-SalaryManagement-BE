@@ -14,5 +14,5 @@ class LoanBase(BaseModel):
     employee_id: str
     amount: float
     month: datetime.date = datetime.date.today().replace(day=1)
-    emi: Optional[float] = None
-    tenure: Optional[int] = None
+    emi: Optional[float]
+    tenure: Optional[int]

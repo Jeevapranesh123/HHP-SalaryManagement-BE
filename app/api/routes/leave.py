@@ -29,7 +29,7 @@ async def post_leave(
 ):
     print(LeaveCreateRequest)
     leave_controller = LeaveController(payload, mongo_client)
-    res = await leave_controller.post_leave(LeaveCreateRequest, mongo_client)
+    res = await leave_controller.post_leave(LeaveCreateRequest)
     return PostLeaveResponse(
         message="Leave posted successfully", status_code=200, data=res
     )
@@ -42,7 +42,7 @@ async def request_leave(
     payload: dict = Depends(verify_login_token),
 ):
     leave_controller = LeaveController(payload, mongo_client)
-    res = await leave_controller.request_leave(LeaveCreateRequest, mongo_client)
+    res = await leave_controller.request_leave(LeaveCreateRequest)
     return RequestLeaveResponse(
         message="Leave requested successfully", status_code=200, data=res
     )
@@ -56,7 +56,7 @@ async def respond_leave(
     payload: dict = Depends(verify_login_token),
 ):
     leave_controller = LeaveController(payload, mongo_client)
-    res = await leave_controller.respond_leave(LeaveRespondRequest, mongo_client)
+    res = await leave_controller.respond_leave(LeaveRespondRequest)
     return LeaveRespondResponse(
         message="Leave responded successfully", status_code=200, data=res
     )
@@ -69,7 +69,7 @@ async def get_leave_history(
     payload: dict = Depends(verify_login_token),
 ):
     leave_controller = LeaveController(payload, mongo_client)
-    res = await leave_controller.get_leave_history(employee_id, mongo_client)
+    res = await leave_controller.get_leave_history(employee_id)
     return LeaveHistoryResponse(
         message="Leave history fetched successfully", status_code=200, data=res
     )
@@ -82,7 +82,7 @@ async def get_leave(
     payload: dict = Depends(verify_login_token),
 ):
     leave_controller = LeaveController(payload, mongo_client)
-    res = await leave_controller.get_leave(leave_id, mongo_client)
+    res = await leave_controller.get_leave(leave_id)
     return LeaveRespondResponse(
         message="Leave fetched successfully", status_code=200, data=res
     )

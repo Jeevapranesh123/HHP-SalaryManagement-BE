@@ -111,7 +111,7 @@ class EmployeeController:
             "basic_salary": salary_base,
             "monthly_compensation": monthly_compensation_base,
             "loan_and_advance": {
-                # "loan": emp["loan"],
+                "loan": emp["loan"],
                 "salary_advance": emp["salary_advance"],
             },
             "salary_incentives": salary_incentives_base,
@@ -129,8 +129,9 @@ class EmployeeController:
             res["basic_salary"].pop("net_salary")
             res["basic_salary"].pop("gross_salary")
             res["monthly_compensation"].pop("other_special_allowance")
+            res.pop("loan_and_advance")
             res.pop("salary_incentives")
-        # pprint.pprint(res)
+
         return res
 
     async def get_all_employees(self):

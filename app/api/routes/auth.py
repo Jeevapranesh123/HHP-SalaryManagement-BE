@@ -105,6 +105,7 @@ async def logout(
     return {"message": "Logout Successful"}
 
 
+# FIXME: Use same controller for both this and get_employee
 @router.get("/me")
 async def get_logged_in_user(
     token: dict = Depends(verify_login_token),

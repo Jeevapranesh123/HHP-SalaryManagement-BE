@@ -178,3 +178,37 @@ class RequestSalaryAdvanceResponse(BaseResponse):
 
 class SalaryAdvanceRespondResponse(BaseResponse):
     data: SalaryAdvanceResponse
+
+
+class LoanResponse(BaseModel):
+    loan_id: str
+    employee_id: str
+    amount: float
+    month: str
+    emi: float
+    tenure: int
+    status: str
+    remarks: str
+
+    @root_validator(pre=True)
+    def convert_date_to_str(cls, values):
+        date = values.get("month")
+        print(date)
+        values["month"] = datetime.strftime(date, "%Y-%m-%d")
+        return values
+
+
+class PostLoanResponse(BaseResponse):
+    data: LoanResponse
+
+
+class RequestLoanResponse(BaseResponse):
+    data: LoanResponse
+
+
+class LoanRespondResponse(BaseResponse):
+    data: LoanResponse
+
+
+class LoanHistoryResponse(BaseResponse):
+    data: list

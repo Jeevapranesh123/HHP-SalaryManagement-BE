@@ -13,7 +13,7 @@ def role_required(required_roles: List[str]):
         async def wrapper(*args, **kwargs):
             # Extract the payload from the kwargs
             payload = kwargs.get("payload")
-
+            print(payload)
             # Check if the user's role matches any of the required roles
             user_roles = {payload.get("primary_role")} | set(
                 payload.get("secondary_roles", [])

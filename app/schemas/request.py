@@ -168,7 +168,7 @@ class LoanCreateRequest(LoanBase):
         if payback_type == "emi":
             if not emi:
                 raise ValueError("EMI must be provided for EMI payback type")
-            values["tenure"] = amount % emi if amount % emi == 0 else amount // emi + 1
+            values["tenure"] = amount / emi if amount % emi == 0 else amount // emi + 1
 
         elif payback_type == "tenure":
             if not tenure:
@@ -190,6 +190,7 @@ class LoanRespondRequest(BaseModel):
     loan_id: str
     status: LoanResponse
     remarks: Optional[str] = None
+    data_change: Optional[dict] = None
 
 
 class SalaryAdvanceRequest(SalaryAdvanceBase):

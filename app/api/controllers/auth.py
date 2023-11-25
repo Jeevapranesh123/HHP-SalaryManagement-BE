@@ -8,6 +8,9 @@ from app.api.utils.employees import *
 
 from app.api.utils.employees import verify_password
 from app.schemas.salary import SalaryBase, MonthlyCompensationBase, SalaryIncentivesBase
+from app.api.utils import *
+
+LEAVE_COLLECTION = Config.LEAVE_COLLECTION
 
 
 async def login(login_request, mongo_client: AsyncIOMotorClient):
@@ -149,8 +152,39 @@ async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient)
     salary_incentives_base = SalaryIncentivesBase(**emp)
     salary_incentives_base = salary_incentives_base.model_dump(exclude={"employee_id"})
 
+    monthly_leave_days = (
+        total_leave_days
+    ) = total_permission_hours = monthly_permission_hours = 0
+
+    current_month = first_day_of_current_month()
+
+    docs = mongo_client[MONGO_DATABASE][LEAVE_COLLECTION].find(
+        {
+            "employee_id": employee_id,
+            "status": "approved",
+        }
+    )
+
+    async for i in docs:
+        if i["type"] == "permission":
+            if i["month"] == current_month:
+                monthly_permission_hours += i["no_of_hours"]
+            total_permission_hours += i["no_of_hours"]
+        else:
+            if i["month"] == current_month:
+                monthly_leave_days += i["no_of_days"]
+            total_leave_days += i["no_of_days"]
+
+    monthly_permission_hours = "{} Hours {} Minutes".format(
+        str(datetime.timedelta(hours=monthly_permission_hours)).split(":")[0],
+        str(datetime.timedelta(hours=monthly_permission_hours)).split(":")[1],
+    )
+    total_permission_hours = "{} Hours {} Minutes".format(
+        str(datetime.timedelta(hours=total_permission_hours)).split(":")[0],
+        str(datetime.timedelta(hours=total_permission_hours)).split(":")[1],
+    )
     return {
-        "basic_details": {
+        "basic_information": {
             "employee_id": emp["employee_id"],
             "name": emp["name"],
             "email": emp["email"],
@@ -163,7 +197,17 @@ async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient)
         "govt_id_proofs": emp["govt_id_proofs"],
         "basic_salary": salary_base,
         "monthly_compensation": monthly_compensation_base,
+        "loan_and_advance": {
+            "loan": emp["loan"],
+            "salary_advance": emp["salary_advance"],
+        },
         "salary_incentives": salary_incentives_base,
+        "leaves_and_permissions": {
+            "total_leave_days": total_leave_days,
+            "monthly_leave_days": monthly_leave_days,
+            "total_permission_hours": total_permission_hours,
+            "monthly_permission_hours": monthly_permission_hours,
+        },
     }
 
 
