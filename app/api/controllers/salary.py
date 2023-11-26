@@ -2,6 +2,7 @@ from app.database import AsyncIOMotorClient
 from fastapi import HTTPException
 from functools import wraps
 
+import datetime
 
 from app.schemas.request import (
     PostSalaryRequest,
@@ -19,6 +20,9 @@ from app.schemas.salary import (
 
 from app.api.crud import salary as salary_crud
 from app.api.crud import employees as employee_crud
+
+from app.api.lib.Notification import Notification
+from app.schemas.notification import NotificationBase
 
 
 def role_required(allowed_roles):
@@ -160,9 +164,30 @@ class SalaryController:
         )
         if not emp:
             raise HTTPException(status_code=404, detail="Employee not found")
-        return await salary_crud.update_salary(
+        res = await salary_crud.update_salary(
             salary_in_create, self.mongo_client, self.payload["employee_id"]
         )
+
+        notification = Notification(self.employee_id, "post_salary", self.mongo_client)
+        await notification.send_notification(
+            NotificationBase(
+                title="Salary Updated",
+                description="Salary has been updated for {} by {} at {}".format(
+                    salary_in_create.employee_id,
+                    self.employee_id,
+                    datetime.datetime.now(),
+                ),
+                payload={
+                    "actor": self.employee_id,
+                    "action": "post_salary",
+                    "target": salary_in_create.employee_id,
+                },
+                notifier=[salary_in_create.employee_id, "HR", "MD"],
+                source="post_salary",
+            )
+        )
+
+        return res
 
     @role_required(["HR", "MD"])
     async def post_monthly_compensation(

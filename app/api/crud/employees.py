@@ -26,7 +26,7 @@ async def create_employee(employee: EmployeeBase, mongo_client: AsyncIOMotorClie
     password = "string"
     employee["password"] = await hash_password(password)
 
-    await create_user(employee, mongo_client)
+    user = await create_user(employee, mongo_client)
 
     # TODO: Send email with password to employee and insist on changing it on first login
 
@@ -37,7 +37,7 @@ async def create_employee(employee: EmployeeBase, mongo_client: AsyncIOMotorClie
     ):
         res = emp_in_db.model_dump()
         res["password"] = password
-        return res
+        return res, user
 
 
 async def create_user(employee: dict, mongo_client: AsyncIOMotorClient):

@@ -33,7 +33,7 @@ class EmployeeBase(BaseModel):  # TODO: Add relevant fields in the future
     employee_id: str
     name: str
     email: str
-    phone: str
+    phone: str = "0000000000"
     department: Optional[str] = None
     designation: Optional[str] = None
     bank_details: Optional[BankDetails]

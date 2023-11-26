@@ -18,6 +18,8 @@ def role_required(required_roles: List[str]):
             user_roles = {payload.get("primary_role")} | set(
                 payload.get("secondary_roles", [])
             )
+            print(user_roles)
+            print(required_roles)
             if not any(role in user_roles for role in required_roles):
                 raise HTTPException(status_code=403, detail="Not enough permissions")
 

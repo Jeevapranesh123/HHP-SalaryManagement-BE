@@ -8,6 +8,7 @@ from bson import ObjectId
 from app.core.config import Config
 
 logger = logging.getLogger(__name__)
+import asyncio
 
 
 class CustomEncoder(json.JSONEncoder):
@@ -41,8 +42,14 @@ class RabbitMQ:
         queue = kwargs.get("queue", None)
         exchange = kwargs.get("exchange", None)
         binding_key = kwargs.get("binding_key", None)
+        loop = kwargs.get("loop", None)
+
+        if loop:
+            self.async_loop = loop
 
         self.channel = self.connection.channel()
+
+        self.should_stop = asyncio.Event()
 
         if queue:
             self.ensure_queue(queue)
@@ -87,10 +94,13 @@ class RabbitMQ:
             exchange=exchange, exchange_type=type, durable=True
         )
 
-    def bind_queue(self, queue, exchange, binding_key):
+    def bind_queue(self, queue, exchange, routing_key):
         return self.channel.queue_bind(
-            exchange=exchange, queue=queue, routing_key=binding_key
+            exchange=exchange, queue=queue, routing_key=routing_key
         )
+
+    def unbind_queue(self, queue, exchange, routing_key):
+        return self.channel.queue_unbind(queue, exchange, routing_key)
 
     def publish(self, data, exchange, routing_key):
         try:
@@ -111,15 +121,54 @@ class RabbitMQ:
         except Exception as e:
             logger.error("Error while publishing message to RabbitMQ: {}".format(e))
 
-    def consume(self, queue, callback):
+    def on_message(self, ch, method, properties, body, sio, sid):
         try:
-            # Check if the channel is open
-            if self.channel.is_closed:
-                # Handle channel reconnection
-                logger.warning("Channel is closed. Reconnecting...")
-                self.reconnect_channel()
+            # Decode the message
+            message = body.decode("utf-8")
+            message = json.loads(message)
+            message["delivery_tag"] = method.delivery_tag
 
-            self.channel.basic_consume(queue=queue, on_message_callback=callback)
-            self.channel.start_consuming()
+            future = asyncio.run_coroutine_threadsafe(
+                sio.emit("notification", {"data": message}, room=sid),
+                self.async_loop,
+            )
+
+            # Acknowledge the message
+            # ch.basic_ack(delivery_tag=method.delivery_tag)
         except Exception as e:
-            logger.error("Error while consuming message from RabbitMQ: {}".format(e))
+            logger.error(f"Error in RabbitMQ callback: {e}")
+            asyncio.run_coroutine_threadsafe(sio.disconnect(sid), self.async_loop)
+
+    def consume(self, queue, sio, sid):
+        try:
+            print("Starting consumer...")
+
+            # Define a wrapper callback function that includes sio and sid
+            def callback(ch, method, properties, body):
+                self.on_message(ch, method, properties, body, sio, sid)
+
+            # Other setup code remains the same...
+            self.channel.basic_consume(
+                queue=queue,
+                on_message_callback=callback,
+                auto_ack=False,
+            )
+
+            while not self.should_stop.is_set():
+                # print("Consuming...")
+                self.connection.process_data_events(time_limit=1)  # 1 second timeout
+
+            print("Consumer stopped")
+            self.channel.stop_consuming()
+            self.connection.close()
+        except Exception as e:
+            logger.error(f"Error while consuming message from RabbitMQ: {e}")
+            asyncio.run_coroutine_threadsafe(sio.disconnect(sid), self.async_loop)
+
+    def ack_message(self, delivery_tag):
+        try:
+            self.channel.basic_ack(delivery_tag)
+
+        except Exception as e:
+            print("Error while acknowledging message from RabbitMQ: {}".format(e))
+            self.reconnect_channel()

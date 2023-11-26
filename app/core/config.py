@@ -41,6 +41,7 @@ class Config(object):
         os.getenv("SALARY_INCENTIVES_COLLECTION") or "salary_incentives"
     )
 
+    NOTIFICATION_COLLECTION = os.getenv("NOTIFICATION_COLLECTION") or "notifications"
     LEAVE_COLLECTION = os.getenv("LEAVE_COLLECTION") or "leave"
 
     LOAN_COLLECTION = os.getenv("LOAN_COLLECTION") or "loan"

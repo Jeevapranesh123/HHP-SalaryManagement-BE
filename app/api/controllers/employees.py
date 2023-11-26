@@ -15,6 +15,11 @@ from app.schemas.salary import SalaryBase, MonthlyCompensationBase, SalaryIncent
 from app.core.config import Config
 from app.api.utils import *
 
+from app.api.lib.RabbitMQ import RabbitMQ
+
+from app.api.lib.Notification import Notification
+from app.schemas.notification import NotificationBase
+
 import datetime
 
 MONGO_DATABASE = Config.MONGO_DATABASE
@@ -35,11 +40,22 @@ class EmployeeController:
 
         emp_in_create = EmployeeBase(**employee.model_dump())
 
-        emp = await employee_crud.create_employee(emp_in_create, self.mongo_client)
+        emp, user = await employee_crud.create_employee(
+            emp_in_create, self.mongo_client
+        )
 
         sal_obj = SalaryController(self.payload, self.mongo_client)
 
         await sal_obj.create_all_salaries(emp_in_create)
+
+        mq = RabbitMQ()
+
+        queue_name = "notifications_employee_{}".format(user.uuid)
+
+        mq.ensure_queue(queue_name)
+        mq.bind_queue(queue_name, "employee_notification", emp["employee_id"])
+
+        # TODO: Push notification to MD regarding new employee creation
 
         return emp
 
@@ -156,6 +172,26 @@ class EmployeeController:
         # FIXME: Update salary if needed
         emp = await employee_crud.update_employee(
             employee_id, emp_in_update, self.mongo_client
+        )
+
+        notification_obj = Notification(
+            self.employee_id, "update_employee", self.mongo_client
+        )
+
+        await notification_obj.send_notification(
+            NotificationBase(
+                title="Employee Details Updated",
+                description="Your details have been updated by {}".format(
+                    self.employee_role
+                ),
+                payload={
+                    "actor": self.employee_id,
+                    "action": "update_employee",
+                    "target": employee_id,
+                },
+                notifier=[employee_id],
+                source="update_employee",
+            )
         )
 
         return emp

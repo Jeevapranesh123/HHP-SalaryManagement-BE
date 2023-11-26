@@ -12,6 +12,9 @@ from app.schemas.leave import LeaveBase, PermissionBase
 from app.api.crud import leave as leave_crud
 from app.api.crud import employees as employee_crud
 
+from app.api.lib.Notification import Notification
+from app.schemas.notification import NotificationBase
+
 
 class LeaveController:
     def __init__(self, payload, mongo_client: AsyncIOMotorClient):
@@ -70,6 +73,35 @@ class LeaveController:
             requested_by=self.employee_id,
         )
         res["leave_id"] = res["id"]
+
+        notification_obj = Notification(
+            self.employee_id, "post_leave", self.mongo_client
+        )
+
+        notifier = []
+
+        if self.employee_role == "HR":
+            notifier = ["MD"]
+        elif self.employee_role == "MD":
+            notifier = ["HR"]
+
+        notifier.append(res["employee_id"])
+
+        await notification_obj.send_notification(
+            NotificationBase(
+                title="Leave Posted",
+                description="Your leave has been posted by {}".format(
+                    self.employee_role
+                ),
+                payload={
+                    "actor": self.employee_id,
+                    "action": "post_leave",
+                    "target": res["employee_id"],
+                },
+                notifier=notifier,
+                source="post_leave",
+            )
+        )
         return res
 
     async def request_leave(self, LeaveCreateRequest: LeaveCreateRequest):
@@ -94,6 +126,36 @@ class LeaveController:
             requested_by=self.employee_id,
         )
         res["leave_id"] = res["id"]
+
+        notification_obj = Notification(
+            self.employee_id, "request_leave", self.mongo_client
+        )
+
+        notifier = []
+
+        if self.employee_role == "HR":
+            notifier = ["MD"]
+
+        elif self.employee_role == "MD":
+            notifier = ["HR"]
+
+        notifier.append(res["employee_id"])
+
+        await notification_obj.send_notification(
+            NotificationBase(
+                title="Leave Requested",
+                description="Employee {} has requested for leave".format(
+                    leave_in_create.employee_id
+                ),
+                payload={
+                    "actor": self.employee_id,
+                    "action": "request_leave",
+                    "target": res["employee_id"],
+                },
+                notifier=notifier,
+                source="request_leave",
+            )
+        )
         return res
 
     async def respond_leave(self, LeaveRespondRequest: LeaveRespondRequest):
