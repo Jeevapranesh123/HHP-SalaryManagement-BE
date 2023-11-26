@@ -19,7 +19,7 @@ def notification(data):
 
 
 if __name__ == "__main__":
-    sio.connect("http://localhost:8000/socket")
+    sio.connect("http://localhost:8000/")
     try:
         sio.wait()
     except KeyboardInterrupt:
