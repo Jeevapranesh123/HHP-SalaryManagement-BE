@@ -48,4 +48,5 @@ class PermissionBase(BaseModel):
     start_time: datetime.datetime
     end_time: datetime.datetime
     no_of_hours: float
-    reason: str
+    reason: Optional[str] = ""
+    remarks: Optional[str] = ""

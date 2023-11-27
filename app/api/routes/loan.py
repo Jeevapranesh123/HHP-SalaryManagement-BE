@@ -22,6 +22,7 @@ router = APIRouter()
 
 @router.get("/meta")
 async def get_meta(
+    access_type: str,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
@@ -48,6 +49,9 @@ async def get_meta(
             }
         },
     }
+
+    if payload["primary_role"] == "employee":
+        data["data"]["type"]["loan"]["data"].pop("remarks")
 
     return data
 

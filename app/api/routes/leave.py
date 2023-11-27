@@ -22,6 +22,7 @@ router = APIRouter()
 
 @router.get("/meta")
 async def get_meta(
+    access_type: str,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
@@ -74,13 +75,21 @@ async def get_meta(
         },
     }
 
-    if payload["primary_role"] == "HR" or payload["primary_role"] == "MD":
+    if access_type == "request":
+        data["data"]["type"]["leave"]["meta"]["url"] = "/leave/request"
+        data["data"]["type"]["permission"]["meta"]["url"] = "/permission/request"
+        data["data"]["type"]["leave"]["data"].pop("remarks")
+        data["data"]["type"]["permission"]["data"].pop("remarks")
+
+    elif access_type == "post":
+        data["data"]["type"]["leave"]["meta"]["url"] = "/leave"
+        data["data"]["type"]["permission"]["meta"]["url"] = "/permission"
         data["data"]["type"]["leave"]["data"].pop("reason")
         data["data"]["type"]["permission"]["data"].pop("reason")
 
-    elif payload["primary_role"] == "employee":
-        data["data"]["type"]["leave"]["data"].pop("remarks")
-        data["data"]["type"]["permission"]["data"].pop("remarks")
+    elif access_type == "respond":
+        data["data"]["type"]["leave"]["meta"]["url"] = "/leave/respond"
+        data["data"]["type"]["permission"]["meta"]["url"] = "/permission/respond"
 
     return data
 

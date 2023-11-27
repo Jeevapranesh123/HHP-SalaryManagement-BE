@@ -16,3 +16,4 @@ class LoanBase(BaseModel):
     month: datetime.date = datetime.date.today().replace(day=1)
     emi: Optional[float]
     tenure: Optional[int]
+    remarks: Optional[str] = ""
