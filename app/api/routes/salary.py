@@ -114,10 +114,15 @@ async def get_meta(
                 "data": {
                     "employee_id": {
                         "type": "string",
+                        "required": True,
                     },
-                    "amount": {"type": "number", "value": 0},
-                    "month": {"type": "month", "format": "YYYY-MM-DD"},
-                    "remarks": {"type": "textarea"},
+                    "amount": {"type": "number", "value": 0, "required": True},
+                    "month": {
+                        "type": "month",
+                        "format": "YYYY-MM-DD",
+                        "required": True,
+                    },
+                    "remarks": {"type": "textarea", "value": "", "required": True},
                 },
                 "meta": {"url": "/salary/advance/", "method": "POST"},
             }
@@ -173,7 +178,7 @@ async def respond_advance(
 ):
     sal_obj = SalaryController(payload, mongo_client)
     res = await sal_obj.respond_salary_advance(SalaryAdvanceRespondRequest)
-    print(res)
+
     return SalaryAdvanceRespondResponse(
         message="Salary Advance Responded successfully",
         status_code=200,

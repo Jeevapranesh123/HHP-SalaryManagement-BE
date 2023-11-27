@@ -1,8 +1,10 @@
 import datetime
 
 
-def first_day_of_current_month():
+def first_day_of_current_month(month=None, year=None):
     now = datetime.datetime.now()
+    if month and year:
+        return datetime.datetime(year, month, 1, 0, 0, 0)
     return datetime.datetime(now.year, now.month, 1, 0, 0, 0)
 
 

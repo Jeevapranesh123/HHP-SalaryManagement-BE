@@ -35,6 +35,7 @@ async def get_meta(
                     "data": {
                         "employee_id": {
                             "type": "string",
+                            "required": True,
                         },
                         "leave_type": {
                             "type": "dropdown",
@@ -42,12 +43,21 @@ async def get_meta(
                                 {"label": "Casual", "value": "casual"},
                                 {"label": "Medical", "value": "medical"},
                             ],
+                            "required": True,
                         },
-                        "start_date": {"type": "date", "format": "YYYY-MM-DD"},
-                        "end_date": {"type": "date", "format": "YYYY-MM-DD"},
-                        "no_of_days": {"type": "number"},
-                        "reason": {"type": "textarea"},
-                        "remarks": {"type": "textarea"},
+                        "start_date": {
+                            "type": "date",
+                            "format": "YYYY-MM-DD",
+                            "required": True,
+                        },
+                        "end_date": {
+                            "type": "date",
+                            "format": "YYYY-MM-DD",
+                            "required": False,
+                        },
+                        "no_of_days": {"type": "number", "required": True},
+                        "reason": {"type": "textarea", "required": True},
+                        "remarks": {"type": "textarea", "required": True},
                     },
                     "meta": {"url": "/leave/", "method": "POST"},
                 },
@@ -55,19 +65,33 @@ async def get_meta(
                     "data": {
                         "employee_id": {
                             "type": "string",
+                            "required": True,
                         },
                         "leave_type": {
                             "type": "dropdown",
                             "options": [
                                 {"label": "Permission", "value": "permission"},
                             ],
+                            "required": True,
                         },
-                        "date": {"type": "date", "format": "YYYY-MM-DD"},
-                        "start_time": {"type": "time", "format": "HH:MM"},
-                        "end_time": {"type": "time", "format": "HH:MM"},
-                        "no_of_hours": {"type": "number"},
-                        "reason": {"type": "textarea"},
-                        "remarks": {"type": "textarea"},
+                        "date": {
+                            "type": "date",
+                            "format": "YYYY-MM-DD",
+                            "required": True,
+                        },
+                        "start_time": {
+                            "type": "time",
+                            "format": "HH:MM",
+                            "required": True,
+                        },
+                        "end_time": {
+                            "type": "time",
+                            "format": "HH:MM",
+                            "required": True,
+                        },
+                        "no_of_hours": {"type": "number", "required": True},
+                        "reason": {"type": "textarea", "required": True},
+                        "remarks": {"type": "textarea", "required": True},
                     },
                     "meta": {"url": "/permission/", "method": "POST"},
                 },
@@ -101,7 +125,6 @@ async def post_leave(
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
-    print(LeaveCreateRequest)
     leave_controller = LeaveController(payload, mongo_client)
     res = await leave_controller.post_leave(LeaveCreateRequest)
     return PostLeaveResponse(

@@ -177,7 +177,6 @@ class LeaveController:
         PermissionCreateRequest: PermissionCreateRequest,
     ):
         permission_in_create = PermissionBase(**PermissionCreateRequest.model_dump())
-        print(permission_in_create.model_dump())
 
         if not await employee_crud.get_employee(
             permission_in_create.employee_id, self.mongo_client

@@ -94,7 +94,8 @@ class EmployeeController:
         )
 
         async for i in docs:
-            if i["type"] == "permission":
+            print(i)
+            if i["leave_type"] == "permission":
                 if i["month"] == current_month:
                     monthly_permission_hours += i["no_of_hours"]
                 total_permission_hours += i["no_of_hours"]

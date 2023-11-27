@@ -193,7 +193,6 @@ class LoanResponse(BaseModel):
     @root_validator(pre=True)
     def convert_date_to_str(cls, values):
         date = values.get("month")
-        print(date)
         values["month"] = datetime.strftime(date, "%Y-%m-%d")
         return values
 
