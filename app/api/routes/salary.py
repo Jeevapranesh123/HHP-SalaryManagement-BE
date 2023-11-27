@@ -129,10 +129,7 @@ async def get_meta(
         },
     }
 
-    if payload["primary_role"] == "employee":
-        data["data"]["salary_advance"]["data"].pop("remarks")
-
-    if access_type == "request":
+    if payload["primary_role"] == "employee" or access_type == "request":
         data["data"]["salary_advance"]["data"].pop("remarks")
 
     return data
