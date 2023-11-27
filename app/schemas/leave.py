@@ -33,7 +33,7 @@ class LeaveApplicationStatus(str, Enum):
 
 class LeaveBase(BaseModel):
     employee_id: str
-    type: LeaveType
+    leave_type: LeaveType
     start_date: datetime.date
     end_date: Optional[datetime.date] = None
     no_of_days: Optional[int] = None
@@ -43,7 +43,7 @@ class LeaveBase(BaseModel):
 
 class PermissionBase(BaseModel):
     employee_id: str
-    type: str = "permission"
+    leave_type: str = "permission"
     date: datetime.date
     start_time: datetime.datetime
     end_time: datetime.datetime
