@@ -8,6 +8,15 @@ from app.api.utils.employees import *
 
 from app.api.utils.employees import verify_password
 from app.schemas.salary import SalaryBase, MonthlyCompensationBase, SalaryIncentivesBase
+from app.api.utils import *
+import pprint
+
+from app.api.lib.RabbitMQ import RabbitMQ
+from app.api.lib.Notification import Notification
+from app.schemas.notification import NotificationBase
+
+
+LEAVE_COLLECTION = Config.LEAVE_COLLECTION
 
 
 async def login(login_request, mongo_client: AsyncIOMotorClient):
@@ -149,8 +158,39 @@ async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient)
     salary_incentives_base = SalaryIncentivesBase(**emp)
     salary_incentives_base = salary_incentives_base.model_dump(exclude={"employee_id"})
 
+    monthly_leave_days = (
+        total_leave_days
+    ) = total_permission_hours = monthly_permission_hours = 0
+
+    current_month = first_day_of_current_month()
+
+    docs = mongo_client[MONGO_DATABASE][LEAVE_COLLECTION].find(
+        {
+            "employee_id": employee_id,
+            "status": "approved",
+        }
+    )
+
+    async for i in docs:
+        if i["type"] == "permission":
+            if i["month"] == current_month:
+                monthly_permission_hours += i["no_of_hours"]
+            total_permission_hours += i["no_of_hours"]
+        else:
+            if i["month"] == current_month:
+                monthly_leave_days += i["no_of_days"]
+            total_leave_days += i["no_of_days"]
+
+    monthly_permission_hours = "{} Hours {} Minutes".format(
+        str(datetime.timedelta(hours=monthly_permission_hours)).split(":")[0],
+        str(datetime.timedelta(hours=monthly_permission_hours)).split(":")[1],
+    )
+    total_permission_hours = "{} Hours {} Minutes".format(
+        str(datetime.timedelta(hours=total_permission_hours)).split(":")[0],
+        str(datetime.timedelta(hours=total_permission_hours)).split(":")[1],
+    )
     return {
-        "basic_details": {
+        "basic_information": {
             "employee_id": emp["employee_id"],
             "name": emp["name"],
             "email": emp["email"],
@@ -163,11 +203,22 @@ async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient)
         "govt_id_proofs": emp["govt_id_proofs"],
         "basic_salary": salary_base,
         "monthly_compensation": monthly_compensation_base,
+        "loan_and_advance": {
+            "loan": emp["loan"],
+            "salary_advance": emp["salary_advance"],
+        },
         "salary_incentives": salary_incentives_base,
+        "leaves_and_permissions": {
+            "total_leave_days": total_leave_days,
+            "monthly_leave_days": monthly_leave_days,
+            "total_permission_hours": total_permission_hours,
+            "monthly_permission_hours": monthly_permission_hours,
+        },
     }
 
 
-async def assign_role(role_req, mongo_client: AsyncIOMotorClient):
+async def assign_role(role_req, mongo_client: AsyncIOMotorClient, payload):
+    print(role_req)
     employee = await auth_crud.get_user_with_employee_id(
         role_req.employee_id, mongo_client
     )
@@ -197,14 +248,49 @@ async def assign_role(role_req, mongo_client: AsyncIOMotorClient):
 
     else:
         raise HTTPException(status_code=400, detail="Invalid Role Type")
+    pprint.pprint(employee)
+    bind_key = None
 
     if update:
+        if role_req.role != "employee":
+            bind_key = role_req.role
+        elif role_req.role == "employee":
+            bind_key = employee["employee_id"]
+        mq = RabbitMQ()
+        mq.ensure_queue("notifications_employee_{}".format(employee["uuid"]))
+        mq.bind_queue(
+            "notifications_employee_{}".format(employee["uuid"]),
+            "employee_notification",
+            bind_key,
+        )
+
+        notification = Notification(
+            sender_id=payload["employee_id"],
+            source="assign_role",
+            mongo_client=mongo_client,
+        )
+
+        await notification.send_notification(
+            NotificationBase(
+                title="Role Assigned",
+                description="Role of {} has been assigned to {}".format(
+                    role_req.role, employee["email"]
+                ),
+                payload={
+                    "actor": payload["employee_id"],
+                    "action": "role_assigned",
+                    "target": employee["employee_id"],
+                },
+                notifier=[employee["employee_id"], "MD"],
+                source="assign_role",
+            )
+        )
         return True
 
     return False
 
 
-async def remove_role(role_req, mongo_client: AsyncIOMotorClient):
+async def remove_role(role_req, mongo_client: AsyncIOMotorClient, payload):
     employee = await auth_crud.get_user_with_employee_id(
         role_req.employee_id, mongo_client
     )
@@ -232,8 +318,41 @@ async def remove_role(role_req, mongo_client: AsyncIOMotorClient):
 
     else:
         raise HTTPException(status_code=400, detail="Invalid Role Type")
+    bind_key = None
 
     if update:
+        if role_req.role != "employee":
+            bind_key = role_req.role
+        elif role_req.role == "employee":
+            bind_key = employee["employee_id"]
+
+        mq = RabbitMQ()
+        mq.ensure_queue("notifications_employee_{}".format(employee["uuid"]))
+        mq.unbind_queue(
+            "notifications_employee_{}".format(employee["uuid"]),
+            "employee_notification",
+            bind_key,
+        )
+
+        notification = Notification(
+            sender_id=payload["employee_id"],
+            source="remove_role",
+            mongo_client=mongo_client,
+        )
+
+        await notification.send_notification(
+            NotificationBase(
+                title="Role Removed",
+                description="Your role of {} has been removed".format(role_req.role),
+                payload={
+                    "actor": payload["employee_id"],
+                    "action": "role_removed",
+                    "target": employee["employee_id"],
+                },
+                notifier=[employee["employee_id"]],
+                source="remove_role",
+            )
+        )
         return True
 
     return False

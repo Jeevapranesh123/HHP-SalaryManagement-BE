@@ -14,6 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy project
 COPY app app
+COPY socketio_manager socketio_manager
 COPY .env .
 
 # Expose the port the app runs on

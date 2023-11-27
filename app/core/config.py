@@ -9,6 +9,12 @@ load_dotenv(".env")
 
 
 class Config(object):
+    RABBITMQ_HOST = os.getenv("RABBITMQ_HOST") or "localhost"
+
+    RABBITMQ_USERNAME = os.getenv("RABBITMQ_USERNAME") or "root"
+
+    RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD") or "zuvaLabs"
+
     MONGO_HOST = os.getenv("MONGO_HOST") or "localhost"
 
     MONGO_PORT = os.getenv("MONGO_PORT") or 27017
@@ -35,10 +41,11 @@ class Config(object):
         os.getenv("SALARY_INCENTIVES_COLLECTION") or "salary_incentives"
     )
 
+    NOTIFICATION_COLLECTION = os.getenv("NOTIFICATION_COLLECTION") or "notifications"
     LEAVE_COLLECTION = os.getenv("LEAVE_COLLECTION") or "leave"
 
     LOAN_COLLECTION = os.getenv("LOAN_COLLECTION") or "loan"
-
+    LOAN_SCHEDULE_COLLECTION = os.getenv("LOAN_SCHEDULE_COLLECTION") or "loan_schedule"
     SALARY_ADVANCE_COLLECTION = (
         os.getenv("SALARY_ADVANCE_COLLECTION") or "salary_advance"
     )

@@ -2,6 +2,7 @@ from app.database import AsyncIOMotorClient
 from fastapi import HTTPException
 from functools import wraps
 
+import datetime
 
 from app.schemas.request import (
     PostSalaryRequest,
@@ -10,10 +11,18 @@ from app.schemas.request import (
     SalaryAdvanceRequest,
     SalaryAdvanceRespondRequest,
 )
-from app.schemas.salary import SalaryBase, MonthlyCompensationBase, SalaryIncentivesBase
+from app.schemas.salary import (
+    SalaryBase,
+    MonthlyCompensationBase,
+    SalaryIncentivesBase,
+    SalaryAdvanceBase,
+)
 
 from app.api.crud import salary as salary_crud
 from app.api.crud import employees as employee_crud
+
+from app.api.lib.Notification import Notification
+from app.schemas.notification import NotificationBase
 
 
 def role_required(allowed_roles):
@@ -42,7 +51,7 @@ class SalaryController:
 
     async def get_salary(self, employee_id: str):
         if not self.employee_role in ["HR", "MD"] and employee_id != self.employee_id:
-            raise HTTPException(status_code=403, detail="Forbidden")
+            raise HTTPException(status_code=403, detail="Not enough permissions")
         emp = await employee_crud.get_employee_with_salary(
             employee_id, self.mongo_client
         )
@@ -85,6 +94,28 @@ class SalaryController:
             res.pop("salary_incentives")
 
         return res
+
+    async def get_salary_advance_history(self, employee_id: str):
+        if not self.employee_role in ["MD"] and employee_id != self.employee_id:
+            raise HTTPException(status_code=403, detail="Not enough permissions")
+        return await salary_crud.get_salary_advance_history(
+            employee_id, self.mongo_client
+        )
+
+    async def get_salary_advance(self, salary_advance_id: str):
+        salary_advance = await salary_crud.get_salary_advance(
+            salary_advance_id, self.mongo_client
+        )
+        if not salary_advance:
+            raise HTTPException(
+                status_code=404, detail="Salary Advance Record not found"
+            )
+        if (
+            not self.employee_role in ["MD"]
+            and salary_advance["employee_id"] != self.employee_id
+        ):
+            raise HTTPException(status_code=403, detail="Not enough permissions")
+        return salary_advance
 
     async def create_all_salaries(self, emp_in_create):
         emp_in_create = emp_in_create.model_dump()
@@ -133,9 +164,30 @@ class SalaryController:
         )
         if not emp:
             raise HTTPException(status_code=404, detail="Employee not found")
-        return await salary_crud.update_salary(
+        res = await salary_crud.update_salary(
             salary_in_create, self.mongo_client, self.payload["employee_id"]
         )
+
+        notification = Notification(self.employee_id, "post_salary", self.mongo_client)
+        await notification.send_notification(
+            NotificationBase(
+                title="Salary Updated",
+                description="Salary has been updated for {} by {} at {}".format(
+                    salary_in_create.employee_id,
+                    self.employee_id,
+                    datetime.datetime.now(),
+                ),
+                payload={
+                    "actor": self.employee_id,
+                    "action": "post_salary",
+                    "target": salary_in_create.employee_id,
+                },
+                notifier=[salary_in_create.employee_id, "HR", "MD"],
+                source="post_salary",
+            )
+        )
+
+        return res
 
     @role_required(["HR", "MD"])
     async def post_monthly_compensation(
@@ -175,16 +227,65 @@ class SalaryController:
             self.payload["employee_id"],
         )
 
-    async def request_advance(self, SalaryAdvanceRequest: SalaryAdvanceRequest):
-        return await salary_crud.request_advance(
-            SalaryAdvanceRequest, self.mongo_client
+    @role_required(["MD"])
+    async def post_advance(self, SalaryAdvanceRequest: SalaryAdvanceRequest):
+        salary_advance_in_create = SalaryAdvanceRequest.model_dump(exclude_none=True)
+        emp = await employee_crud.get_employee(
+            salary_advance_in_create["employee_id"], self.mongo_client
         )
+        if not emp:
+            raise HTTPException(
+                status_code=404,
+                detail="Employee '{}' not found".format(
+                    salary_advance_in_create["employee_id"]
+                ),
+            )
 
+        res = await salary_crud.request_advance(
+            salary_advance_in_create, self.mongo_client, "post", self.employee_id
+        )
+        res["salary_advance_id"] = res["id"]
+        return res
+
+    async def request_advance(self, SalaryAdvanceRequest: SalaryAdvanceRequest):
+        salary_advance_in_create = SalaryAdvanceRequest.model_dump(exclude_none=True)
+
+        if (
+            not self.employee_role in ["HR", "MD"]
+            and salary_advance_in_create["employee_id"] != self.employee_id
+        ):
+            raise HTTPException(status_code=403, detail="Not enough permissions")
+
+        emp = await employee_crud.get_employee(
+            salary_advance_in_create["employee_id"], self.mongo_client
+        )
+        if not emp:
+            raise HTTPException(
+                status_code=404,
+                detail="Employee '{}' not found".format(
+                    salary_advance_in_create["employee_id"]
+                ),
+            )
+
+        res = await salary_crud.request_advance(
+            salary_advance_in_create, self.mongo_client, "request", self.employee_id
+        )
+        res["salary_advance_id"] = res["id"]
+        return res
+
+    @role_required(["MD"])
     async def respond_salary_advance(
         self,
         SalaryAdvanceRespondRequest: SalaryAdvanceRespondRequest,
-        mongo_client: AsyncIOMotorClient,
     ):
+        salary_advance_in_create = SalaryAdvanceRespondRequest.model_dump()
+
+        if not await salary_crud.get_salary_advance(
+            salary_advance_in_create["salary_advance_id"], self.mongo_client
+        ):
+            raise HTTPException(
+                status_code=404, detail="Salary Advance Record not found"
+            )
         return await salary_crud.respond_salary_advance(
-            SalaryAdvanceRespondRequest, mongo_client
+            salary_advance_in_create, self.mongo_client
         )

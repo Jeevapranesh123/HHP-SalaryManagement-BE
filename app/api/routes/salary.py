@@ -13,14 +13,15 @@ from app.schemas.request import (
     SalaryAdvanceRequest,
     SalaryAdvanceRespondRequest,
 )
-from app.schemas.salary import (
-    MonthlyCompensationBase,
-    SalaryIncentivesBase,
-)  # FIXME: Create a Request and Response Schema for Temp Salary
+
+# FIXME: Create a Request and Response Schema for Temp Salary
 from app.schemas.response import (
     PostSalaryResponse,
     PostMonthlyCompensationResponse,
     PostSalaryIncentivesResponse,
+    PostSalaryAdvanceResponse,
+    RequestSalaryAdvanceResponse,
+    SalaryAdvanceRespondResponse,
 )
 from app.api.utils.employees import verify_login_token
 
@@ -43,7 +44,12 @@ async def get_salary(
     payload: dict = Depends(verify_login_token),
 ):
     sal_obj = SalaryController(payload, mongo_client)
-    return await sal_obj.get_salary(employee_id)
+    res = await sal_obj.get_salary(employee_id)
+    return {
+        "message": "Salary fetched successfully",
+        "status_code": 200,
+        "data": res,
+    }
 
 
 @router.put("/post_salary")
@@ -94,18 +100,68 @@ async def post_salary_incentives(
     )
 
 
-@router.post("/request_advance")
-async def request_advance(
+@router.get("/advance/meta")
+async def get_meta(
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    data = {
+        "message": "Salary meta fetched successfully",
+        "status_code": 200,
+        "data": {
+            "salary_advance": {
+                "data": {
+                    "employee_id": {
+                        "type": "string",
+                    },
+                    "amount": {"type": "number", "value": 0},
+                    "month": {"type": "date", "format": "YYYY-MM-DD"},
+                    "remarks": {"type": "textarea"},
+                },
+                "meta": {"url": "/salary/advance/", "method": "POST"},
+            }
+        },
+    }
+
+    if payload["primary_role"] == "employee":
+        data["data"]["salary_advance"]["data"].pop("remarks")
+
+    return data
+
+
+@router.post("/advance")
+async def post_advance(
     SalaryAdvanceRequest: SalaryAdvanceRequest,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
     sal_obj = SalaryController(payload, mongo_client)
+    res = await sal_obj.post_advance(SalaryAdvanceRequest)
+    return PostSalaryAdvanceResponse(
+        message="Salary Advance Updated successfully",
+        status_code=200,
+        data=res,
+    )
+
+
+@router.post("/advance/request")
+async def request_advance(
+    SalaryAdvanceRequest: SalaryAdvanceRequest,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    SalaryAdvanceRequest.remarks = ""
+    sal_obj = SalaryController(payload, mongo_client)
     res = await sal_obj.request_advance(SalaryAdvanceRequest)
-    # res = await salary_controller.request_advance(SalaryAdvanceRequest, mongo_client)
+
+    return RequestSalaryAdvanceResponse(
+        message="Salary Advance Requested successfully",
+        status_code=200,
+        data=res,
+    )
 
 
-@router.post("/respond_advance")
+@router.post("/advance/respond")
 async def respond_advance(
     SalaryAdvanceRespondRequest: SalaryAdvanceRespondRequest,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
@@ -113,3 +169,39 @@ async def respond_advance(
 ):
     sal_obj = SalaryController(payload, mongo_client)
     res = await sal_obj.respond_salary_advance(SalaryAdvanceRespondRequest)
+    print(res)
+    return SalaryAdvanceRespondResponse(
+        message="Salary Advance Responded successfully",
+        status_code=200,
+        data=res,
+    )
+
+
+@router.get("/advance/history", status_code=200)
+async def get_salary_advance_history(
+    employee_id: str,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    sal_obj = SalaryController(payload, mongo_client)
+    res = await sal_obj.get_salary_advance_history(employee_id)
+    return {
+        "message": "Salary Advance History fetched successfully",
+        "status_code": 200,
+        "data": res,
+    }
+
+
+@router.get("/advance/{salary_advance_id}", status_code=200)
+async def get_salary_advance(
+    salary_advance_id: str,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    sal_obj = SalaryController(payload, mongo_client)
+    res = await sal_obj.get_salary_advance(salary_advance_id)
+    return {
+        "message": "Salary Advance fetched successfully",
+        "status_code": 200,
+        "data": res,
+    }

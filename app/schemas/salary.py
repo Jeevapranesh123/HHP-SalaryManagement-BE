@@ -1,6 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel, root_validator
 from enum import Enum
+import datetime
 
 
 class SalaryAdvanceApplicationStatus(str, Enum):
@@ -11,8 +12,9 @@ class SalaryAdvanceApplicationStatus(str, Enum):
 
 class SalaryAdvanceBase(BaseModel):
     employee_id: str
-    month: str
+    month: datetime.date = datetime.date.today().replace(day=1)
     amount: float
+    remarks: Optional[str] = ""
 
 
 class SalaryBase(BaseModel):

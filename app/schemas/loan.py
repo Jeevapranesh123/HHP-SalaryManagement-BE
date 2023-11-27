@@ -13,19 +13,6 @@ class LoanApplicationStatus(str, Enum):
 class LoanBase(BaseModel):
     employee_id: str
     amount: float
-    month: str
-    emi: Optional[float] = None
-    tenure: Optional[int] = None
-
-    @root_validator(pre=True)
-    def calculate_emi(cls, values):
-        amount = values.get("amount")
-        tenure = values.get("tenure")
-        emi = values.get("emi")
-        if amount and tenure:
-            values["emi"] = amount / tenure
-            return values
-
-        if amount and emi:
-            values["tenure"] = amount / emi
-            return values
+    month: datetime.date = datetime.date.today().replace(day=1)
+    emi: Optional[float]
+    tenure: Optional[int]

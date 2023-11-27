@@ -12,6 +12,12 @@ from app.database import mongo
 
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.lib.RabbitMQ import RabbitMQ
+
+
+mq = RabbitMQ()
+
+mq.ensure_exchange("employee_notification")
 
 app = FastAPI(
     title="HHP Salary Management APIs",
@@ -58,4 +64,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # app.add_exception_handler(Response,)
+
+# FIXME: LOAN_SCHEDULE_INDEX = employee_id + loan_id + month
+# FIXME: Add increment to next month gross salary
+
+# TODO: Loan Repayment adjustment to next month
+# TODO: Admin APIs for rules and complete monitoring
+# FIXME: When a salary entry already exists, update it instead of creating a new one
+# FIXME: When a role is removed for MD or HR, assign them the basic role of Employee
+# FIXME: When sending notification, build the notificationBase such that multiple notifiers can get different notifications for the same event
+# FIXME: When MD is assigned a role of MD, he is getting the notification twice
+
+
+# Leave
+
+# FIXME: When leave for same date is requested, return error
+
+
+# FIXME: THE JWT Secret should be stored in a .env file, it currently in the crud file

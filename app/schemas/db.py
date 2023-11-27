@@ -52,8 +52,12 @@ class LeaveInDB(LeaveBase):
     type: str = "leave"
     start_date: datetime.datetime
     end_date: datetime.datetime
+    # FIXME: Store the month and year in which the leave was taken
+    month: datetime.datetime
     status: Optional[LeaveApplicationStatus] = "pending"
+    remarks: Optional[str] = ""
     requested_at: datetime.datetime = datetime.datetime.now()
+    requested_by: str
     approved_or_rejected_by: str = "admin"
     approved_or_rejected_at: datetime.datetime = None
 
@@ -61,11 +65,14 @@ class LeaveInDB(LeaveBase):
 class PermissionInDB(PermissionBase):
     id: str
     type: str = "permission"
-    date: datetime.datetime
     start_time: datetime.datetime
     end_time: datetime.datetime
+    date: datetime.datetime
+    month: datetime.datetime
     status: Optional[LeaveApplicationStatus] = "pending"
+    remarks: Optional[str] = ""
     requested_at: datetime.datetime = datetime.datetime.now()
+    requested_by: str
     approved_or_rejected_by: str = "admin"
     approved_or_rejected_at: datetime.datetime = None
 
@@ -73,16 +80,24 @@ class PermissionInDB(PermissionBase):
 class LoanInDB(LoanBase):
     id: str
     type: str = "loan"
+    month: datetime.datetime
     status: Optional[LoanApplicationStatus] = "pending"
+    remarks: Optional[str] = ""
     requested_at: datetime.datetime = datetime.datetime.now()
+    requested_by: str
     approved_or_rejected_by: str = "admin"
     approved_or_rejected_at: datetime.datetime = None
+    is_completed: bool = False
+    repayment_schedule: Optional[list] = None
 
 
 class SalaryAdvanceInDB(SalaryAdvanceBase):
     id: str
+    month: datetime.datetime
     type: str = "salary_advance"
     status: Optional[SalaryAdvanceApplicationStatus] = "pending"
+    remarks: Optional[str] = ""
     requested_at: datetime.datetime = datetime.datetime.now()
+    requested_by: str
     approved_or_rejected_by: str = "admin"
     approved_or_rejected_at: datetime.datetime = None

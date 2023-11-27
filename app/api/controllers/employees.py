@@ -12,6 +12,19 @@ from app.schemas.employees import EmployeeBase
 
 from app.schemas.salary import SalaryBase, MonthlyCompensationBase, SalaryIncentivesBase
 
+from app.core.config import Config
+from app.api.utils import *
+
+from app.api.lib.RabbitMQ import RabbitMQ
+
+from app.api.lib.Notification import Notification
+from app.schemas.notification import NotificationBase
+
+import datetime
+
+MONGO_DATABASE = Config.MONGO_DATABASE
+LEAVE_COLLECTION = Config.LEAVE_COLLECTION
+
 
 class EmployeeController:
     def __init__(self, payload, mongo_client: AsyncIOMotorClient):
@@ -27,11 +40,22 @@ class EmployeeController:
 
         emp_in_create = EmployeeBase(**employee.model_dump())
 
-        emp = await employee_crud.create_employee(emp_in_create, self.mongo_client)
+        emp, user = await employee_crud.create_employee(
+            emp_in_create, self.mongo_client
+        )
 
         sal_obj = SalaryController(self.payload, self.mongo_client)
 
         await sal_obj.create_all_salaries(emp_in_create)
+
+        mq = RabbitMQ()
+
+        queue_name = "notifications_employee_{}".format(user.uuid)
+
+        mq.ensure_queue(queue_name)
+        mq.bind_queue(queue_name, "employee_notification", emp["employee_id"])
+
+        # TODO: Push notification to MD regarding new employee creation
 
         return emp
 
@@ -56,6 +80,38 @@ class EmployeeController:
             exclude={"employee_id"}
         )
 
+        monthly_leave_days = (
+            total_leave_days
+        ) = total_permission_hours = monthly_permission_hours = 0
+
+        current_month = first_day_of_current_month()
+
+        docs = self.mongo_client[MONGO_DATABASE][LEAVE_COLLECTION].find(
+            {
+                "employee_id": employee_id,
+                "status": "approved",
+            }
+        )
+
+        async for i in docs:
+            if i["type"] == "permission":
+                if i["month"] == current_month:
+                    monthly_permission_hours += i["no_of_hours"]
+                total_permission_hours += i["no_of_hours"]
+            else:
+                if i["month"] == current_month:
+                    monthly_leave_days += i["no_of_days"]
+                total_leave_days += i["no_of_days"]
+
+        monthly_permission_hours = "{} Hours {} Minutes".format(
+            str(datetime.timedelta(hours=monthly_permission_hours)).split(":")[0],
+            str(datetime.timedelta(hours=monthly_permission_hours)).split(":")[1],
+        )
+        total_permission_hours = "{} Hours {} Minutes".format(
+            str(datetime.timedelta(hours=total_permission_hours)).split(":")[0],
+            str(datetime.timedelta(hours=total_permission_hours)).split(":")[1],
+        )
+
         res = {
             "basic_information": {
                 "employee_id": emp["employee_id"],
@@ -70,7 +126,17 @@ class EmployeeController:
             "govt_id_proofs": emp["govt_id_proofs"],
             "basic_salary": salary_base,
             "monthly_compensation": monthly_compensation_base,
+            "loan_and_advance": {
+                "loan": emp["loan"],
+                "salary_advance": emp["salary_advance"],
+            },
             "salary_incentives": salary_incentives_base,
+            "leaves_and_permissions": {
+                "total_leave_days": total_leave_days,
+                "monthly_leave_days": monthly_leave_days,
+                "total_permission_hours": total_permission_hours,
+                "monthly_permission_hours": monthly_permission_hours,
+            },
         }
 
         if self.employee_role == "HR" and self.employee_id == employee_id:
@@ -79,8 +145,9 @@ class EmployeeController:
             res["basic_salary"].pop("net_salary")
             res["basic_salary"].pop("gross_salary")
             res["monthly_compensation"].pop("other_special_allowance")
+            res.pop("loan_and_advance")
             res.pop("salary_incentives")
-        # pprint.pprint(res)
+
         return res
 
     async def get_all_employees(self):
@@ -105,6 +172,26 @@ class EmployeeController:
         # FIXME: Update salary if needed
         emp = await employee_crud.update_employee(
             employee_id, emp_in_update, self.mongo_client
+        )
+
+        notification_obj = Notification(
+            self.employee_id, "update_employee", self.mongo_client
+        )
+
+        await notification_obj.send_notification(
+            NotificationBase(
+                title="Employee Details Updated",
+                description="Your details have been updated by {}".format(
+                    self.employee_role
+                ),
+                payload={
+                    "actor": self.employee_id,
+                    "action": "update_employee",
+                    "target": employee_id,
+                },
+                notifier=[employee_id],
+                source="update_employee",
+            )
         )
 
         return emp
