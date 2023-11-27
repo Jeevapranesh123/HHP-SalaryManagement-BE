@@ -157,23 +157,31 @@ class PaybackType(str, Enum):
 
 class LoanCreateRequest(LoanBase):
     payback_type: PaybackType
+    payback_value: int
+    emi: Optional[float] = None
+    tenure: Optional[int] = None
 
     @root_validator(pre=True)
     def calculate_emi_or_tenure(cls, values):
         amount = values.get("amount")
-        tenure = values.get("tenure")
-        emi = values.get("emi")
         payback_type = values.get("payback_type")
+        payback_value = values.get("payback_value")
 
         if payback_type == "emi":
-            if not emi:
+            if not payback_value:
                 raise ValueError("EMI must be provided for EMI payback type")
-            values["tenure"] = amount / emi if amount % emi == 0 else amount // emi + 1
+            values["tenure"] = (
+                amount / payback_value
+                if amount % payback_value == 0
+                else amount // payback_value + 1
+            )
+            values["emi"] = payback_value
 
         elif payback_type == "tenure":
-            if not tenure:
-                raise ValueError("Tenure must be provided for tenure payback type")
-            values["emi"] = amount / tenure
+            if not payback_value:
+                raise ValueError("Tenure must be provided for Tenure payback type")
+            values["emi"] = amount / payback_value
+            values["tenure"] = payback_value
 
         else:
             raise ValueError("Invalid payback type")

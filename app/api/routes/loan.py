@@ -43,6 +43,7 @@ async def get_meta(
                                 {"label": "Tenure", "value": "tenure"},
                             ],
                         },
+                        "payback_value": {"type": "number", "value": 0},
                     },
                     "meta": {"url": "/loan/", "method": "POST"},
                 },
