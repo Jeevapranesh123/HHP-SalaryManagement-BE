@@ -19,6 +19,8 @@ mq = RabbitMQ()
 
 mq.ensure_exchange("employee_notification")
 
+mq.connection.close()
+
 app = FastAPI(
     title="HHP Salary Management APIs",
     description="This is a very fancy project, with auto docs for the API and everything",
