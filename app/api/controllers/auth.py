@@ -58,6 +58,14 @@ async def login(login_request, mongo_client: AsyncIOMotorClient):
         mongo_client=mongo_client,
     )
 
+    mq = RabbitMQ()
+    mq.ensure_queue("notifications_employee_{}".format(user["uuid"]))
+    mq.bind_queue(
+        "notifications_employee_{}".format(user["uuid"]),
+        "employee_notification",
+        user["employee_id"],
+    )
+
     return {"email": user["email"], "token": token}
 
 
