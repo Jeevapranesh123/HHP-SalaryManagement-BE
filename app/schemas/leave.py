@@ -31,8 +31,14 @@ class LeaveApplicationStatus(str, Enum):
     rejected = "rejected"
 
 
+class LeaveRequestType(str, Enum):
+    leave = "leave"
+    permission = "permission"
+
+
 class LeaveBase(BaseModel):
     employee_id: str
+    type: LeaveRequestType
     leave_type: LeaveType
     start_date: datetime.date
     end_date: Optional[datetime.date] = None

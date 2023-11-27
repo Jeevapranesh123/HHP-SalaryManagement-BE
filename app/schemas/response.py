@@ -68,6 +68,7 @@ class PostSalaryIncentivesResponse(BaseResponse):
 
 
 class LeaveResponse(BaseModel):
+    type: str
     leave_id: str
     employee_id: str
     start_date: str
