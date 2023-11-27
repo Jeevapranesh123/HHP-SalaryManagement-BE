@@ -33,18 +33,27 @@ async def get_meta(
             "type": {
                 "loan": {
                     "data": {
-                        "employee_id": {"type": "string", "value": 0},
-                        "amount": {"type": "number", "value": 0},
-                        "month": {"type": "month", "format": "YYYY-MM-DD"},
+                        "employee_id": {"type": "string", "value": 0, "required": True},
+                        "amount": {"type": "number", "value": 0, "required": True},
+                        "month": {
+                            "type": "month",
+                            "format": "YYYY-MM-DD",
+                            "required": True,
+                        },
                         "payback_type": {
                             "type": "dropdown",
                             "options": [
                                 {"label": "EMI", "value": "emi"},
                                 {"label": "Tenure", "value": "tenure"},
                             ],
+                            "required": True,
                         },
-                        "payback_value": {"type": "number", "value": 0},
-                        "remarks": {"type": "textarea", "value": ""},
+                        "payback_value": {
+                            "type": "number",
+                            "value": 0,
+                            "required": True,
+                        },
+                        "remarks": {"type": "textarea", "value": "", "required": True},
                     },
                     "meta": {"url": "/loan/", "method": "POST"},
                 },
@@ -104,6 +113,21 @@ async def respond_loan(
     res = await loan_controller.respond_loan(LoanRespondRequest)
     return LoanRespondResponse(
         message="Loan responded successfully",
+        status_code=200,
+        data=res,
+    )
+
+
+@router.post("/adjust")
+@role_required(["MD"])
+async def adjust_loan(
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    loan_controller = LoanController(payload, mongo_client)
+    res = await loan_controller.adjust_loan(LoanRespondRequest)
+    return LoanRespondResponse(
+        message="Loan adjusted successfully",
         status_code=200,
         data=res,
     )

@@ -14,6 +14,7 @@ from app.schemas.db import (
     MonthlyCompensationInDB,
     SalaryIncentivesInDB,
 )
+from app.api.utils import first_day_of_current_month
 
 import uuid
 import datetime
@@ -220,8 +221,10 @@ async def update_monthly_compensation(
     if not existing_salary:
         salary["created_at"] = datetime.datetime.now()
 
+    month = first_day_of_current_month()
+
     if await mongo_client[MONGO_DATABASE][MONTHLY_COMPENSATION_COLLECTION].update_one(
-        {"employee_id": employee_id},
+        {"employee_id": employee_id, "month": month},
         {"$set": salary},
         upsert=True,
     ):

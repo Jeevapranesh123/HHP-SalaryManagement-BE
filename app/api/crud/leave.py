@@ -92,8 +92,6 @@ async def request_leave(
 
     leave_in_db = LeaveInDB(**leave)
 
-    print(leave_in_db.model_dump())
-
     if await mongo_client[MONGO_DATABASE][LEAVE_COLLECTION].insert_one(
         leave_in_db.model_dump()
     ):

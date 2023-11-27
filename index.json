@@ -1,0 +1,7 @@
+{
+    "monthly_compensation":["employee_id","month"],
+    "salary_incentives":["employee_id","month"],
+    "salary":["employee_id"],
+    "salary_advance":[],
+    "leave":["employee_id","start_date","end_date"]
+}

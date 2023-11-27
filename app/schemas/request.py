@@ -82,9 +82,7 @@ class LeaveCreateRequest(LeaveBase):
         start_date_str = values.get("start_date")
         end_date_str = values.get("end_date")
         if start_date_str and end_date_str:
-            print(1)
             if start_date_str == end_date_str:
-                print(2)
                 values["no_of_days"] = 1
             else:
                 values["no_of_days"] = (
@@ -92,11 +90,9 @@ class LeaveCreateRequest(LeaveBase):
                     - datetime.datetime.strptime(start_date_str, "%Y-%m-%d").date()
                 ).days
         if start_date_str and not end_date_str:
-            print(3)
             values["end_date"] = start_date_str
             values["no_of_days"] = 1
 
-        print(values)
         return values
 
 
@@ -187,6 +183,14 @@ class LoanCreateRequest(LoanBase):
             raise ValueError("Invalid payback type")
 
         return values
+
+
+class LoanAdjustmentRequest(BaseModel):
+    loan_id: str
+    month: datetime.date = datetime.date.today().replace(day=1)
+    new_amount: Optional[float] = None
+    skip_months: Optional[int] = None
+    remarks: Optional[str] = None
 
 
 class LoanResponse(str, Enum):

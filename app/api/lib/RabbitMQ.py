@@ -52,7 +52,6 @@ class RabbitMQ:
         self.should_stop = asyncio.Event()
 
         if queue:
-            print("Ensuring queue...")
             self.ensure_queue(queue)
 
         if exchange:
@@ -156,7 +155,6 @@ class RabbitMQ:
             )
 
             while not self.should_stop.is_set():
-                # print("Consuming...")
                 self.connection.process_data_events(time_limit=1)  # 1 second timeout
 
             print("Consumer stopped")

@@ -82,7 +82,6 @@ class Notification(object):
         exchange_name = "employee_notification"
 
         for bind_key in bind_keys:
-            print(bind_key)
             self.mq.publish(
                 notification,
                 exchange_name,

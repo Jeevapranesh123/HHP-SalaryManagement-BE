@@ -226,7 +226,6 @@ async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient)
 
 
 async def assign_role(role_req, mongo_client: AsyncIOMotorClient, payload):
-    print(role_req)
     employee = await auth_crud.get_user_with_employee_id(
         role_req.employee_id, mongo_client
     )
