@@ -27,6 +27,74 @@ async def get_meta(
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
+    leave_respond_action = [
+        {
+            "label": "Approve",
+            "type": "button",
+            "color": "green",
+            "action": {"url": "/leave/respond", "method": "POST"},
+            "body": {"status": "approved"},
+        },
+        {
+            "label": "Reject",
+            "type": "button",
+            "color": "red",
+            "action": {"url": "/leave/respond", "method": "POST"},
+            "body": {"status": "rejected"},
+        },
+    ]
+
+    permission_respond_action = [
+        {
+            "label": "Approve",
+            "type": "button",
+            "color": "green",
+            "action": {"url": "/permission/respond", "method": "POST"},
+        },
+        {
+            "label": "Reject",
+            "type": "button",
+            "color": "red",
+            "action": {"url": "/permission/respond", "method": "POST"},
+        },
+    ]
+
+    leave_request_action = [
+        {
+            "label": "Request",
+            "type": "button",
+            "color": "black",
+            "action": {"url": "/leave/request", "method": "POST"},
+        }
+    ]
+
+    permission_request_action = [
+        {
+            "label": "Request",
+            "type": "button",
+            "color": "black",
+            "action": {"url": "/permission/request", "method": "POST"},
+        }
+    ]
+
+    leave_post_action = [
+        {
+            "label": "Submit",
+            "type": "button",
+            "color": "black",
+            "action": {"url": "/leave/", "method": "POST"},
+        }
+    ]
+
+    permission_post_action = [
+        {
+            "label": "Submit",
+            "type": "button",
+            "color": "black",
+            "action": {"url": "/permission/", "method": "POST"},
+        }
+    ]
+
     data = {
         "message": "Leave meta fetched successfully",
         "status_code": 200,
@@ -60,20 +128,6 @@ async def get_meta(
                         "reason": {"type": "textarea", "required": True},
                         "remarks": {"type": "textarea", "required": True},
                     },
-                    "actions": [
-                        {
-                            "label": "Approve",
-                            "type": "button",
-                            "color": "green",
-                            "action": {"url": "/leave/respond", "method": "POST"},
-                        },
-                        {
-                            "label": "Reject",
-                            "type": "button",
-                            "color": "red",
-                            "action": {"url": "/leave/respond", "method": "POST"},
-                        },
-                    ],
                 },
                 "permission": {
                     "data": {
@@ -106,23 +160,41 @@ async def get_meta(
                         "no_of_hours": {"type": "number", "required": True},
                         "reason": {"type": "textarea", "required": True},
                         "remarks": {"type": "textarea", "required": True},
-                    },
-                    "meta": {"url": "/permission/", "method": "POST"},
+                    }
                 },
             }
         },
     }
 
-    if type == "leave":
-        data["data"]["type"].pop("permission")
-
-    elif type == "permission":
-        data["data"]["type"].pop("leave")
-
     if access_type == "respond":
         data["data"]["type"]["leave"]["data"]["employee_id"]["editable"] = False
         data["data"]["type"]["leave"]["data"]["leave_type"]["editable"] = False
         data["data"]["type"]["leave"]["data"]["reason"]["editable"] = False
+
+        data["data"]["type"]["permission"]["data"]["employee_id"]["editable"] = False
+        data["data"]["type"]["permission"]["data"]["leave_type"]["editable"] = False
+        data["data"]["type"]["permission"]["data"]["reason"]["editable"] = False
+
+        data["data"]["type"]["leave"]["actions"] = leave_respond_action
+        data["data"]["type"]["permission"]["actions"] = permission_respond_action
+
+    elif access_type == "request":
+        data["data"]["type"]["leave"]["actions"] = leave_request_action
+        data["data"]["type"]["permission"]["actions"] = permission_request_action
+        data["data"]["type"]["leave"]["data"].pop("remarks")
+        data["data"]["type"]["permission"]["data"].pop("remarks")
+
+    elif access_type == "post":
+        data["data"]["type"]["leave"]["actions"] = leave_post_action
+        data["data"]["type"]["permission"]["actions"] = permission_post_action
+        data["data"]["type"]["leave"]["data"].pop("remarks")
+        data["data"]["type"]["permission"]["data"].pop("remarks")
+
+    if type == "leave" and access_type == "respond":
+        data["data"]["type"].pop("permission")
+
+    elif type == "permission" and access_type == "respond":
+        data["data"]["type"].pop("leave")
 
     return data
 
