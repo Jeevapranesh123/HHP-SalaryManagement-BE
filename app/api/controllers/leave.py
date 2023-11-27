@@ -46,7 +46,7 @@ class LeaveController:
             and leave["employee_id"] != self.employee_id
         ):
             raise HTTPException(status_code=403, detail="Not enough permissions")
-
+        leave["leave_id"] = leave["id"]
         return leave
 
     async def get_permission(self, permission_id):

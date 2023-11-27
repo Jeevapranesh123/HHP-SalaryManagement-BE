@@ -112,17 +112,24 @@ class PermissionCreateRequest(PermissionBase):
     def calculate_no_of_hours(cls, values):
         start_time = values.get("start_time")
         end_time = values.get("end_time")
+        date_str = values.get("date")
+
+        start_time_str = f"{date_str} {start_time}"
+        end_time_str = f"{date_str} {end_time}"
+        print(start_time_str, end_time_str)
         # Ensure start_time and end_time are datetime.datetime objects
         if isinstance(start_time, str):
             try:
-                start_time = datetime.datetime.fromisoformat(start_time)
+                start_time = datetime.datetime.strptime(
+                    start_time_str, "%Y-%m-%d %H:%M"
+                )
                 values["start_time"] = start_time  # Update the values dictionary
             except ValueError:
                 raise ValidationError(f"Invalid start_time format: {start_time}")
 
         if isinstance(end_time, str):
             try:
-                end_time = datetime.datetime.fromisoformat(end_time)
+                end_time = datetime.datetime.strptime(end_time_str, "%Y-%m-%d %H:%M")
                 values["end_time"] = end_time  # Update the values dictionary
             except ValueError:
                 raise ValidationError(f"Invalid end_time format: {end_time}")
@@ -131,6 +138,8 @@ class PermissionCreateRequest(PermissionBase):
             raise ValueError("start_time must be less than end_time")
         if start_time and end_time:
             values["no_of_hours"] = (end_time - start_time).seconds / 3600
+
+        print(values)
 
         return values
 
@@ -206,7 +215,18 @@ class LoanRespondRequest(BaseModel):
 
 
 class SalaryAdvanceRequest(SalaryAdvanceBase):
-    pass
+    @root_validator(pre=True)
+    def convert_month_to_datetime(cls, values):
+        month = values.get("month")
+        month = month + "-01"
+        if isinstance(month, str):
+            try:
+                month = datetime.datetime.strptime(month, "%Y-%m-%d").date()
+                values["month"] = month  # Update the values dictionary
+            except ValueError:
+                raise ValidationError(f"Invalid month format: {month}")
+
+        return values
 
 
 class SalaryAdvanceResponse(str, Enum):

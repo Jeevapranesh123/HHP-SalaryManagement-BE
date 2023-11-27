@@ -60,6 +60,19 @@ async def get_meta(
                         "remarks": {"type": "textarea", "required": True},
                     },
                     "meta": {"url": "/leave/", "method": "POST"},
+                    "actions": [
+                        {
+                            "label": "Approve",
+                            "type": "button",
+                            "color": "green",
+                            "action": {"url": "/leave/", "method": "POST"},
+                        },
+                        {
+                            "label": "Reject",
+                            "type": "button",
+                            "color": "red",
+                        },
+                    ],
                 },
                 "permission": {
                     "data": {
