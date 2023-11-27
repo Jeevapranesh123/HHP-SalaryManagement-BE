@@ -37,7 +37,7 @@ async def get_meta(
                         },
                         "leave_type": {
                             "type": "dropdown",
-                            "fields": [
+                            "options": [
                                 {"label": "Casual", "value": "casual"},
                                 {"label": "Medical", "value": "medical"},
                             ],
@@ -57,7 +57,7 @@ async def get_meta(
                         },
                         "leave_type": {
                             "type": "dropdown",
-                            "fields": [
+                            "options": [
                                 {"label": "Permission", "value": "permission"},
                             ],
                         },

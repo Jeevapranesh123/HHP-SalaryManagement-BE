@@ -37,7 +37,7 @@ async def get_meta(
                         "month": {"type": "month", "format": "YYYY-MM-DD"},
                         "payback_type": {
                             "type": "dropdown",
-                            "fields": [
+                            "options": [
                                 {"label": "EMI", "value": "emi"},
                                 {"label": "Tenure", "value": "tenure"},
                             ],
