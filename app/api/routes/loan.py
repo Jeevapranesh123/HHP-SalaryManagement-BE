@@ -26,6 +26,41 @@ async def get_meta(
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
+    loan_respond_action = [
+        {
+            "label": "Approve",
+            "type": "button",
+            "color": "success",
+            "action": {"url": "/loan/respond", "method": "POST"},
+            "body": {"status": "approved"},
+        },
+        {
+            "label": "Reject",
+            "type": "button",
+            "color": "destructive",
+            "action": {"url": "/loan/respond", "method": "POST"},
+            "body": {"status": "rejected"},
+        },
+    ]
+
+    loan_post_action = [
+        {
+            "label": "Submit",
+            "type": "button",
+            "color": "default",
+            "action": {"url": "/loan", "method": "POST"},
+        }
+    ]
+
+    loan_request_action = [
+        {
+            "label": "Request",
+            "type": "button",
+            "color": "default",
+            "action": {"url": "/loan/request", "method": "POST"},
+        }
+    ]
+
     data = {
         "message": "Loan meta fetched successfully",
         "status_code": 200,
@@ -54,19 +89,22 @@ async def get_meta(
                             "required": True,
                         },
                         "remarks": {"type": "textarea", "value": "", "required": True},
-                    },
-                    "meta": {"url": "/loan/", "method": "POST"},
+                    }
                 },
             }
         },
     }
 
-    if payload["primary_role"] == "employee":
-        data["data"]["type"]["loan"]["data"].pop("remarks")
-
     if access_type == "request":
-        if payload["primary_role"] == "MD":
-            data["data"]["type"]["loan"]["data"].pop("remarks")
+        data["data"]["type"]["loan"]["action"] = loan_request_action
+        data["data"]["type"]["loan"]["data"].pop("remarks")
+    elif access_type == "respond":
+        data["data"]["type"]["loan"]["action"] = loan_respond_action
+        data["data"]["type"]["loan"]["data"]["employee_id"]["editable"] = False
+        data["data"]["type"]["loan"]["data"]["payback_type"]["editable"] = False
+
+    elif access_type == "post":
+        data["data"]["type"]["loan"]["action"] = loan_post_action
 
     return data
 

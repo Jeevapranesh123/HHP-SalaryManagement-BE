@@ -106,6 +106,40 @@ async def get_meta(
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
+    advance_request_action = [
+        {
+            "label": "Request",
+            "type": "button",
+            "color": "default",
+            "action": {"url": "/salary/advance/request", "method": "POST"},
+        }
+    ]
+
+    advance_respond_action = [
+        {
+            "label": "Approve",
+            "type": "button",
+            "color": "success",
+            "action": {"url": "/salary/advance/respond", "method": "POST"},
+            "body": {"status": "approved"},
+        },
+        {
+            "label": "Reject",
+            "type": "button",
+            "color": "destructive",
+            "action": {"url": "/salary/advance/respond", "method": "POST"},
+            "body": {"status": "rejected"},
+        },
+    ]
+
+    advance_post_action = [
+        {
+            "label": "Submit",
+            "type": "button",
+            "color": "default",
+            "action": {"url": "/salary/advance", "method": "POST"},
+        }
+    ]
     data = {
         "message": "Salary meta fetched successfully",
         "status_code": 200,
@@ -124,13 +158,20 @@ async def get_meta(
                     },
                     "remarks": {"type": "textarea", "value": "", "required": True},
                 },
-                "meta": {"url": "/salary/advance/", "method": "POST"},
             }
         },
     }
 
-    if payload["primary_role"] == "employee" or access_type == "request":
+    if access_type == "request":
+        data["data"]["salary_advance"]["actions"] = advance_request_action
         data["data"]["salary_advance"]["data"].pop("remarks")
+
+    elif access_type == "respond":
+        data["data"]["salary_advance"]["actions"] = advance_respond_action
+        data["data"]["salary_advance"]["data"]["employee_id"]["editable"] = False
+
+    elif access_type == "post":
+        data["data"]["salary_advance"]["actions"] = advance_post_action
 
     return data
 
