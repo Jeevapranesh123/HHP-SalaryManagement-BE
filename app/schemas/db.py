@@ -49,7 +49,8 @@ class SalaryIncentivesInDB(SalaryIncentivesBase):
 
 class LeaveInDB(LeaveBase):
     id: str
-    leave_type: str = "leave"
+    type: str = "leave"
+    leave_type: str = "casual"
     start_date: datetime.datetime
     end_date: datetime.datetime
     # FIXME: Store the month and year in which the leave was taken
