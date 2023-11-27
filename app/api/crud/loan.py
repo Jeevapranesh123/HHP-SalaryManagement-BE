@@ -14,13 +14,16 @@ LOAN_COLLECTION = Config.LOAN_COLLECTION
 LOAN_SCHEDULE_COLLECTION = Config.LOAN_SCHEDULE_COLLECTION
 
 
-async def get_loan_history(employee_id, mongo_client: AsyncIOMotorClient):
+async def get_loan_history(employee_id, status, mongo_client: AsyncIOMotorClient):
     loan_history = (
         await mongo_client[MONGO_DATABASE][LOAN_COLLECTION]
         .find({"employee_id": employee_id}, {"_id": 0})
         .sort("requested_at", -1)
         .to_list(length=100)
     )
+
+    if status:
+        loan_history = list(filter(lambda x: x["status"] == status, loan_history))
 
     return loan_history
 

@@ -23,15 +23,19 @@ class LeaveController:
         self.employee_role = payload["primary_role"]
         self.mongo_client = mongo_client
 
-    async def get_leave_history(self, employee_id):
+    async def get_leave_history(self, employee_id, status):
         if not self.employee_role in ["HR", "MD"] and employee_id != self.employee_id:
             raise HTTPException(status_code=403, detail="Not enough permissions")
-        return await leave_crud.get_leave_history(employee_id, self.mongo_client)
+        return await leave_crud.get_leave_history(
+            employee_id, status, self.mongo_client
+        )
 
-    async def get_permission_history(self, employee_id):
+    async def get_permission_history(self, employee_id, status):
         if not self.employee_role in ["HR", "MD"] and employee_id != self.employee_id:
             raise HTTPException(status_code=403, detail="Not enough permissions")
-        return await leave_crud.get_permission_history(employee_id, self.mongo_client)
+        return await leave_crud.get_permission_history(
+            employee_id, status, self.mongo_client
+        )
 
     async def get_leave(self, leave_id):
         leave = await leave_crud.get_leave(leave_id, self.mongo_client)

@@ -13,7 +13,7 @@ MONGO_DATABASE = Config.MONGO_DATABASE
 LEAVE_COLLECTION = Config.LEAVE_COLLECTION
 
 
-async def get_leave_history(employee_id, mongo_client: AsyncIOMotorClient):
+async def get_leave_history(employee_id, status, mongo_client: AsyncIOMotorClient):
     leave_history = (
         await mongo_client[MONGO_DATABASE][LEAVE_COLLECTION]
         .find(
@@ -23,6 +23,9 @@ async def get_leave_history(employee_id, mongo_client: AsyncIOMotorClient):
         .sort("requested_at", -1)
         .to_list(length=100)
     )
+
+    if status:
+        leave_history = list(filter(lambda x: x["status"] == status, leave_history))
 
     return leave_history
 
@@ -37,13 +40,18 @@ async def get_leave(leave_id, mongo_client: AsyncIOMotorClient):
     return leave
 
 
-async def get_permission_history(employee_id, mongo_client: AsyncIOMotorClient):
+async def get_permission_history(employee_id, status, mongo_client: AsyncIOMotorClient):
     permission_history = (
         await mongo_client[MONGO_DATABASE][LEAVE_COLLECTION]
         .find({"employee_id": employee_id, "leave_type": "permission"}, {"_id": 0})
         .sort("requested_at", -1)
         .to_list(length=100)
     )
+
+    if status:
+        permission_history = list(
+            filter(lambda x: x["status"] == status, permission_history)
+        )
 
     return permission_history
 

@@ -22,6 +22,7 @@ router = APIRouter()
 
 @router.get("/meta")
 async def get_meta(
+    access_type: str,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
@@ -42,12 +43,21 @@ async def get_meta(
                                 {"label": "Tenure", "value": "tenure"},
                             ],
                         },
+                        "payback_value": {"type": "number", "value": 0},
+                        "remarks": {"type": "textarea", "value": ""},
                     },
                     "meta": {"url": "/loan/", "method": "POST"},
                 },
             }
         },
     }
+
+    if payload["primary_role"] == "employee":
+        data["data"]["type"]["loan"]["data"].pop("remarks")
+
+    if access_type == "request":
+        if payload["primary_role"] == "MD":
+            data["data"]["type"]["loan"]["data"].pop("remarks")
 
     return data
 
@@ -102,11 +112,12 @@ async def respond_loan(
 @router.get("/history")
 async def get_loan_history(
     employee_id: str,
+    status: str = None,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
     loan_controller = LoanController(payload, mongo_client)
-    res = await loan_controller.get_loan_history(employee_id)
+    res = await loan_controller.get_loan_history(employee_id, status)
 
     return LoanHistoryResponse(
         message="Loan history fetched successfully",
