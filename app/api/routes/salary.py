@@ -115,7 +115,7 @@ async def get_meta(
                         "type": "string",
                     },
                     "amount": {"type": "number", "value": 0},
-                    "month": {"type": "date", "format": "YYYY-MM-DD"},
+                    "month": {"type": "month", "format": "YYYY-MM-DD"},
                     "remarks": {"type": "textarea"},
                 },
                 "meta": {"url": "/salary/advance/", "method": "POST"},
