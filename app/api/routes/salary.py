@@ -100,6 +100,35 @@ async def post_salary_incentives(
     )
 
 
+@router.get("/advance/meta")
+async def get_meta(
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    data = {
+        "message": "Salary meta fetched successfully",
+        "status_code": 200,
+        "data": {
+            "salary_advance": {
+                "data": {
+                    "employee_id": {
+                        "type": "string",
+                    },
+                    "amount": {"type": "number", "value": 0},
+                    "month": {"type": "date", "format": "YYYY-MM-DD"},
+                    "remarks": {"type": "textarea"},
+                },
+                "meta": {"url": "/salary/advance/", "method": "POST"},
+            }
+        },
+    }
+
+    if payload["primary_role"] == "employee":
+        data["data"]["salary_advance"]["data"].pop("remarks")
+
+    return data
+
+
 @router.post("/advance")
 async def post_advance(
     SalaryAdvanceRequest: SalaryAdvanceRequest,

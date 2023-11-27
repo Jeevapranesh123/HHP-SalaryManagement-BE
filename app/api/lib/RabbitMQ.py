@@ -52,6 +52,7 @@ class RabbitMQ:
         self.should_stop = asyncio.Event()
 
         if queue:
+            print("Ensuring queue...")
             self.ensure_queue(queue)
 
         if exchange:

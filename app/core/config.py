@@ -11,9 +11,9 @@ load_dotenv(".env")
 class Config(object):
     RABBITMQ_HOST = os.getenv("RABBITMQ_HOST") or "localhost"
 
-    RABBITMQ_USERNAME = os.getenv("RABBITMQ_USERNAME") or "guest"
+    RABBITMQ_USERNAME = os.getenv("RABBITMQ_USERNAME") or "root"
 
-    RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD") or "guest"
+    RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD") or "zuvaLabs"
 
     MONGO_HOST = os.getenv("MONGO_HOST") or "localhost"
 

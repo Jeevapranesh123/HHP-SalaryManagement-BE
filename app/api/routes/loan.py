@@ -20,6 +20,38 @@ from app.schemas.response import (
 router = APIRouter()
 
 
+@router.get("/meta")
+async def get_meta(
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    data = {
+        "message": "Loan meta fetched successfully",
+        "status_code": 200,
+        "data": {
+            "type": {
+                "loan": {
+                    "data": {
+                        "employee_id": {"type": "string", "value": 0},
+                        "amount": {"type": "number", "value": 0},
+                        "month": {"type": "date", "format": "YYYY-MM-DD"},
+                        "payback_type": {
+                            "type": "dropdown",
+                            "fields": [
+                                {"label": "EMI", "value": "emi"},
+                                {"label": "Tenure", "value": "tenure"},
+                            ],
+                        },
+                    },
+                    "meta": {"url": "/loan/", "method": "POST"},
+                },
+            }
+        },
+    }
+
+    return data
+
+
 @router.post("/")
 @role_required(["MD"])
 async def post_loan(

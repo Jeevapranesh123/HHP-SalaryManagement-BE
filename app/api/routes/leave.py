@@ -20,6 +20,71 @@ from app.api.utils.auth import role_required
 router = APIRouter()
 
 
+@router.get("/meta")
+async def get_meta(
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    data = {
+        "message": "Leave meta fetched successfully",
+        "status_code": 200,
+        "data": {
+            "type": {
+                "leave": {
+                    "data": {
+                        "employee_id": {
+                            "type": "string",
+                        },
+                        "leave_type": {
+                            "type": "dropdown",
+                            "fields": [
+                                {"label": "Casual", "value": "casual"},
+                                {"label": "Medical", "value": "medical"},
+                            ],
+                        },
+                        "start_date": {"type": "date", "format": "YYYY-MM-DD"},
+                        "end_date": {"type": "date", "format": "YYYY-MM-DD"},
+                        "no_of_days": {"type": "number"},
+                        "reason": {"type": "textarea"},
+                        "remarks": {"type": "textarea"},
+                    },
+                    "meta": {"url": "/leave/", "method": "POST"},
+                },
+                "permission": {
+                    "data": {
+                        "employee_id": {
+                            "type": "string",
+                        },
+                        "leave_type": {
+                            "type": "dropdown",
+                            "fields": [
+                                {"label": "Permission", "value": "permission"},
+                            ],
+                        },
+                        "date": {"type": "date", "format": "YYYY-MM-DD"},
+                        "start_time": {"type": "time", "format": "HH:MM"},
+                        "end_time": {"type": "time", "format": "HH:MM"},
+                        "no_of_hours": {"type": "number"},
+                        "reason": {"type": "textarea"},
+                        "remarks": {"type": "textarea"},
+                    },
+                    "meta": {"url": "/permission/", "method": "POST"},
+                },
+            }
+        },
+    }
+
+    if payload["primary_role"] == "HR" or payload["primary_role"] == "MD":
+        data["data"]["type"]["leave"]["data"].pop("reason")
+        data["data"]["type"]["permission"]["data"].pop("reason")
+
+    elif payload["primary_role"] == "employee":
+        data["data"]["type"]["leave"]["data"].pop("remarks")
+        data["data"]["type"]["permission"]["data"].pop("remarks")
+
+    return data
+
+
 @router.post("/")
 @role_required(["HR", "MD"])
 async def post_leave(

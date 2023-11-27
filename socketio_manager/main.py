@@ -1,4 +1,6 @@
-# socketio_app.py
+import sys
+
+sys.dont_write_bytecode = True
 import socketio
 import pprint
 import asyncio
@@ -58,6 +60,8 @@ async def connect(sid, environ):
         binding_key=binding_key,
         loop=loop,
     )
+
+    mq.ensure_queue(queue_name)
 
     rabbitmq_instances[sid] = mq
 

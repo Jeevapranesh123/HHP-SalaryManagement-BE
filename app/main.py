@@ -15,8 +15,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.lib.RabbitMQ import RabbitMQ
 
 
-import socketio
-
 mq = RabbitMQ()
 
 mq.ensure_exchange("employee_notification")
@@ -26,51 +24,6 @@ app = FastAPI(
     description="This is a very fancy project, with auto docs for the API and everything",
     version="0.0.1",
 )
-
-
-# Create a Socket.IO server instance
-sio = socketio.AsyncServer(async_mode="asgi")
-socket_app = socketio.ASGIApp(sio, other_asgi_app=app)
-
-
-# Event handler for new connections
-@sio.event
-async def connect(sid, environ):
-    print("Connected", sid)
-
-    # Event handler for disconnections
-
-
-@sio.event
-async def disconnect(sid):
-    print("Disconnected", sid)
-
-
-# @sio.event
-# async def connect(sid, environ):
-#     mq = RabbitMQ(
-#         queue_name="salary",
-#         exchange_name="salary",
-#         binding_key="salary",
-#     )
-
-#     mq.ensure_exchange("salary")
-#     mq.ensure_queue("salary")
-#     mq.bind_queue("salary", "salary", "salary")
-
-#     def callback(ch, method, properties, body):
-#         print(" [x] %r:%r" % (method.routing_key, body))
-#         sio.emit("notification", {"message": body.decode("utf-8")})
-
-#     mq.consume("salary", callback)
-
-
-# @sio.event
-# async def disconnect(sid):
-#     print("disconnect ", sid)
-
-
-# app.mount("/", socket_app)
 
 
 class StatusCodeMiddleware(BaseHTTPMiddleware):
