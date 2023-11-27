@@ -78,6 +78,7 @@ class LeaveController:
             requested_by=self.employee_id,
         )
         res["leave_id"] = res["id"]
+        print(res)
 
         notification_obj = Notification(
             self.employee_id, "post_leave", self.mongo_client
@@ -165,9 +166,7 @@ class LeaveController:
 
     async def respond_leave(self, LeaveRespondRequest: LeaveRespondRequest):
         leave_respond_request = LeaveRespondRequest.model_dump()
-        if not await self.get_leave(
-            leave_respond_request["leave_id"], self.mongo_client
-        ):
+        if not await self.get_leave(leave_respond_request["leave_id"]):
             raise HTTPException(status_code=404, detail="Leave record not found")
         return await leave_crud.respond_leave(
             leave_respond_request, self.mongo_client, responder=self.employee_id

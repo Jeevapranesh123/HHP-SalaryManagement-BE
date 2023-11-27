@@ -23,6 +23,7 @@ router = APIRouter()
 @router.get("/meta")
 async def get_meta(
     access_type: str,
+    type: str = None,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
@@ -59,18 +60,18 @@ async def get_meta(
                         "reason": {"type": "textarea", "required": True},
                         "remarks": {"type": "textarea", "required": True},
                     },
-                    "meta": {"url": "/leave/", "method": "POST"},
                     "actions": [
                         {
                             "label": "Approve",
                             "type": "button",
                             "color": "green",
-                            "action": {"url": "/leave/", "method": "POST"},
+                            "action": {"url": "/leave/respond", "method": "POST"},
                         },
                         {
                             "label": "Reject",
                             "type": "button",
                             "color": "red",
+                            "action": {"url": "/leave/respond", "method": "POST"},
                         },
                     ],
                 },
@@ -112,21 +113,16 @@ async def get_meta(
         },
     }
 
-    if access_type == "request":
-        data["data"]["type"]["leave"]["meta"]["url"] = "/leave/request"
-        data["data"]["type"]["permission"]["meta"]["url"] = "/permission/request"
-        data["data"]["type"]["leave"]["data"].pop("remarks")
-        data["data"]["type"]["permission"]["data"].pop("remarks")
+    if type == "leave":
+        data["data"]["type"].pop("permission")
 
-    elif access_type == "post":
-        data["data"]["type"]["leave"]["meta"]["url"] = "/leave"
-        data["data"]["type"]["permission"]["meta"]["url"] = "/permission"
-        data["data"]["type"]["leave"]["data"].pop("reason")
-        data["data"]["type"]["permission"]["data"].pop("reason")
+    elif type == "permission":
+        data["data"]["type"].pop("leave")
 
-    elif access_type == "respond":
-        data["data"]["type"]["leave"]["meta"]["url"] = "/leave/respond"
-        data["data"]["type"]["permission"]["meta"]["url"] = "/permission/respond"
+    if access_type == "respond":
+        data["data"]["type"]["leave"]["data"]["employee_id"]["editable"] = False
+        data["data"]["type"]["leave"]["data"]["leave_type"]["editable"] = False
+        data["data"]["type"]["leave"]["data"]["reason"]["editable"] = False
 
     return data
 
