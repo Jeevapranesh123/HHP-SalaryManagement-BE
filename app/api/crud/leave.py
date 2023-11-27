@@ -16,7 +16,10 @@ LEAVE_COLLECTION = Config.LEAVE_COLLECTION
 async def get_leave_history(employee_id, mongo_client: AsyncIOMotorClient):
     leave_history = (
         await mongo_client[MONGO_DATABASE][LEAVE_COLLECTION]
-        .find({"employee_id": employee_id, "type": {"$ne": "permission"}}, {"_id": 0})
+        .find(
+            {"employee_id": employee_id, "leave_type": {"$ne": "permission"}},
+            {"_id": 0},
+        )
         .sort("requested_at", -1)
         .to_list(length=100)
     )
@@ -26,7 +29,7 @@ async def get_leave_history(employee_id, mongo_client: AsyncIOMotorClient):
 
 async def get_leave(leave_id, mongo_client: AsyncIOMotorClient):
     leave = await mongo_client[MONGO_DATABASE][LEAVE_COLLECTION].find_one(
-        {"id": leave_id, "type": {"$ne": "permission"}}, {"_id": 0}
+        {"id": leave_id, "leave_type": {"$ne": "permission"}}, {"_id": 0}
     )
     if not leave:
         return None
@@ -37,7 +40,7 @@ async def get_leave(leave_id, mongo_client: AsyncIOMotorClient):
 async def get_permission_history(employee_id, mongo_client: AsyncIOMotorClient):
     permission_history = (
         await mongo_client[MONGO_DATABASE][LEAVE_COLLECTION]
-        .find({"employee_id": employee_id, "type": "permission"}, {"_id": 0})
+        .find({"employee_id": employee_id, "leave_type": "permission"}, {"_id": 0})
         .sort("requested_at", -1)
         .to_list(length=100)
     )
@@ -47,7 +50,7 @@ async def get_permission_history(employee_id, mongo_client: AsyncIOMotorClient):
 
 async def get_permission(permission_id, mongo_client: AsyncIOMotorClient):
     permission = await mongo_client[MONGO_DATABASE][LEAVE_COLLECTION].find_one(
-        {"id": permission_id, "type": "permission"}, {"_id": 0}
+        {"id": permission_id, "leave_type": "permission"}, {"_id": 0}
     )
     if not permission:
         return None

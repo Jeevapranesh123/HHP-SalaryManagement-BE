@@ -34,7 +34,7 @@ async def get_meta(
                     "data": {
                         "employee_id": {"type": "string", "value": 0},
                         "amount": {"type": "number", "value": 0},
-                        "month": {"type": "date", "format": "YYYY-MM-DD"},
+                        "month": {"type": "month", "format": "YYYY-MM-DD"},
                         "payback_type": {
                             "type": "dropdown",
                             "fields": [
