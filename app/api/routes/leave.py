@@ -139,11 +139,12 @@ async def respond_leave(
 @router.get("/history")
 async def get_leave_history(
     employee_id: str,
+    status: str = None,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
     leave_controller = LeaveController(payload, mongo_client)
-    res = await leave_controller.get_leave_history(employee_id)
+    res = await leave_controller.get_leave_history(employee_id, status)
     return LeaveHistoryResponse(
         message="Leave history fetched successfully", status_code=200, data=res
     )

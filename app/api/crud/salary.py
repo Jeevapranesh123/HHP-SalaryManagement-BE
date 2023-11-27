@@ -34,13 +34,20 @@ async def get_all_salaries(mongo_client: AsyncIOMotorClient):
     )
 
 
-async def get_salary_advance_history(employee_id, mongo_client: AsyncIOMotorClient):
+async def get_salary_advance_history(
+    employee_id, status, mongo_client: AsyncIOMotorClient
+):
     salary_advance_history = (
         await mongo_client[MONGO_DATABASE][SALARY_ADVANCE_COLLECTION]
         .find({"employee_id": employee_id}, {"_id": 0})
         .sort("requested_at", -1)
         .to_list(length=100)
     )
+
+    if status:
+        salary_advance_history = list(
+            filter(lambda x: x["status"] == status, salary_advance_history)
+        )
 
     return salary_advance_history
 

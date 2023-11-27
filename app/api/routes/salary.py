@@ -102,6 +102,7 @@ async def post_salary_incentives(
 
 @router.get("/advance/meta")
 async def get_meta(
+    access_type: str,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
@@ -124,6 +125,9 @@ async def get_meta(
     }
 
     if payload["primary_role"] == "employee":
+        data["data"]["salary_advance"]["data"].pop("remarks")
+
+    if access_type == "request":
         data["data"]["salary_advance"]["data"].pop("remarks")
 
     return data
@@ -180,11 +184,12 @@ async def respond_advance(
 @router.get("/advance/history", status_code=200)
 async def get_salary_advance_history(
     employee_id: str,
+    status: str = None,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
     sal_obj = SalaryController(payload, mongo_client)
-    res = await sal_obj.get_salary_advance_history(employee_id)
+    res = await sal_obj.get_salary_advance_history(employee_id, status)
     return {
         "message": "Salary Advance History fetched successfully",
         "status_code": 200,

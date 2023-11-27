@@ -15,10 +15,10 @@ class LoanController:
         self.employee_role = payload["primary_role"]
         self.mongo_client = mongo_client
 
-    async def get_loan_history(self, employee_id):
+    async def get_loan_history(self, employee_id, status):
         if not self.employee_role in ["HR", "MD"] and employee_id != self.employee_id:
             raise HTTPException(status_code=403, detail="Not enough permissions")
-        return await loan_crud.get_loan_history(employee_id, self.mongo_client)
+        return await loan_crud.get_loan_history(employee_id, status, self.mongo_client)
 
     # @role_required(["MD"])
     async def post_loan(

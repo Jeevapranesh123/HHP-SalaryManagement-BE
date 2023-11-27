@@ -30,7 +30,7 @@ async def post_permission(
     payload: dict = Depends(verify_login_token),
 ):
     leave_controller = LeaveController(payload, mongo_client)
-    res = await leave_controller.post_permission(PermissionCreateRequest, mongo_client)
+    res = await leave_controller.post_permission(PermissionCreateRequest)
     return PostPermissionResponse(
         message="Permission posted successfully", status_code=201, data=res
     )
@@ -43,9 +43,7 @@ async def request_permission(
     payload: dict = Depends(verify_login_token),
 ):
     leave_controller = LeaveController(payload, mongo_client)
-    res = await leave_controller.request_permission(
-        PermissionCreateRequest, mongo_client
-    )
+    res = await leave_controller.request_permission(PermissionCreateRequest)
     return RequestPermissionResponse(
         message="Permission requested successfully", status_code=201, data=res
     )
@@ -59,9 +57,7 @@ async def respond_permission(
     payload: dict = Depends(verify_login_token),
 ):
     leave_controller = LeaveController(payload, mongo_client)
-    res = await leave_controller.respond_permission(
-        PermissionRespondRequest, mongo_client
-    )
+    res = await leave_controller.respond_permission(PermissionRespondRequest)
     return PermissionRespondResponse(
         message="Permission responded successfully", status_code=201, data=res
     )
@@ -70,11 +66,12 @@ async def respond_permission(
 @router.get("/history")
 async def get_permission_history(
     employee_id: str,
+    status: str = None,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
     leave_controller = LeaveController(payload, mongo_client)
-    res = await leave_controller.get_permission_history(employee_id, mongo_client)
+    res = await leave_controller.get_permission_history(employee_id, status)
     return PermissionHistoryResponse(
         message="Permission history retrieved successfully", status_code=200, data=res
     )
@@ -87,7 +84,7 @@ async def get_permission(
     payload: dict = Depends(verify_login_token),
 ):
     leave_controller = LeaveController(payload, mongo_client)
-    res = await leave_controller.get_permission(permission_id, mongo_client)
+    res = await leave_controller.get_permission(permission_id)
     return GetPermissionResponse(
         message="Permission history retrieved successfully", status_code=200, data=res
     )
