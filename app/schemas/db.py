@@ -49,7 +49,7 @@ class SalaryIncentivesInDB(SalaryIncentivesBase):
 
 class LeaveInDB(LeaveBase):
     id: str
-    type: str = "leave"
+    leave_type: str = "leave"
     start_date: datetime.datetime
     end_date: datetime.datetime
     # FIXME: Store the month and year in which the leave was taken
@@ -64,7 +64,7 @@ class LeaveInDB(LeaveBase):
 
 class PermissionInDB(PermissionBase):
     id: str
-    type: str = "permission"
+    leave_type: str = "permission"
     start_time: datetime.datetime
     end_time: datetime.datetime
     date: datetime.datetime
