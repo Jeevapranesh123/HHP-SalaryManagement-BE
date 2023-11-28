@@ -66,6 +66,7 @@ class LeaveInDB(LeaveBase):
 
 class PermissionInDB(PermissionBase):
     id: str = str(uuid.uuid4()).replace("-", "")
+    type: str = "permission"
     leave_type: str = "permission"
     start_time: datetime.datetime
     end_time: datetime.datetime
