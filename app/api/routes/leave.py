@@ -31,14 +31,14 @@ async def get_meta(
         {
             "label": "Approve",
             "type": "button",
-            "color": "success",
+            "variant": "success",
             "action": {"url": "/leave/respond", "method": "POST"},
             "body": {"status": "approved"},
         },
         {
             "label": "Reject",
             "type": "button",
-            "color": "destructive",
+            "variant": "destructive",
             "action": {"url": "/leave/respond", "method": "POST"},
             "body": {"status": "rejected"},
         },
@@ -48,14 +48,14 @@ async def get_meta(
         {
             "label": "Approve",
             "type": "button",
-            "color": "success",
+            "variant": "success",
             "action": {"url": "/permission/respond", "method": "POST"},
             "body": {"status": "approved"},
         },
         {
             "label": "Reject",
             "type": "button",
-            "color": "destructive",
+            "variant": "destructive",
             "action": {"url": "/permission/respond", "method": "POST"},
             "body": {"status": "rejected"},
         },
@@ -65,7 +65,7 @@ async def get_meta(
         {
             "label": "Request",
             "type": "button",
-            "color": "default",
+            "variant": "default",
             "action": {"url": "/leave/request", "method": "POST"},
         }
     ]
@@ -74,7 +74,7 @@ async def get_meta(
         {
             "label": "Request",
             "type": "button",
-            "color": "default",
+            "variant": "default",
             "action": {"url": "/permission/request", "method": "POST"},
         }
     ]
@@ -83,7 +83,7 @@ async def get_meta(
         {
             "label": "Submit",
             "type": "button",
-            "color": "default",
+            "variant": "default",
             "action": {"url": "/leave/", "method": "POST"},
         }
     ]
@@ -92,7 +92,7 @@ async def get_meta(
         {
             "label": "Submit",
             "type": "button",
-            "color": "default",
+            "variant": "default",
             "action": {"url": "/permission/", "method": "POST"},
         }
     ]

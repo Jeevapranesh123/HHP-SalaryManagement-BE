@@ -30,14 +30,14 @@ async def get_meta(
         {
             "label": "Approve",
             "type": "button",
-            "color": "success",
+            "variant": "success",
             "action": {"url": "/loan/respond", "method": "POST"},
             "body": {"status": "approved"},
         },
         {
             "label": "Reject",
             "type": "button",
-            "color": "destructive",
+            "variant": "destructive",
             "action": {"url": "/loan/respond", "method": "POST"},
             "body": {"status": "rejected"},
         },
@@ -47,7 +47,7 @@ async def get_meta(
         {
             "label": "Submit",
             "type": "button",
-            "color": "default",
+            "variant": "default",
             "action": {"url": "/loan", "method": "POST"},
         }
     ]
@@ -56,7 +56,7 @@ async def get_meta(
         {
             "label": "Request",
             "type": "button",
-            "color": "default",
+            "variant": "default",
             "action": {"url": "/loan/request", "method": "POST"},
         }
     ]
