@@ -114,6 +114,9 @@ async def get_meta(
 
     elif access_type == "post":
         data["data"]["type"]["loan"]["actions"] = loan_post_action
+        data["data"]["type"]["loan"]["data"]["employee_id"]["editable"] = False
+        data["data"]["type"]["loan"]["data"].pop("emi")
+        data["data"]["type"]["loan"]["data"].pop("tenure")
 
     return data
 

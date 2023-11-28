@@ -187,6 +187,12 @@ class LoanCreateRequest(LoanBase):
         if payback_type == "emi":
             if not payback_value:
                 raise ValueError("EMI must be provided for EMI payback type")
+            print(payback_value)
+            print(amount)
+            if payback_value > amount:
+                raise HTTPException(
+                    status_code=400, detail="EMI must be less than loan amount"
+                )
             values["tenure"] = (
                 amount / payback_value
                 if amount % payback_value == 0
