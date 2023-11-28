@@ -91,6 +91,7 @@ class LeaveResponse(BaseModel):
 
 
 class PermissionResponse(BaseModel):
+    type: str
     permission_id: str
     employee_id: str
     date: str

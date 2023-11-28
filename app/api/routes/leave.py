@@ -200,6 +200,8 @@ async def get_meta(
     elif access_type == "post":
         data["data"]["type"]["leave"]["actions"] = leave_post_action
         data["data"]["type"]["permission"]["actions"] = permission_post_action
+        data["data"]["type"]["leave"]["data"]["employee_id"]["editable"] = False
+        data["data"]["type"]["permission"]["data"]["employee_id"]["editable"] = False
         data["data"]["type"]["leave"]["data"].pop("remarks")
         data["data"]["type"]["permission"]["data"].pop("remarks")
 

@@ -79,6 +79,14 @@ class LeaveCreateRequest(LeaveBase):
         start_date_str = values.get("start_date")
         end_date_str = values.get("end_date")
         if start_date_str and end_date_str:
+            start_date_obj = datetime.datetime.strptime(
+                start_date_str, "%Y-%m-%d"
+            ).date()
+            end_date_obj = datetime.datetime.strptime(end_date_str, "%Y-%m-%d").date()
+            if start_date_obj > end_date_obj:
+                raise HTTPException(
+                    status_code=400, detail="Start date must be less than end date"
+                )
             if start_date_str == end_date_str:
                 values["no_of_days"] = 1
             else:
@@ -131,7 +139,9 @@ class PermissionCreateRequest(PermissionBase):
                 raise ValidationError(f"Invalid end_time format: {end_time}")
 
         if start_time > end_time:
-            raise ValueError("start_time must be less than end_time")
+            raise HTTPException(
+                status_code=400, detail="Start time must be less than end time"
+            )
         if start_time and end_time:
             values["no_of_hours"] = (end_time - start_time).seconds / 3600
 
@@ -171,6 +181,9 @@ class LoanCreateRequest(LoanBase):
         payback_type = values.get("payback_type")
         payback_value = int(values.get("payback_value"))
 
+        month = values.get("month")
+        month = month + "-01"
+        values["month"] = datetime.datetime.strptime(month, "%Y-%m-%d").date()
         if payback_type == "emi":
             if not payback_value:
                 raise ValueError("EMI must be provided for EMI payback type")

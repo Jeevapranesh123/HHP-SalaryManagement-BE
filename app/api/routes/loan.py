@@ -104,6 +104,7 @@ async def get_meta(
         data["data"]["type"]["loan"]["data"].pop("remarks")
         data["data"]["type"]["loan"]["data"].pop("emi")
         data["data"]["type"]["loan"]["data"].pop("tenure")
+        data["data"]["type"]["loan"]["data"]["employee_id"]["editable"] = False
 
     elif access_type == "respond":
         data["data"]["type"]["loan"]["actions"] = loan_respond_action
