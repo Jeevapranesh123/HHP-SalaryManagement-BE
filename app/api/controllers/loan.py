@@ -88,9 +88,9 @@ class LoanController:
         res = await loan_crud.respond_loan(
             loan_respond_request, self.mongo_client, self.employee_id
         )
-        repayment_schedule = await loan_crud.build_repayment_schedule(
-            res, self.mongo_client
-        )
+        if res["status"] == "approved":
+            repayment_schedule = await loan_crud.build_repayment_schedule(
+                res, self.mongo_client
+            )
         res["loan_id"] = res["id"]
-        res["repayment_schedule"] = repayment_schedule
         return res
