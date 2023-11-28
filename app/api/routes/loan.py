@@ -16,6 +16,8 @@ from app.schemas.response import (
     LoanHistoryResponse,
 )
 
+from app.schemas.employees import StatusEnum
+
 
 router = APIRouter()
 
@@ -174,10 +176,12 @@ async def adjust_loan(
 @router.get("/history")
 async def get_loan_history(
     employee_id: str,
-    status: str = None,
+    status: StatusEnum = None,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
+    if status and status.value == "all":
+        status = None
     loan_controller = LoanController(payload, mongo_client)
     res = await loan_controller.get_loan_history(employee_id, status)
 

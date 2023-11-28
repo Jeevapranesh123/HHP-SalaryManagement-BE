@@ -52,3 +52,13 @@ class EmployeeBase(BaseModel):  # TODO: Add relevant fields in the future
     # FIXME: Add validation for aadhar, pan, voter_id, driving_license, passport
     # FIXME: Add validation for bank_name, account_number, ifsc_code, branch, address
     # FIXME: Add validation for email
+
+
+from enum import Enum
+
+
+class StatusEnum(str, Enum):
+    pending = "pending"
+    approved = "approved"
+    rejected = "rejected"
+    all = "all"
