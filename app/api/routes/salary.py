@@ -210,6 +210,7 @@ async def get_meta(
     if access_type == "request":
         data["data"]["salary_advance"]["actions"] = advance_request_action
         data["data"]["salary_advance"]["data"].pop("remarks")
+        data["data"]["salary_advance"]["data"]["employee_id"]["editable"] = False
 
     elif access_type == "respond":
         data["data"]["salary_advance"]["actions"] = advance_respond_action
@@ -217,6 +218,7 @@ async def get_meta(
 
     elif access_type == "post":
         data["data"]["salary_advance"]["actions"] = advance_post_action
+        data["data"]["salary_advance"]["data"]["employee_id"]["editable"] = False
 
     return data
 
@@ -269,10 +271,19 @@ async def respond_advance(
     )
 
 
+from enum import Enum
+
+
+class StatusEnum(str, Enum):
+    pending = "pending"
+    approved = "approved"
+    rejected = "rejected"
+
+
 @router.get("/advance/history", status_code=200)
 async def get_salary_advance_history(
     employee_id: str,
-    status: str = None,
+    status: StatusEnum = None,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):

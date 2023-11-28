@@ -259,7 +259,7 @@ class SalaryController:
         emp = await employee_crud.get_employee(
             PostSalaryIncentivesRequest.employee_id, self.mongo_client
         )
-        print(emp)
+
         if not emp:
             raise HTTPException(status_code=404, detail="Employee not found")
         return await salary_crud.update_salary_incentives(

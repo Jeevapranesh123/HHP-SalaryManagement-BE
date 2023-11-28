@@ -47,7 +47,6 @@ class LeaveController:
         ):
             raise HTTPException(status_code=403, detail="Not enough permissions")
         leave["leave_id"] = leave["id"]
-        print(leave)
         return leave
 
     async def get_permission(self, permission_id):
@@ -78,7 +77,6 @@ class LeaveController:
             requested_by=self.employee_id,
         )
         res["leave_id"] = res["id"]
-        print(res)
 
         notification_obj = Notification(
             self.employee_id, "post_leave", self.mongo_client
