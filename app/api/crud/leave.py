@@ -101,7 +101,7 @@ async def request_leave(
 async def respond_leave(leave, mongo_client: AsyncIOMotorClient, responder):
     already_approved_or_rejected = await mongo_client[MONGO_DATABASE][
         LEAVE_COLLECTION
-    ].find_one({"id": leave["leave_id"], "status": {"$ne": "pending"}})
+    ].find_one({"id": leave["id"], "status": {"$ne": "pending"}})
     if already_approved_or_rejected:
         raise HTTPException(
             status_code=400,
@@ -116,9 +116,8 @@ async def respond_leave(leave, mongo_client: AsyncIOMotorClient, responder):
     }
 
     update = await mongo_client[MONGO_DATABASE][LEAVE_COLLECTION].find_one_and_update(
-        {"id": leave["leave_id"]}, {"$set": data_change}, return_document=True
+        {"id": leave["id"]}, {"$set": data_change}, return_document=True
     )
-    update["leave_id"] = update["id"]
     update.pop("_id")
     return update
 
@@ -158,7 +157,7 @@ async def request_permission(
 async def respond_permission(permission, mongo_client: AsyncIOMotorClient, responder):
     already_approved_or_rejected = await mongo_client[MONGO_DATABASE][
         LEAVE_COLLECTION
-    ].find_one({"id": permission["permission_id"], "status": {"$ne": "pending"}})
+    ].find_one({"id": permission["id"], "status": {"$ne": "pending"}})
 
     if already_approved_or_rejected:
         raise HTTPException(
@@ -174,9 +173,8 @@ async def respond_permission(permission, mongo_client: AsyncIOMotorClient, respo
     }
 
     update = await mongo_client[MONGO_DATABASE][LEAVE_COLLECTION].find_one_and_update(
-        {"id": permission["permission_id"]}, {"$set": data_change}, return_document=True
+        {"id": permission["id"]}, {"$set": data_change}, return_document=True
     )
 
-    update["permission_id"] = update["id"]
     update.pop("_id")
     return update

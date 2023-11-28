@@ -322,7 +322,7 @@ class SalaryController:
         salary_advance_in_create = SalaryAdvanceRespondRequest.model_dump()
 
         if not await salary_crud.get_salary_advance(
-            salary_advance_in_create["salary_advance_id"], self.mongo_client
+            salary_advance_in_create["id"], self.mongo_client
         ):
             raise HTTPException(
                 status_code=404, detail="Salary Advance Record not found"
