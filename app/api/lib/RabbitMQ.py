@@ -125,8 +125,11 @@ class RabbitMQ:
         try:
             # Decode the message
             message = body.decode("utf-8")
-            message = json.loads(message)
-            message["delivery_tag"] = method.delivery_tag
+            try:
+                message = json.loads(message)
+                message["delivery_tag"] = method.delivery_tag
+            except json.decoder.JSONDecodeError:
+                message = {"data": message, "delivery_tag": method.delivery_tag}
 
             future = asyncio.run_coroutine_threadsafe(
                 sio.emit("notification", {"data": message}, room=sid),
@@ -140,7 +143,7 @@ class RabbitMQ:
             asyncio.run_coroutine_threadsafe(sio.disconnect(sid), self.async_loop)
 
     def consume(self, queue, sio, sid):
-        try:
+        # try:
             print("Starting consumer...")
 
             # Define a wrapper callback function that includes sio and sid
@@ -160,9 +163,9 @@ class RabbitMQ:
             print("Consumer stopped")
             self.channel.stop_consuming()
             self.connection.close()
-        except Exception as e:
-            logger.error(f"Error while consuming message from RabbitMQ: {e}")
-            asyncio.run_coroutine_threadsafe(sio.disconnect(sid), self.async_loop)
+        # except Exception as e:
+        #     logger.error(f"Error while consuming message from RabbitMQ: {e}")
+        #     asyncio.run_coroutine_threadsafe(sio.disconnect(sid), self.async_loop)
 
     def ack_message(self, delivery_tag):
         try:
