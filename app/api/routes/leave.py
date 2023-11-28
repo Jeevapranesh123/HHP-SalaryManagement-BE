@@ -173,10 +173,17 @@ async def get_meta(
         data["data"]["type"]["leave"]["data"]["employee_id"]["editable"] = False
         data["data"]["type"]["leave"]["data"]["leave_type"]["editable"] = False
         data["data"]["type"]["leave"]["data"]["reason"]["editable"] = False
+        data["data"]["type"]["leave"]["data"]["start_date"]["editable"] = False
+        data["data"]["type"]["leave"]["data"]["end_date"]["editable"] = False
+        data["data"]["type"]["leave"]["data"]["no_of_days"]["editable"] = False
 
         data["data"]["type"]["permission"]["data"]["employee_id"]["editable"] = False
         data["data"]["type"]["permission"]["data"]["leave_type"]["editable"] = False
         data["data"]["type"]["permission"]["data"]["reason"]["editable"] = False
+        data["data"]["type"]["permission"]["data"]["date"]["editable"] = False
+        data["data"]["type"]["permission"]["data"]["start_time"]["editable"] = False
+        data["data"]["type"]["permission"]["data"]["end_time"]["editable"] = False
+        data["data"]["type"]["permission"]["data"]["no_of_hours"]["editable"] = False
 
         data["data"]["type"]["leave"]["actions"] = leave_respond_action
         data["data"]["type"]["permission"]["actions"] = permission_respond_action
@@ -184,6 +191,9 @@ async def get_meta(
     elif access_type == "request":
         data["data"]["type"]["leave"]["actions"] = leave_request_action
         data["data"]["type"]["permission"]["actions"] = permission_request_action
+        data["data"]["type"]["leave"]["data"]["employee_id"]["editable"] = False
+        data["data"]["type"]["permission"]["data"]["employee_id"]["editable"] = False
+
         data["data"]["type"]["leave"]["data"].pop("remarks")
         data["data"]["type"]["permission"]["data"].pop("remarks")
 

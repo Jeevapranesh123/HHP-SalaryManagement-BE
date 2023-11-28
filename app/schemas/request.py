@@ -148,6 +148,11 @@ class PermissionRespondRequest(BaseModel):
     status: PermissionResponse
     remarks: Optional[str] = None
 
+    @root_validator(pre=True)
+    def check(cls, values):
+        print(type(values))
+        values["permission_id"] = values.get("id", None)
+
 
 class PaybackType(str, Enum):
     emi = "emi"
@@ -233,3 +238,7 @@ class SalaryAdvanceRespondRequest(BaseModel):
     status: SalaryAdvanceResponse
     remarks: Optional[str] = None
     data_change: Optional[dict] = None
+
+    @root_validator(pre=True)
+    def check(cls, values):
+        print(values)

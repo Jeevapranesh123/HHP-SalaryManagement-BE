@@ -90,6 +90,8 @@ async def get_meta(
                             "value": 0,
                             "required": True,
                         },
+                        "emi": {"type": "number", "value": 0, "required": True},
+                        "tenure": {"type": "number", "value": 0, "required": True},
                         "remarks": {"type": "textarea", "value": "", "required": True},
                     }
                 },
@@ -100,10 +102,14 @@ async def get_meta(
     if access_type == "request":
         data["data"]["type"]["loan"]["actions"] = loan_request_action
         data["data"]["type"]["loan"]["data"].pop("remarks")
+        data["data"]["type"]["loan"]["data"].pop("emi")
+        data["data"]["type"]["loan"]["data"].pop("tenure")
+
     elif access_type == "respond":
         data["data"]["type"]["loan"]["actions"] = loan_respond_action
         data["data"]["type"]["loan"]["data"]["employee_id"]["editable"] = False
-        data["data"]["type"]["loan"]["data"]["payback_type"]["editable"] = False
+        data["data"]["type"]["loan"]["data"].pop("payback_type")
+        data["data"]["type"]["loan"]["data"].pop("payback_value")
 
     elif access_type == "post":
         data["data"]["type"]["loan"]["actions"] = loan_post_action
