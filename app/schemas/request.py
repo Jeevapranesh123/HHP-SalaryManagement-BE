@@ -165,9 +165,9 @@ class LoanCreateRequest(LoanBase):
 
     @root_validator(pre=True)
     def calculate_emi_or_tenure(cls, values):
-        amount = values.get("amount")
+        amount = int(values.get("amount"))
         payback_type = values.get("payback_type")
-        payback_value = values.get("payback_value")
+        payback_value = int(values.get("payback_value"))
 
         if payback_type == "emi":
             if not payback_value:
