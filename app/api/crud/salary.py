@@ -53,6 +53,41 @@ async def get_salary_advance_history(
     return salary_advance_history
 
 
+async def get_salary_history(employee_id, mongo_client: AsyncIOMotorClient):
+    salary_history = (
+        await mongo_client[MONGO_DATABASE][SALARY_COLLECTION]
+        .find({"employee_id": employee_id}, {"_id": 0})
+        .sort("created_at", -1)
+        .to_list(length=100)
+    )
+
+    return salary_history
+
+
+async def get_monthly_compensation_history(
+    employee_id, mongo_client: AsyncIOMotorClient
+):
+    monthly_compensation_history = (
+        await mongo_client[MONGO_DATABASE][MONTHLY_COMPENSATION_COLLECTION]
+        .find({"employee_id": employee_id}, {"_id": 0})
+        .sort("month", -1)
+        .to_list(length=100)
+    )
+
+    return monthly_compensation_history
+
+
+async def get_salary_incentives_history(employee_id, mongo_client: AsyncIOMotorClient):
+    salary_incentives_history = (
+        await mongo_client[MONGO_DATABASE][SALARY_INCENTIVES_COLLECTION]
+        .find({"employee_id": employee_id}, {"_id": 0})
+        .sort("month", -1)
+        .to_list(length=100)
+    )
+
+    return salary_incentives_history
+
+
 async def create_salary(SalaryBase: SalaryBase, mongo_client: AsyncIOMotorClient):
     dict_salary = SalaryBase.model_dump()
     dict_salary["id"] = str(uuid.uuid4()).replace("-", "")
@@ -210,18 +245,23 @@ async def update_monthly_compensation(
 ):
     salary = MonthlyCompensationBase.model_dump(exclude_none=True)
 
-    employee_id = salary.pop("employee_id")
+    employee_id = salary["employee_id"]
     salary["updated_by"] = updated_by
     salary["updated_at"] = datetime.datetime.now()
 
-    existing_salary = await mongo_client[MONGO_DATABASE][
+    month = first_day_of_current_month(11, 2023)
+
+    existing_record = await mongo_client[MONGO_DATABASE][
         MONTHLY_COMPENSATION_COLLECTION
-    ].find_one({"employee_id": employee_id}, {"_id": 0})
+    ].find_one({"employee_id": employee_id, "month": month}, {"_id": 0})
 
-    if not existing_salary:
-        salary["created_at"] = datetime.datetime.now()
-
-    month = first_day_of_current_month()
+    if not existing_record:
+        salary["month"] = month
+        salary = MonthlyCompensationInDB(**salary)
+        salary = salary.model_dump()
+        salary["created_by"] = updated_by
+        salary["updated_at"] = datetime.datetime.now()
+        salary["updated_by"] = updated_by
 
     if await mongo_client[MONGO_DATABASE][MONTHLY_COMPENSATION_COLLECTION].update_one(
         {"employee_id": employee_id, "month": month},
@@ -239,19 +279,26 @@ async def update_salary_incentives(
 ):
     salary = SalaryIncentivesBase.model_dump(exclude_none=True)
 
-    employee_id = salary.pop("employee_id")
+    employee_id = salary["employee_id"]
     salary["updated_by"] = updated_by
     salary["updated_at"] = datetime.datetime.now()
 
-    existing_salary = await mongo_client[MONGO_DATABASE][
-        SALARY_INCENTIVES_COLLECTION
-    ].find_one({"employee_id": employee_id}, {"_id": 0})
+    month = first_day_of_current_month(12, 2023)
 
-    if not existing_salary:
-        salary["created_at"] = datetime.datetime.now()
+    existing_record = await mongo_client[MONGO_DATABASE][SALARY_COLLECTION].find_one(
+        {"employee_id": employee_id, "month": month}, {"_id": 0}
+    )
+
+    if not existing_record:
+        salary["month"] = month
+        salary = SalaryIncentivesInDB(**salary)
+        salary = salary.model_dump()
+        salary["created_by"] = updated_by
+        salary["updated_at"] = datetime.datetime.now()
+        salary["updated_by"] = updated_by
 
     if await mongo_client[MONGO_DATABASE][SALARY_INCENTIVES_COLLECTION].update_one(
-        {"employee_id": employee_id},
+        {"employee_id": employee_id, "month": month},
         {"$set": salary},
         upsert=True,
     ):

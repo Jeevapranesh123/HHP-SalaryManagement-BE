@@ -1,7 +1,7 @@
 from pydantic import BaseModel, validator, root_validator
 from fastapi import HTTPException
 from app.schemas.employees import EmployeeBase, BankDetails, Address, GovtIDProofs
-from app.schemas.salary import SalaryBase, SalaryAdvanceBase
+from app.schemas.salary import SalaryBase, SalaryAdvanceBase, SalaryIncentivesBase
 from app.schemas.leave import LeaveBase, PermissionBase
 from app.schemas.loan import LoanBase
 
@@ -67,11 +67,8 @@ class PostMonthlyCompensationRequest(BaseModel):
     overtime: Optional[float] = None
 
 
-class PostSalaryIncentivesRequest(BaseModel):
-    employee_id: str
-    allowance: Optional[float] = None
-    increment: Optional[float] = None
-    bonus: Optional[float] = None
+class PostSalaryIncentivesRequest(SalaryIncentivesBase):
+    pass
 
 
 class LeaveCreateRequest(LeaveBase):

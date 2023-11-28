@@ -10,6 +10,7 @@ from app.schemas.leave import LeaveBase, PermissionBase, LeaveApplicationStatus
 from app.schemas.loan import LoanBase, LoanApplicationStatus
 import datetime
 from typing import Optional
+import uuid
 
 
 def first_day_of_current_month():
@@ -22,7 +23,7 @@ class EmployeeInDB(EmployeeBase):
 
 
 class SalaryInDB(SalaryBase):
-    id: str
+    id: str = str(uuid.uuid4()).replace("-", "")
     created_at: datetime.datetime = datetime.datetime.now()
     created_by: str = "admin"
     updated_at: datetime.datetime = None
@@ -30,7 +31,7 @@ class SalaryInDB(SalaryBase):
 
 
 class MonthlyCompensationInDB(MonthlyCompensationBase):
-    id: str
+    id: str = str(uuid.uuid4()).replace("-", "")
     month: datetime.datetime = first_day_of_current_month()
     created_at: datetime.datetime = datetime.datetime.now()
     created_by: str = "admin"
@@ -39,7 +40,7 @@ class MonthlyCompensationInDB(MonthlyCompensationBase):
 
 
 class SalaryIncentivesInDB(SalaryIncentivesBase):
-    id: str
+    id: str = str(uuid.uuid4()).replace("-", "")
     month: datetime.datetime = first_day_of_current_month()
     created_at: datetime.datetime = datetime.datetime.now()
     created_by: str = "admin"
@@ -48,7 +49,7 @@ class SalaryIncentivesInDB(SalaryIncentivesBase):
 
 
 class LeaveInDB(LeaveBase):
-    id: str
+    id: str = str(uuid.uuid4()).replace("-", "")
     type: str = "leave"
     leave_type: str = "casual"
     start_date: datetime.datetime
@@ -64,7 +65,7 @@ class LeaveInDB(LeaveBase):
 
 
 class PermissionInDB(PermissionBase):
-    id: str
+    id: str = str(uuid.uuid4()).replace("-", "")
     leave_type: str = "permission"
     start_time: datetime.datetime
     end_time: datetime.datetime
@@ -79,7 +80,7 @@ class PermissionInDB(PermissionBase):
 
 
 class LoanInDB(LoanBase):
-    id: str
+    id: str = str(uuid.uuid4()).replace("-", "")
     type: str = "loan"
     month: datetime.datetime
     status: Optional[LoanApplicationStatus] = "pending"
@@ -93,7 +94,7 @@ class LoanInDB(LoanBase):
 
 
 class SalaryAdvanceInDB(SalaryAdvanceBase):
-    id: str
+    id: str = str(uuid.uuid4()).replace("-", "")
     month: datetime.datetime
     type: str = "salary_advance"
     status: Optional[SalaryAdvanceApplicationStatus] = "pending"

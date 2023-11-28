@@ -96,15 +96,15 @@ async def get_meta(
     }
 
     if access_type == "request":
-        data["data"]["type"]["loan"]["action"] = loan_request_action
+        data["data"]["type"]["loan"]["actions"] = loan_request_action
         data["data"]["type"]["loan"]["data"].pop("remarks")
     elif access_type == "respond":
-        data["data"]["type"]["loan"]["action"] = loan_respond_action
+        data["data"]["type"]["loan"]["actions"] = loan_respond_action
         data["data"]["type"]["loan"]["data"]["employee_id"]["editable"] = False
         data["data"]["type"]["loan"]["data"]["payback_type"]["editable"] = False
 
     elif access_type == "post":
-        data["data"]["type"]["loan"]["action"] = loan_post_action
+        data["data"]["type"]["loan"]["actions"] = loan_post_action
 
     return data
 
