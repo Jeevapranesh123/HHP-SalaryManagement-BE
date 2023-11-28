@@ -64,6 +64,9 @@ class SalaryController:
         monthly_compensation_base = monthly_compensation_base.model_dump(
             exclude={"employee_id"}
         )
+        import pprint
+
+        pprint.pprint(emp)
 
         salary_incentives_base = SalaryIncentivesBase(**emp)
         salary_incentives_base = salary_incentives_base.model_dump(
@@ -100,6 +103,43 @@ class SalaryController:
             raise HTTPException(status_code=403, detail="Not enough permissions")
         return await salary_crud.get_salary_advance_history(
             employee_id, status, self.mongo_client
+        )
+
+    async def get_salary_history(self, employee_id: str):
+        if not self.employee_role in ["MD", "HR"] and employee_id != self.employee_id:
+            raise HTTPException(status_code=403, detail="Not enough permissions")
+        res = await salary_crud.get_salary_history(employee_id, self.mongo_client)
+
+        if self.employee_role == "HR" and self.employee_id == employee_id:
+            pass
+
+        elif self.employee_role == "HR":
+            for i in res:
+                i.pop("gross_salary")
+
+        return res
+
+    async def get_monthly_compensation_history(self, employee_id: str):
+        if not self.employee_role in ["MD", "HR"] and employee_id != self.employee_id:
+            raise HTTPException(status_code=403, detail="Not enough permissions")
+        res = await salary_crud.get_monthly_compensation_history(
+            employee_id, self.mongo_client
+        )
+
+        if self.employee_role == "HR" and self.employee_id == employee_id:
+            pass
+
+        elif self.employee_role == "HR":
+            for i in res:
+                i.pop("other_special_allowance")
+
+        return res
+
+    async def get_salary_incentives_history(self, employee_id: str):
+        if not self.employee_role in ["MD"] and employee_id != self.employee_id:
+            raise HTTPException(status_code=403, detail="Not enough permissions")
+        return await salary_crud.get_salary_incentives_history(
+            employee_id, self.mongo_client
         )
 
     async def get_salary_advance(self, salary_advance_id: str):
@@ -219,6 +259,7 @@ class SalaryController:
         emp = await employee_crud.get_employee(
             PostSalaryIncentivesRequest.employee_id, self.mongo_client
         )
+        print(emp)
         if not emp:
             raise HTTPException(status_code=404, detail="Employee not found")
         return await salary_crud.update_salary_incentives(

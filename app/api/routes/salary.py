@@ -52,6 +52,21 @@ async def get_salary(
     }
 
 
+@router.get("/history/{employee_id}", status_code=200)
+async def get_salary_history(
+    employee_id: str,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    sal_obj = SalaryController(payload, mongo_client)
+    res = await sal_obj.get_salary_history(employee_id)
+    return {
+        "message": "Salary fetched successfully",
+        "status_code": 200,
+        "data": res,
+    }
+
+
 @router.put("/post_salary")
 async def post_salary(
     PostSalaryRequest: PostSalaryRequest,
@@ -68,6 +83,21 @@ async def post_salary(
     )
 
 
+@router.get("/monthly_compensation/history/{employee_id}", status_code=200)
+async def get_monthly_compensation_history(
+    employee_id: str,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    sal_obj = SalaryController(payload, mongo_client)
+    res = await sal_obj.get_monthly_compensation_history(employee_id)
+    return {
+        "message": "Monthly Compensation fetched successfully",
+        "status_code": 200,
+        "data": res,
+    }
+
+
 @router.put("/post_monthly_compensation")
 async def post_monthly_compensation(
     PostMonthlyCompensationRequest: PostMonthlyCompensationRequest,
@@ -82,6 +112,21 @@ async def post_monthly_compensation(
         status_code=200,
         data=res,
     )
+
+
+@router.get("/salary_incentives/history/{employee_id}", status_code=200)
+async def get_salary_incentives_history(
+    employee_id: str,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    sal_obj = SalaryController(payload, mongo_client)
+    res = await sal_obj.get_salary_incentives_history(employee_id)
+    return {
+        "message": "Salary Incentives fetched successfully",
+        "status_code": 200,
+        "data": res,
+    }
 
 
 @router.put("/post_salary_incentives")
