@@ -113,7 +113,6 @@ class PermissionCreateRequest(PermissionBase):
 
         start_time_str = f"{date_str} {start_time}"
         end_time_str = f"{date_str} {end_time}"
-        print(start_time_str, end_time_str)
         # Ensure start_time and end_time are datetime.datetime objects
         if isinstance(start_time, str):
             try:
@@ -135,8 +134,6 @@ class PermissionCreateRequest(PermissionBase):
             raise ValueError("start_time must be less than end_time")
         if start_time and end_time:
             values["no_of_hours"] = (end_time - start_time).seconds / 3600
-
-        print(values)
 
         return values
 
