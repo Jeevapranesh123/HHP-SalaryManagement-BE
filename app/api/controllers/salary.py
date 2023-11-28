@@ -222,7 +222,7 @@ class SalaryController:
                     "action": "post_salary",
                     "target": salary_in_create.employee_id,
                 },
-                notifier=[salary_in_create.employee_id, "HR", "MD"],
+                # target
                 source="post_salary",
             )
         )
