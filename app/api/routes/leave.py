@@ -15,6 +15,7 @@ from app.schemas.response import (
 from app.api.controllers.leave import LeaveController
 from app.api.utils.employees import verify_login_token
 from app.api.utils.auth import role_required
+from app.schemas.employees import StatusEnum
 
 
 router = APIRouter()
@@ -245,10 +246,12 @@ async def respond_leave(
 @router.get("/history")
 async def get_leave_history(
     employee_id: str,
-    status: str = None,
+    status: StatusEnum = None,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
+    if status and status.value == "all":
+        status = None
     leave_controller = LeaveController(payload, mongo_client)
     res = await leave_controller.get_leave_history(employee_id, status)
     return LeaveHistoryResponse(

@@ -23,6 +23,7 @@ from app.schemas.response import (
     RequestSalaryAdvanceResponse,
     SalaryAdvanceRespondResponse,
 )
+from app.schemas.employees import StatusEnum
 from app.api.utils.employees import verify_login_token
 
 router = APIRouter()
@@ -271,15 +272,6 @@ async def respond_advance(
     )
 
 
-from enum import Enum
-
-
-class StatusEnum(str, Enum):
-    pending = "pending"
-    approved = "approved"
-    rejected = "rejected"
-
-
 @router.get("/advance/history", status_code=200)
 async def get_salary_advance_history(
     employee_id: str,
@@ -287,6 +279,8 @@ async def get_salary_advance_history(
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
+    if status and status.value == "all":
+        status = None
     sal_obj = SalaryController(payload, mongo_client)
     res = await sal_obj.get_salary_advance_history(employee_id, status)
     return {
