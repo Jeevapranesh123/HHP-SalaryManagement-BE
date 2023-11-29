@@ -13,7 +13,11 @@ import pprint
 
 from app.api.lib.RabbitMQ import RabbitMQ
 from app.api.lib.Notification import Notification
-from app.schemas.notification import NotificationBase
+from app.schemas.notification import (
+    NotificationBase,
+    SendNotification,
+    NotificationMeta,
+)
 
 
 LEAVE_COLLECTION = Config.LEAVE_COLLECTION
@@ -58,13 +62,21 @@ async def login(login_request, mongo_client: AsyncIOMotorClient):
         mongo_client=mongo_client,
     )
 
+    bind_key = []
+
+    if primary_role and primary_role != "employee":
+        bind_key.append(primary_role)
+
+    bind_key.append(user["employee_id"])
+
     mq = RabbitMQ()
     mq.ensure_queue("notifications_employee_{}".format(user["uuid"]))
-    mq.bind_queue(
-        "notifications_employee_{}".format(user["uuid"]),
-        "employee_notification",
-        user["employee_id"],
-    )
+    for key in bind_key:
+        mq.bind_queue(
+            "notifications_employee_{}".format(user["uuid"]),
+            "employee_notification",
+            key,
+        )
 
     return {"email": user["email"], "token": token}
 
@@ -277,21 +289,44 @@ async def assign_role(role_req, mongo_client: AsyncIOMotorClient, payload):
             mongo_client=mongo_client,
         )
 
-        await notification.send_notification(
-            NotificationBase(
-                title="Role Assigned",
-                description="Role of {} has been assigned to {}".format(
-                    role_req.role, employee["email"]
-                ),
-                payload={
-                    "actor": payload["employee_id"],
-                    "action": "role_assigned",
-                    "target": employee["employee_id"],
-                },
-                notifier=[employee["employee_id"], "MD"],
-                source="assign_role",
-            )
+        notifiers = [employee["employee_id"], "MD"]
+
+        employee_notification = NotificationBase(
+            title="Role Assigned",
+            description="You have been assigned the role of {}".format(role_req.role),
+            payload={},
+            ui_action="read",
+            type="employee",
+            priority="high",
+            source="assign_role",
+            target=employee["employee_id"],
+            meta=NotificationMeta(
+                to=notifiers,
+                from_=payload["employee_id"],
+            ),
         )
+
+        md_notification = NotificationBase(
+            title="Role Assigned",
+            description="{} has been assigned the role of {}".format(
+                employee["info"]["name"], role_req.role
+            ),
+            payload={},
+            ui_action="read",
+            type="employee",
+            priority="high",
+            source="assign_role",
+            target="MD",
+            meta=NotificationMeta(
+                to=notifiers,
+                from_=payload["employee_id"],
+            ),
+        )
+
+        send = SendNotification(notifier=[employee_notification, md_notification])
+
+        await notification.send_notification(send)
+
         return True
 
     return False
@@ -347,19 +382,43 @@ async def remove_role(role_req, mongo_client: AsyncIOMotorClient, payload):
             mongo_client=mongo_client,
         )
 
-        await notification.send_notification(
-            NotificationBase(
-                title="Role Removed",
-                description="Your role of {} has been removed".format(role_req.role),
-                payload={
-                    "actor": payload["employee_id"],
-                    "action": "role_removed",
-                    "target": employee["employee_id"],
-                },
-                notifier=[employee["employee_id"]],
-                source="remove_role",
-            )
+        notifiers = [employee["employee_id"], "MD"]
+
+        employee_notification = NotificationBase(
+            title="Role Removed",
+            description="Your role of {} has been removed".format(role_req.role),
+            payload={},
+            ui_action="read",
+            type="employee",
+            priority="high",
+            source="remove_role",
+            target=employee["employee_id"],
+            meta=NotificationMeta(
+                to=notifiers,
+                from_=payload["employee_id"],
+            ),
         )
+
+        md_notification = NotificationBase(
+            title="Role Removed",
+            description="{}'s role of {} has been removed".format(
+                employee["info"]["name"], role_req.role
+            ),
+            payload={},
+            ui_action="read",
+            type="employee",
+            priority="high",
+            source="remove_role",
+            target="MD",
+            meta=NotificationMeta(
+                to=notifiers,
+                from_=payload["employee_id"],
+            ),
+        )
+
+        send = SendNotification(notifier=[employee_notification, md_notification])
+
+        await notification.send_notification(send)
         return True
 
     return False

@@ -164,7 +164,7 @@ class LeaveController:
 
     async def respond_leave(self, LeaveRespondRequest: LeaveRespondRequest):
         leave_respond_request = LeaveRespondRequest.model_dump()
-        if not await self.get_leave(leave_respond_request["leave_id"]):
+        if not await self.get_leave(leave_respond_request["id"]):
             raise HTTPException(status_code=404, detail="Leave record not found")
         return await leave_crud.respond_leave(
             leave_respond_request, self.mongo_client, responder=self.employee_id
@@ -227,9 +227,7 @@ class LeaveController:
         PermissionRespondRequest: PermissionRespondRequest,
     ):
         permission_respond_request = PermissionRespondRequest.model_dump()
-        if not await self.get_permission(
-            permission_respond_request["permission_id"], self.mongo_client
-        ):
+        if not await self.get_permission(permission_respond_request["id"]):
             raise HTTPException(status_code=404, detail="Permission record not found")
         return await leave_crud.respond_permission(
             permission_respond_request, self.mongo_client, responder=self.employee_id

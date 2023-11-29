@@ -70,7 +70,7 @@ class PostSalaryIncentivesResponse(BaseResponse):
 class LeaveResponse(BaseModel):
     type: str
     leave_type: str
-    leave_id: str
+    id: str
     employee_id: str
     start_date: str
     end_date: str
@@ -92,7 +92,7 @@ class LeaveResponse(BaseModel):
 
 class PermissionResponse(BaseModel):
     type: str
-    permission_id: str
+    id: str
     employee_id: str
     date: str
     start_time: str
@@ -156,7 +156,7 @@ class PermissionHistoryResponse(BaseResponse):
 
 
 class SalaryAdvanceResponse(BaseModel):
-    salary_advance_id: str
+    id: str
     employee_id: str
     amount: float
     month: str

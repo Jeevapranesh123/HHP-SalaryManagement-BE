@@ -216,7 +216,8 @@ async def get_meta(
     elif access_type == "respond":
         data["data"]["salary_advance"]["actions"] = advance_respond_action
         data["data"]["salary_advance"]["data"]["employee_id"]["editable"] = False
-        # data["data"]["salary_advance"]["data"]["month"]["editable"] = False
+        data["data"]["salary_advance"]["data"]["month"]["editable"] = False
+        data["data"]["salary_advance"]["data"]["amount"]["editable"] = False
 
     elif access_type == "post":
         data["data"]["salary_advance"]["actions"] = advance_post_action

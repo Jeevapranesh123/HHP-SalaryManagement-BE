@@ -25,11 +25,23 @@ async def get_user_with_email(email, mongo: AsyncIOMotorClient):
 
 
 async def get_user_with_employee_id(employee_id, mongo: AsyncIOMotorClient):
-    user = await mongo[MONGO_DATABASE][USERS_COLLECTION].find_one(
-        {"employee_id": employee_id}
-    )
+    pipeline = [
+        {"$match": {"employee_id": employee_id}},
+        {
+            "$lookup": {
+                "from": "employees",
+                "localField": "employee_id",
+                "foreignField": "employee_id",
+                "as": "info",
+            }
+        },
+        {"$addFields": {"info": {"$arrayElemAt": ["$info", 0]}}},
+    ]
+
+    user = await mongo[MONGO_DATABASE][USERS_COLLECTION].aggregate(pipeline).to_list(1)
+
     if user:
-        return user
+        return user[0]
     return False
 
 

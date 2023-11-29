@@ -78,15 +78,26 @@ class LeaveCreateRequest(LeaveBase):
     def calculate_no_of_days(cls, values):
         start_date_str = values.get("start_date")
         end_date_str = values.get("end_date")
-        if start_date_str and end_date_str:
+        today = datetime.date.today()
+
+        if start_date_str:
             start_date_obj = datetime.datetime.strptime(
                 start_date_str, "%Y-%m-%d"
             ).date()
+
+        if end_date_str:
             end_date_obj = datetime.datetime.strptime(end_date_str, "%Y-%m-%d").date()
+
+        if start_date_obj < today:
+            raise HTTPException(
+                status_code=400, detail="Start date cannot be in the past"
+            )
+        if start_date_str and end_date_str:
             if start_date_obj > end_date_obj:
                 raise HTTPException(
                     status_code=400, detail="Start date must be less than end date"
                 )
+
             if start_date_str == end_date_str:
                 values["no_of_days"] = 1
             else:
@@ -107,7 +118,7 @@ class LeaveResponse(str, Enum):
 
 
 class LeaveRespondRequest(BaseModel):
-    leave_id: str
+    id: str
     status: LeaveResponse
     remarks: Optional[str] = None
 
@@ -121,6 +132,18 @@ class PermissionCreateRequest(PermissionBase):
 
         start_time_str = f"{date_str} {start_time}"
         end_time_str = f"{date_str} {end_time}"
+
+        today = datetime.datetime.today()
+        now = datetime.datetime.now()
+
+        date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+        if date_obj < today.date():
+            raise HTTPException(status_code=400, detail="Date cannot be in the past")
+
+        if date_obj == today.date() and start_time < now.time():
+            raise HTTPException(
+                status_code=400, detail="Start time cannot be in the past"
+            )
         # Ensure start_time and end_time are datetime.datetime objects
         if isinstance(start_time, str):
             try:
@@ -154,14 +177,9 @@ class PermissionResponse(str, Enum):
 
 
 class PermissionRespondRequest(BaseModel):
-    permission_id: str
+    id: str
     status: PermissionResponse
     remarks: Optional[str] = None
-
-    @root_validator(pre=True)
-    def check(cls, values):
-        print(type(values))
-        values["permission_id"] = values.get("id", None)
 
 
 class PaybackType(str, Enum):
@@ -187,8 +205,7 @@ class LoanCreateRequest(LoanBase):
         if payback_type == "emi":
             if not payback_value:
                 raise ValueError("EMI must be provided for EMI payback type")
-            print(payback_value)
-            print(amount)
+
             if payback_value > amount:
                 raise HTTPException(
                     status_code=400, detail="EMI must be less than loan amount"
@@ -253,11 +270,28 @@ class SalaryAdvanceResponse(str, Enum):
 
 
 class SalaryAdvanceRespondRequest(BaseModel):
-    salary_advance_id: str
+    id: str
     status: SalaryAdvanceResponse
     remarks: Optional[str] = None
     data_change: Optional[dict] = None
 
     @root_validator(pre=True)
     def check(cls, values):
-        print(values)
+        data_change = {}
+        if "amount" in values:
+            data_change["amount"] = values["amount"]
+
+        if "month" in values:
+            month = values.get("month")
+            month = month + "-01"
+
+            if isinstance(month, str):
+                try:
+                    month = datetime.datetime.strptime(month, "%Y-%m-%d").date()
+                    data_change["month"] = month  # Update the values dictionary
+                except ValueError:
+                    raise ValidationError(f"Invalid month format: {month}")
+
+        values["data_change"] = data_change
+
+        return values

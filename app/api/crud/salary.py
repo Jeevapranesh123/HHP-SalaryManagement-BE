@@ -160,7 +160,7 @@ async def request_advance(
 async def respond_salary_advance(salary, mongo_client: AsyncIOMotorClient):
     already_approved_or_rejected = await mongo_client[MONGO_DATABASE][
         SALARY_ADVANCE_COLLECTION
-    ].find_one({"id": salary["salary_advance_id"], "status": {"$ne": "pending"}})
+    ].find_one({"id": salary["id"], "status": {"$ne": "pending"}})
 
     if already_approved_or_rejected:
         raise HTTPException(
@@ -180,7 +180,7 @@ async def respond_salary_advance(salary, mongo_client: AsyncIOMotorClient):
         update = await mongo_client[MONGO_DATABASE][
             SALARY_ADVANCE_COLLECTION
         ].update_one(
-            {"id": salary["salary_advance_id"]},
+            {"id": salary["id"]},
             {"$set": new_data},
         )
         if update.modified_count == 1:
@@ -191,10 +191,9 @@ async def respond_salary_advance(salary, mongo_client: AsyncIOMotorClient):
     update = await mongo_client[MONGO_DATABASE][
         SALARY_ADVANCE_COLLECTION
     ].find_one_and_update(
-        {"id": salary["salary_advance_id"]}, {"$set": data_change}, return_document=True
+        {"id": salary["id"]}, {"$set": data_change}, return_document=True
     )
 
-    update["salary_advance_id"] = update["id"]
     update.pop("_id")
     if change:
         update["data_changed"] = True
@@ -283,7 +282,7 @@ async def update_salary_incentives(
     salary["updated_by"] = updated_by
     salary["updated_at"] = datetime.datetime.now()
 
-    month = first_day_of_current_month(12, 2023)
+    month = first_day_of_current_month()
 
     existing_record = await mongo_client[MONGO_DATABASE][SALARY_COLLECTION].find_one(
         {"employee_id": employee_id, "month": month}, {"_id": 0}

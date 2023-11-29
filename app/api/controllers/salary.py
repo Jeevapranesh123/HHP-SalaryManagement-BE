@@ -22,7 +22,11 @@ from app.api.crud import salary as salary_crud
 from app.api.crud import employees as employee_crud
 
 from app.api.lib.Notification import Notification
-from app.schemas.notification import NotificationBase
+from app.schemas.notification import (
+    NotificationBase,
+    SendNotification,
+    NotificationMeta,
+)
 
 
 def role_required(allowed_roles):
@@ -209,23 +213,58 @@ class SalaryController:
         )
 
         notification = Notification(self.employee_id, "post_salary", self.mongo_client)
-        await notification.send_notification(
-            NotificationBase(
-                title="Salary Updated",
-                description="Salary has been updated for {} by {} at {}".format(
-                    salary_in_create.employee_id,
-                    self.employee_id,
-                    datetime.datetime.now(),
-                ),
-                payload={
-                    "actor": self.employee_id,
-                    "action": "post_salary",
-                    "target": salary_in_create.employee_id,
-                },
-                notifier=[salary_in_create.employee_id, "HR", "MD"],
-                source="post_salary",
-            )
+        notifiers = [salary_in_create.employee_id, "HR", "MD"]
+        employee_notification = NotificationBase(
+            title="Salary Updated",
+            description="Your salary has been updated by {}".format(self.employee_id),
+            payload={},
+            ui_action="read",
+            type="salary",
+            source="post_salary",
+            target=salary_in_create.employee_id,
+            meta=NotificationMeta(
+                to=notifiers,
+                from_=self.employee_id,
+            ),
         )
+
+        hr_notification = NotificationBase(
+            title="Salary Updated",
+            description="Salary has been updated for {} by {}".format(
+                salary_in_create.employee_id, self.employee_id
+            ),
+            payload={},
+            ui_action="read",
+            type="salary",
+            source="post_salary",
+            target="HR",
+            meta=NotificationMeta(
+                to=notifiers,
+                from_=self.employee_id,
+            ),
+        )
+
+        md_notification = NotificationBase(
+            title="Salary Updated",
+            description="Salary has been updated for {} by {}".format(
+                salary_in_create.employee_id, self.employee_id
+            ),
+            payload={},
+            ui_action="read",
+            type="salary",
+            source="post_salary",
+            target="MD",
+            meta=NotificationMeta(
+                to=notifiers,
+                from_=self.employee_id,
+            ),
+        )
+
+        send = SendNotification(
+            notifier=[employee_notification, hr_notification, md_notification]
+        )
+
+        await notification.send_notification(send)
 
         return res
 
@@ -322,7 +361,7 @@ class SalaryController:
         salary_advance_in_create = SalaryAdvanceRespondRequest.model_dump()
 
         if not await salary_crud.get_salary_advance(
-            salary_advance_in_create["salary_advance_id"], self.mongo_client
+            salary_advance_in_create["id"], self.mongo_client
         ):
             raise HTTPException(
                 status_code=404, detail="Salary Advance Record not found"
