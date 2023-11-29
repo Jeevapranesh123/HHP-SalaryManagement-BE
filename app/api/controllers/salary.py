@@ -28,6 +28,13 @@ from app.schemas.notification import (
     NotificationMeta,
 )
 
+from app.api.utils import first_day_of_current_month
+
+from app.core.config import Config
+
+MONGO_DATABASE = Config.MONGO_DATABASE
+LEAVE_COLLECTION = Config.LEAVE_COLLECTION
+
 
 def role_required(allowed_roles):
     def decorator(func):
@@ -68,13 +75,42 @@ class SalaryController:
         monthly_compensation_base = monthly_compensation_base.model_dump(
             exclude={"employee_id"}
         )
-        import pprint
-
-        pprint.pprint(emp)
 
         salary_incentives_base = SalaryIncentivesBase(**emp)
         salary_incentives_base = salary_incentives_base.model_dump(
             exclude={"employee_id"}
+        )
+
+        monthly_leave_days = (
+            total_leave_days
+        ) = total_permission_hours = monthly_permission_hours = 0
+
+        current_month = first_day_of_current_month()
+
+        docs = self.mongo_client[MONGO_DATABASE][LEAVE_COLLECTION].find(
+            {
+                "employee_id": employee_id,
+                "status": "approved",
+            }
+        )
+
+        async for i in docs:
+            if i["leave_type"] == "permission":
+                if i["month"] == current_month:
+                    monthly_permission_hours += i["no_of_hours"]
+                total_permission_hours += i["no_of_hours"]
+            else:
+                if i["month"] == current_month:
+                    monthly_leave_days += i["no_of_days"]
+                total_leave_days += i["no_of_days"]
+
+        monthly_permission_hours = "{} Hours {} Minutes".format(
+            str(datetime.timedelta(hours=monthly_permission_hours)).split(":")[0],
+            str(datetime.timedelta(hours=monthly_permission_hours)).split(":")[1],
+        )
+        total_permission_hours = "{} Hours {} Minutes".format(
+            str(datetime.timedelta(hours=total_permission_hours)).split(":")[0],
+            str(datetime.timedelta(hours=total_permission_hours)).split(":")[1],
         )
 
         res = {
@@ -89,6 +125,14 @@ class SalaryController:
             "salary_incentives": {
                 "data": salary_incentives_base,
                 "meta": {"url": "/salary/post_salary_incentives", "method": "PUT"},
+            },
+            "leaves_and_permissions": {
+                "data": {
+                    "total_leave_days": total_leave_days,
+                    "monthly_leave_days": monthly_leave_days,
+                    "total_permission_hours": total_permission_hours,
+                    "monthly_permission_hours": monthly_permission_hours,
+                }
             },
         }
 
@@ -367,5 +411,5 @@ class SalaryController:
                 status_code=404, detail="Salary Advance Record not found"
             )
         return await salary_crud.respond_salary_advance(
-            salary_advance_in_create, self.mongo_client
+            salary_advance_in_create, self.employee_id, self.mongo_client
         )

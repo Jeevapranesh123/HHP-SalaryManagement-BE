@@ -102,5 +102,5 @@ class SalaryAdvanceInDB(SalaryAdvanceBase):
     remarks: Optional[str] = ""
     requested_at: datetime.datetime = datetime.datetime.now()
     requested_by: str
-    approved_or_rejected_by: str = "admin"
+    approved_or_rejected_by: str = None
     approved_or_rejected_at: datetime.datetime = None

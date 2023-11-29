@@ -10,6 +10,7 @@ from enum import Enum
 from pydantic import Field, create_model, ValidationError
 import datetime
 from typing import Optional
+import pprint
 
 exclude_fields_for_employee_update = ["employee_id", "email"]
 
@@ -23,31 +24,69 @@ def validate_phone_number(cls, value, field):
 
 
 class EmployeeCreateRequest(EmployeeBase):
-    # employees: Employee
     pass
 
 
+# TODO: Keep this and EmployeeBase in sync
 class EmployeeUpdateRequest(BaseModel):
     name: Optional[str] = None
     phone: Optional[str] = None
     department: Optional[str] = None
     designation: Optional[str] = None
+    branch: Optional[str] = None
+    is_marketing_staff: Optional[bool] = False
+    marketing_manager: Optional[str] = None
     bank_details: Optional[BankDetails] = None
     address: Optional[Address] = None
     govt_id_proofs: Optional[GovtIDProofs] = None
     # TODO: Father/Husband Phone Number (Optional) - decide on how to store this
 
+    @root_validator(pre=True)
+    def convert_basic_information(cls, values):
+        basic_information = values.get("basic_information")
+        if basic_information:
+            for key, value in basic_information.items():
+                values[key] = value
+        values.pop("basic_information", None)
+
+        if values.get("is_marketing_staff"):
+            is_marketing_staff = values.get("is_marketing_staff")
+
+            if not values.get("marketing_manager"):
+                raise HTTPException(
+                    status_code=400, detail="Marketing Staff must have a manager"
+                )
+            if values.get("marketing_manager") == values.get("employee_id"):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Marketing Staff cannot be their own manager",
+                )
+
+            if is_marketing_staff == "Yes":
+                values["is_marketing_staff"] = True
+            elif is_marketing_staff == "No":
+                values["is_marketing_staff"] = False
+            else:
+                raise HTTPException(
+                    status_code=400, detail="Is Marketing Staff must be Yes or No"
+                )
+
+        return values
+
     @validator("phone", always=True)
     def phone_validator(cls, v):
-        if v is not None and len(v) != 10:
-            raise HTTPException(
-                status_code=400, detail="Phone number must be 10 digits"
-            )
+        if v is not None:
+            if not v.isdigit():
+                raise HTTPException(
+                    status_code=400, detail="Phone number must be a number"
+                )
+
+            if len(v) != 10:
+                raise HTTPException(
+                    status_code=400, detail="Phone number must be 10 digits"
+                )
+
         return v
-
-
-# class SalaryCreateRequest(SalaryBase):
-#     pass
 
 
 class PostSalaryRequest(BaseModel):
@@ -248,6 +287,34 @@ class LoanRespondRequest(BaseModel):
     remarks: Optional[str] = None
     data_change: Optional[dict] = None
 
+    @root_validator(pre=True)
+    def validate_data_change(cls, values):
+        amount = values.get("amount")
+        emi = values.get("emi")
+
+        values["data_change"] = {}
+        if amount:
+            amount = int(amount)
+            if amount <= 0:
+                raise HTTPException(
+                    status_code=400, detail="Amount must be greater than 0"
+                )
+            values["data_change"]["amount"] = amount
+
+        if emi:
+            emi = float(emi)
+            if emi <= 0:
+                raise HTTPException(
+                    status_code=400, detail="EMI must be greater than 0"
+                )
+
+            values["data_change"]["emi"] = emi
+
+        if not values["data_change"]:
+            values.pop("data_change")
+
+        return values
+
 
 class SalaryAdvanceRequest(SalaryAdvanceBase):
     @root_validator(pre=True)
@@ -273,25 +340,3 @@ class SalaryAdvanceRespondRequest(BaseModel):
     id: str
     status: SalaryAdvanceResponse
     remarks: Optional[str] = None
-    data_change: Optional[dict] = None
-
-    @root_validator(pre=True)
-    def check(cls, values):
-        data_change = {}
-        if "amount" in values:
-            data_change["amount"] = values["amount"]
-
-        if "month" in values:
-            month = values.get("month")
-            month = month + "-01"
-
-            if isinstance(month, str):
-                try:
-                    month = datetime.datetime.strptime(month, "%Y-%m-%d").date()
-                    data_change["month"] = month  # Update the values dictionary
-                except ValueError:
-                    raise ValidationError(f"Invalid month format: {month}")
-
-        values["data_change"] = data_change
-
-        return values

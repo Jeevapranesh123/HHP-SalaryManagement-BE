@@ -162,7 +162,6 @@ class SalaryAdvanceResponse(BaseModel):
     month: str
     status: str
     remarks: str
-    data_changed: bool = None
 
     @root_validator(pre=True)
     def convert_date_to_str(cls, values):

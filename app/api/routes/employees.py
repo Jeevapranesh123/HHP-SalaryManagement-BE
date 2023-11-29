@@ -9,7 +9,7 @@ from app.database import get_mongo, AsyncIOMotorClient
 
 # import Controllers
 from app.api.controllers.employees import EmployeeController
-from app.api.utils.employees import verify_login_token
+from app.api.utils.employees import verify_login_token, verify_custom_master_token
 
 
 router = APIRouter()
@@ -52,12 +52,8 @@ async def create(
     employee: EmployeeCreateRequest,
     response: Response,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
-    # payload: dict = Depends(verify_login_token),
+    payload: dict = Depends(verify_custom_master_token),
 ):
-    payload = {
-        "employee_id": "EMP12345",
-        "primary_role": "HR",
-    }
     obj = EmployeeController(payload, mongo_client)
     res = await obj.create_employee(employee)
 

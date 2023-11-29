@@ -157,7 +157,7 @@ async def request_advance(
         return salary_advance_in_db.model_dump()
 
 
-async def respond_salary_advance(salary, mongo_client: AsyncIOMotorClient):
+async def respond_salary_advance(salary, responder, mongo_client: AsyncIOMotorClient):
     already_approved_or_rejected = await mongo_client[MONGO_DATABASE][
         SALARY_ADVANCE_COLLECTION
     ].find_one({"id": salary["id"], "status": {"$ne": "pending"}})
@@ -168,25 +168,12 @@ async def respond_salary_advance(salary, mongo_client: AsyncIOMotorClient):
             detail="Salary Advance has already been approved or rejected",
         )
 
-    new_data = salary.get("data_change", None)
-
     data_change = {
         "status": salary["status"],
         "remarks": salary["remarks"],
         "approved_or_rejected_at": datetime.datetime.now(),
+        "approved_or_rejected_by": responder,
     }
-    change = False
-    if new_data:
-        update = await mongo_client[MONGO_DATABASE][
-            SALARY_ADVANCE_COLLECTION
-        ].update_one(
-            {"id": salary["id"]},
-            {"$set": new_data},
-        )
-        if update.modified_count == 1:
-            change = True
-            # FIXME: Notify the employee regarding the change in amount or month
-            pass
 
     update = await mongo_client[MONGO_DATABASE][
         SALARY_ADVANCE_COLLECTION
@@ -195,8 +182,7 @@ async def respond_salary_advance(salary, mongo_client: AsyncIOMotorClient):
     )
 
     update.pop("_id")
-    if change:
-        update["data_changed"] = True
+
     return update
 
     # FIXME: If not update decide the response

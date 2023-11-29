@@ -30,11 +30,9 @@ async def get_loan_history(employee_id, status, mongo_client: AsyncIOMotorClient
 
 async def check_for_data_change(loan, new_data, mongo_client: AsyncIOMotorClient):
     new_amount = new_data.get("amount", None)
-    new_tenure = new_data.get("tenure", None)
     new_emi = new_data.get("emi", None)
 
     amount_change = False
-    tenure_change = False
     emi_change = False
 
     amount = None
@@ -44,67 +42,32 @@ async def check_for_data_change(loan, new_data, mongo_client: AsyncIOMotorClient
     if new_amount and loan["amount"] != new_amount:
         amount_change = True
 
-    if new_tenure and loan["tenure"] != new_tenure:
-        tenure_change = True
-
     if new_emi and loan["emi"] != new_emi:
         emi_change = True
 
-    if amount_change and tenure_change and emi_change:
-        raise HTTPException(
-            status_code=400,
-            detail="Amount, tenure and emi cannot be changed at the same time",
-        )
-
-    if amount_change and tenure_change:
-        amount = new_amount
-        tenure = new_tenure
-        emi = amount / tenure
-        change = True
-
-    elif amount_change and emi_change:
+    if amount_change and emi_change:
         amount = new_amount
         emi = new_emi
-        tenure = amount / emi if amount % emi == 0 else amount // emi + 1
-        change = True
-
-    elif tenure_change and emi_change:
-        raise HTTPException(
-            status_code=400,
-            detail="Tenure and emi cannot be changed at the same time",
-        )
+        tenure = amount // emi if amount % emi == 0 else amount // emi + 1
 
     elif amount_change:
-        raise HTTPException(
-            status_code=400,
-            detail="Amount cannot be changed",
-        )
-
-    elif tenure_change:
-        tenure = new_tenure
-        emi = (
-            loan["amount"] / tenure
-            if loan["amount"] % tenure == 0
-            else loan["amount"] // tenure + 1
-        )
-        change = True
+        amount = new_amount
+        emi = loan["emi"]
+        tenure = amount // emi if amount % emi == 0 else amount // emi + 1
 
     elif emi_change:
         emi = new_emi
-        tenure = (
-            loan["amount"] / emi
-            if loan["amount"] % emi == 0
-            else loan["amount"] // emi + 1
-        )
-        change = True
+        amount = loan["amount"]
+        tenure = amount // emi if amount % emi == 0 else amount // emi + 1
 
-    data_change = {}
-    if amount:
-        data_change["amount"] = amount
-    if tenure:
-        data_change["tenure"] = tenure
-    if emi:
-        data_change["emi"] = emi
+    if not amount_change and not emi_change:
+        return {}
+
+    data_change = {
+        "amount": amount,
+        "emi": emi,
+        "tenure": tenure,
+    }
 
     return data_change
 
@@ -202,13 +165,18 @@ async def build_repayment_schedule(loan, mongo_client: AsyncIOMotorClient):
     loan_emi = loan["emi"]
     month = loan["month"]
     for i in range(int(loan_tenure)):
-        month = await get_next_month(month)
+        if i == 0:
+            month = datetime.datetime.combine(month, datetime.time())
+        else:
+            month = await get_next_month(month)
         repayment_schedule.append(
             {
                 "employee_id": loan["employee_id"],
                 "loan_id": loan["id"],
                 "month": month,
                 "amount": loan_emi if loan_amount > loan_emi else loan_amount,
+                "status": "pending",
+                "adjusted": False,
             }
         )
         loan_amount -= loan_emi

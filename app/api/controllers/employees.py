@@ -40,13 +40,27 @@ class EmployeeController:
 
         emp_in_create = EmployeeBase(**employee.model_dump())
 
+        if emp_in_create.is_marketing_staff:
+            if not emp_in_create.marketing_manager:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Marketing Manager is required for Marketing Staff",
+                )
+
+            if not await employee_crud.get_employee(
+                emp_in_create.marketing_manager, self.mongo_client
+            ):
+                raise HTTPException(
+                    status_code=400, detail="Marketing Manager not found"
+                )
+
         emp, user = await employee_crud.create_employee(
-            emp_in_create, self.mongo_client
+            emp_in_create, self.employee_id, self.mongo_client
         )
 
         sal_obj = SalaryController(self.payload, self.mongo_client)
 
-        await sal_obj.create_all_salaries(emp_in_create)
+        # await sal_obj.create_all_salaries(emp_in_create)
 
         mq = RabbitMQ()
 
@@ -120,6 +134,7 @@ class EmployeeController:
                 "phone": emp["phone"],
                 "department": emp["department"],
                 "designation": emp["designation"],
+                "branch": emp["branch"],
             },
             "bank_details": emp["bank_details"],
             "address": emp["address"],
@@ -139,6 +154,12 @@ class EmployeeController:
             },
         }
 
+        if emp["is_marketing_staff"]:
+            res["basic_information"]["is_marketing_staff"] = (
+                "Yes" if emp["is_marketing_staff"] else "No"
+            )
+            res["basic_information"]["marketing_manager"] = emp["marketing_manager"]
+
         if self.employee_role == "HR" and self.employee_id == employee_id:
             pass
         elif self.employee_role == "HR":
@@ -151,14 +172,23 @@ class EmployeeController:
         return res
 
     async def get_all_employees(self):
-        return await employee_crud.get_all_employees(self.mongo_client)
+        branch = None
+        if self.employee_role == "HR":
+            requester = await employee_crud.get_employee(
+                self.employee_id, self.mongo_client
+            )
+            branch = requester["branch"]
+
+        elif self.employee_role == "MD":
+            branch = "Head Office"
+            # FIXME: Check with UI, how to implement this
+
+        return await employee_crud.get_all_employees(branch, self.mongo_client)
 
     async def update_employee(
         self, employee_id, employee_details: EmployeeUpdateRequest
     ):
-        emp_in_update = EmployeeUpdateRequest(**employee_details.model_dump())
-
-        emp_in_update = emp_in_update.model_dump(exclude_none=True)
+        emp_in_update = employee_details.model_dump()
 
         emp = await employee_crud.get_employee(employee_id, self.mongo_client)
         if not emp:
@@ -174,26 +204,6 @@ class EmployeeController:
             employee_id, emp_in_update, self.mongo_client
         )
 
-        notification_obj = Notification(
-            self.employee_id, "update_employee", self.mongo_client
-        )
-
-        await notification_obj.send_notification(
-            NotificationBase(
-                title="Employee Details Updated",
-                description="Your details have been updated by {}".format(
-                    self.employee_role
-                ),
-                payload={
-                    "actor": self.employee_id,
-                    "action": "update_employee",
-                    "target": employee_id,
-                },
-                notifier=[employee_id],
-                source="update_employee",
-            )
-        )
-
         return emp
 
     async def get_editable_fields(self):
@@ -204,6 +214,9 @@ class EmployeeController:
                     "phone": True,
                     "department": True,
                     "designation": True,
+                    "branch": True,
+                    "is_marketing_staff": True,
+                    "marketing_manager": True,
                 }
             },
             {

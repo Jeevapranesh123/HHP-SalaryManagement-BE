@@ -16,7 +16,9 @@ USERS_COLLECTION = Config.USERS_COLLECTION
 ROLES_COLLECTION = Config.ROLES_COLLECTION
 
 
-async def create_employee(employee: EmployeeBase, mongo_client: AsyncIOMotorClient):
+async def create_employee(
+    employee: EmployeeBase, created_by, mongo_client: AsyncIOMotorClient
+):
     employee = employee.model_dump()
 
     employee["uuid"] = str(uuid.uuid4()).replace("-", "")
@@ -26,7 +28,7 @@ async def create_employee(employee: EmployeeBase, mongo_client: AsyncIOMotorClie
     password = "string"
     employee["password"] = await hash_password(password)
 
-    user = await create_user(employee, mongo_client)
+    user = await create_user(employee, created_by, mongo_client)
 
     # TODO: Send email with password to employee and insist on changing it on first login
 
@@ -40,7 +42,7 @@ async def create_employee(employee: EmployeeBase, mongo_client: AsyncIOMotorClie
         return res, user
 
 
-async def create_user(employee: dict, mongo_client: AsyncIOMotorClient):
+async def create_user(employee: dict, created_by, mongo_client: AsyncIOMotorClient):
     primary_role = "employee"
     secondary_role = ["employee"]
 
@@ -74,6 +76,7 @@ async def create_user(employee: dict, mongo_client: AsyncIOMotorClient):
         password=employee["password"],
         primary_role=primary_role_doc["_id"],
         secondary_roles=secondary_role_doc,
+        created_by=created_by,
     )
 
     if await mongo_client[MONGO_DATABASE][USERS_COLLECTION].insert_one(
@@ -299,9 +302,9 @@ async def get_employee_with_salary(employee_id: str, mongo_client: AsyncIOMotorC
     return None
 
 
-async def get_all_employees(mongo_client):
+async def get_all_employees(branch, mongo_client):
     emps = mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].find(
-        {}, {"employee_id": 1, "name": 1, "email": 1, "_id": 0}
+        {"branch": branch}, {"employee_id": 1, "name": 1, "email": 1, "_id": 0}
     )
 
     return [e async for e in emps]
