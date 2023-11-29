@@ -11,9 +11,23 @@ import datetime
 
 
 async def check_if_email_exists(email, mongo):
-    user = await mongo[MONGO_DATABASE][USERS_COLLECTION].find_one({"email": email})
+    pipeline = [
+        {"$match": {"email": email}},
+        {
+            "$lookup": {
+                "from": "employees",
+                "localField": "employee_id",
+                "foreignField": "employee_id",
+                "as": "info",
+            }
+        },
+        {"$addFields": {"info": {"$arrayElemAt": ["$info", 0]}}},
+    ]
+
+    user = await mongo[MONGO_DATABASE][USERS_COLLECTION].aggregate(pipeline).to_list(1)
+
     if user:
-        return user
+        return user[0]
     return False
 
 
@@ -42,6 +56,28 @@ async def get_user_with_employee_id(employee_id, mongo: AsyncIOMotorClient):
 
     if user:
         return user[0]
+    return False
+
+
+async def get_user_by_uuid(uuid, mongo: AsyncIOMotorClient):
+    pipeline = [
+        {"$match": {"uuid": uuid}},
+        {
+            "$lookup": {
+                "from": "employees",
+                "localField": "employee_id",
+                "foreignField": "employee_id",
+                "as": "info",
+            }
+        },
+        {"$addFields": {"info": {"$arrayElemAt": ["$info", 0]}}},
+    ]
+
+    user = await mongo[MONGO_DATABASE][USERS_COLLECTION].aggregate(pipeline).to_list(1)
+
+    if user:
+        return user[0]
+
     return False
 
 

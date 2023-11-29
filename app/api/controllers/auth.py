@@ -9,7 +9,6 @@ from app.api.utils.employees import *
 from app.api.utils.employees import verify_password
 from app.schemas.salary import SalaryBase, MonthlyCompensationBase, SalaryIncentivesBase
 from app.api.utils import *
-import pprint
 
 from app.api.lib.RabbitMQ import RabbitMQ
 from app.api.lib.Notification import Notification
@@ -29,7 +28,10 @@ async def login(login_request, mongo_client: AsyncIOMotorClient):
 
     user = await auth_crud.check_if_email_exists(email, mongo_client)
     if not user:
-        raise HTTPException(status_code=400, detail="Invalid Credentials")
+        raise HTTPException(status_code=401, detail="User with email does not exist")
+
+    if not await verify_password(password, user["password"]):
+        raise HTTPException(status_code=401, detail="Invalid Credentials")
 
     primary_role = None
     secondary_roles = []
@@ -46,13 +48,11 @@ async def login(login_request, mongo_client: AsyncIOMotorClient):
         )
         secondary_roles = [role["role"] for role in secondary_roles]
 
-    if not await verify_password(password, user["password"]):
-        raise HTTPException(status_code=400, detail="Invalid Credentials")
-
     token = await create_access_token(
         data={
             "uuid": user["uuid"],
             "email": user["email"],
+            "branch": user["info"]["branch"],
             "changed_password_at_first_login": user["changed_password_at_first_login"],
             "employee_id": user["employee_id"],
             "primary_role": primary_role,
@@ -209,7 +209,8 @@ async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient)
         str(datetime.timedelta(hours=total_permission_hours)).split(":")[0],
         str(datetime.timedelta(hours=total_permission_hours)).split(":")[1],
     )
-    return {
+
+    res = {
         "basic_information": {
             "employee_id": emp["employee_id"],
             "name": emp["name"],
@@ -217,6 +218,7 @@ async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient)
             "phone": emp["phone"],
             "department": emp["department"],
             "designation": emp["designation"],
+            "branch": emp["branch"],
         },
         "bank_details": emp["bank_details"],
         "address": emp["address"],
@@ -235,6 +237,12 @@ async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient)
             "monthly_permission_hours": monthly_permission_hours,
         },
     }
+
+    if emp["is_marketing_staff"]:
+        res["basic_information"]["is_marketing_staff"] = emp["is_marketing_staff"]
+        res["basic_information"]["marketing_manager"] = emp["marketing_manager"]
+
+    return res
 
 
 async def assign_role(role_req, mongo_client: AsyncIOMotorClient, payload):
@@ -267,7 +275,7 @@ async def assign_role(role_req, mongo_client: AsyncIOMotorClient, payload):
 
     else:
         raise HTTPException(status_code=400, detail="Invalid Role Type")
-    pprint.pprint(employee)
+
     bind_key = None
 
     if update:

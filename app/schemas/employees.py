@@ -1,7 +1,7 @@
 from pydantic import BaseModel, model_validator, root_validator, validator
 from typing import List, Optional
-import datetime
 from fastapi import HTTPException
+from enum import Enum
 
 
 class BankDetails(BaseModel):
@@ -29,17 +29,33 @@ class GovtIDProofs(BaseModel):
     passport: Optional[str] = None
 
 
+class BranchEnum(str, Enum):
+    HO = "Head Office"
+    FACTORY = "Factory"
+
+
 class EmployeeBase(BaseModel):  # TODO: Add relevant fields in the future
     employee_id: str
     name: str
     email: str
     phone: str = "0000000000"
+    branch: BranchEnum = BranchEnum.HO
+    is_marketing_staff: Optional[bool] = False
+    marketing_manager: Optional[str] = None
     department: Optional[str] = None
     designation: Optional[str] = None
     bank_details: Optional[BankDetails]
     address: Optional[Address]
     govt_id_proofs: Optional[GovtIDProofs]
     # TODO: Father/Husband Phone Number (Optional) - decide on how to store this
+
+    @root_validator(pre=True)
+    def marketing_manager_validator(cls, values):
+        if values.get("is_marketing_staff") and not values.get("marketing_manager"):
+            raise HTTPException(
+                status_code=400, detail="Marketing Staff must have a manager"
+            )
+        return values
 
     @validator("phone")
     def phone_validator(cls, v):

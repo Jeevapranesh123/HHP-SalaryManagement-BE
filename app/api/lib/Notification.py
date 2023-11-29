@@ -77,8 +77,6 @@ class Notification(object):
             await self.create_notification(recipient)
             recipient.title = recipient.description
 
-            print("recipient", recipient)
-
             self.mq.publish(
                 exchange="employee_notification",
                 routing_key=recipient.target,

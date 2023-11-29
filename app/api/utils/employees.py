@@ -16,15 +16,18 @@ import uuid
 import jwt
 
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from app.database import get_mongo
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 
 MONGO_DATABASE = Config.MONGO_DATABASE
 EMPLOYEE_COLLECTION = Config.EMPLOYEE_COLLECTION
 
-SECRET_KEY = "your_secret_key_here"  # You should have a secret key
-ALGORITHM = (
-    "HS256"  # This is a common algorithm for JWT, you can choose others like RS256
-)
+SECRET_KEY = Config.SECRET_KEY
+ALGORITHM = Config.ALGORITHM
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -133,7 +136,12 @@ async def verify_login_token(
         if payload.get("exp") < int(datetime.utcnow().timestamp()):
             raise HTTPException(status_code=401, detail="Token has expired")
 
-        # FIXME: Check if a user with the uuid exists in the database
+        mongo_client = await get_mongo()
+
+        user = await auth_crud.get_user_by_uuid(payload["uuid"], mongo_client)
+
+        if not user:
+            raise HTTPException(status_code=401, detail="Invalid authentication")
 
         return payload  # or any specific user data you need from the payload
     except jwt.PyJWTError as e:
@@ -158,5 +166,27 @@ async def verify_tokens(token: str, token_type: str, mongo_client: AsyncIOMotorC
 
         return payload  # or any specific user data you need from the payload
     except jwt.PyJWTError as e:
+        print(e)
+        raise HTTPException(status_code=403, detail="Could not validate credentials")
+
+
+async def verify_custom_master_token(
+    http_auth_credentials: HTTPAuthorizationCredentials = Security(security),
+) -> dict:
+    token = http_auth_credentials.credentials
+    try:
+        if token == os.getenv("CREATE_EMPLOYEE_TOKEN"):
+            return {
+                "uuid": "abc123",
+                "email": "jeevadev02@gmail.com",
+                "changed_password_at_first_login": True,
+                "employee_id": "MASTER1001",
+                "primary_role": "MD",
+                "secondary_roles": ["employee"],
+                "type": "master",
+            }
+        else:
+            return await verify_login_token(http_auth_credentials)
+    except Exception as e:
         print(e)
         raise HTTPException(status_code=403, detail="Could not validate credentials")

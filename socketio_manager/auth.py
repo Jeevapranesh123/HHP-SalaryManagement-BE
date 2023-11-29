@@ -2,11 +2,10 @@ import jwt
 from datetime import datetime
 from jwt.exceptions import InvalidTokenError
 
-# Constants
-SECRET_KEY = "your_secret_key_here"  # You should have a secret key
-ALGORITHM = (
-    "HS256"  # This is a common algorithm for JWT, you can choose others like RS256
-)
+from app.core.config import Config
+
+SECRET_KEY = Config.SECRET_KEY
+ALGORITHM = Config.ALGORITHM
 
 
 async def verify_login_token_for_socketio(token: str) -> (bool, str):
