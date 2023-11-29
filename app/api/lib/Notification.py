@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from app.core.config import Config
 from app.api.lib.RabbitMQ import RabbitMQ
 
-from app.schemas.notification import NotificationBase
+from app.schemas.notification import NotificationBase, SendNotification
 
 
 MONGO_DATABASE = Config.MONGO_DATABASE
@@ -70,22 +70,19 @@ class Notification(object):
     async def notify():
         pass
 
-    async def send_notification(self, notification: NotificationBase):
-        await self.create_notification(notification)
+    async def send_notification(self, send: SendNotification):
+        recipients = send.notifier
 
-        notification = notification.model_dump()
+        for recipient in recipients:
+            await self.create_notification(recipient)
+            recipient.title = recipient.description
 
-        bind_keys = []
-        for user in notification["notifier"]:
-            bind_keys.append(user)
+            print("recipient", recipient)
 
-        exchange_name = "employee_notification"
-
-        for bind_key in bind_keys:
             self.mq.publish(
-                notification,
-                exchange_name,
-                bind_key,
+                exchange="employee_notification",
+                routing_key=recipient.target,
+                data=recipient.model_dump(),
             )
 
         return True

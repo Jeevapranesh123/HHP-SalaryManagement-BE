@@ -1,4 +1,5 @@
 import pika
+import json
 
 # RabbitMQ server connection parameters
 credentials = pika.PlainCredentials("root", "zuvaLabs")
@@ -18,8 +19,12 @@ channel.queue_declare(queue=queue_name, durable=True)
 message = "Hello World!"
 
 body = {
-    "message": "Hello World!",
+    "title": "Test",
+    "payload": {"url": "/employees"},
+    "ui_action": "read",
 }
+
+body = json.dumps(body)
 
 # Publish the message to the queue
 channel.basic_publish(

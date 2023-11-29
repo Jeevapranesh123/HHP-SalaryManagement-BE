@@ -31,7 +31,7 @@ class UIAction(str, Enum):
 
 class NotificationMeta(BaseModel):
     to: List[str]
-    cc: Optional[List[str]]
+    cc: Optional[List[str]] = None
     from_: str
 
 
@@ -50,5 +50,5 @@ class NotificationBase(BaseModel):
     meta: NotificationMeta
 
 
-class SendNotification(NotificationBase):
-    notifier: [] = []
+class SendNotification(BaseModel):
+    notifier: List[NotificationBase]

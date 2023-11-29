@@ -118,6 +118,7 @@ class RabbitMQ:
                     delivery_mode=2
                 ),  # make message persistent
             )
+
         except Exception as e:
             logger.error("Error while publishing message to RabbitMQ: {}".format(e))
 
@@ -144,28 +145,29 @@ class RabbitMQ:
 
     def consume(self, queue, sio, sid):
         # try:
-            print("Starting consumer...")
+        print("Starting consumer...", sid)
 
-            # Define a wrapper callback function that includes sio and sid
-            def callback(ch, method, properties, body):
-                self.on_message(ch, method, properties, body, sio, sid)
+        # Define a wrapper callback function that includes sio and sid
+        def callback(ch, method, properties, body):
+            self.on_message(ch, method, properties, body, sio, sid)
 
-            # Other setup code remains the same...
-            self.channel.basic_consume(
-                queue=queue,
-                on_message_callback=callback,
-                auto_ack=False,
-            )
+        # Other setup code remains the same...
+        self.channel.basic_consume(
+            queue=queue,
+            on_message_callback=callback,
+            auto_ack=True,
+        )
 
-            while not self.should_stop.is_set():
-                self.connection.process_data_events(time_limit=1)  # 1 second timeout
+        while not self.should_stop.is_set():
+            self.connection.process_data_events(time_limit=1)  # 1 second timeout
 
-            print("Consumer stopped")
-            self.channel.stop_consuming()
-            self.connection.close()
-        # except Exception as e:
-        #     logger.error(f"Error while consuming message from RabbitMQ: {e}")
-        #     asyncio.run_coroutine_threadsafe(sio.disconnect(sid), self.async_loop)
+        print("Consumer stopped, {}".format(sid))
+        self.channel.stop_consuming()
+        self.connection.close()
+
+    # except Exception as e:
+    #     logger.error(f"Error while consuming message from RabbitMQ: {e}")
+    #     asyncio.run_coroutine_threadsafe(sio.disconnect(sid), self.async_loop)
 
     def ack_message(self, delivery_tag):
         try:
