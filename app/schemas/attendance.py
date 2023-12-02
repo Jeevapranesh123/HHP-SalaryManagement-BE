@@ -1,12 +1,13 @@
 from pydantic import BaseModel
 from typing import Optional
 
+import datetime
 import uuid
 
 
 class AttendanceBase(BaseModel):
     employee_id: str
-    date: str
+    date: datetime.datetime
     status: str
 
 

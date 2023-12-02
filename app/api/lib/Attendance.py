@@ -22,43 +22,58 @@ class Attendance:
         pass
 
     async def post_attendance(self):
-        today = datetime.datetime.now().replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
-        current_month = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        x = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        for i in range(1, 32):
+            today = x + datetime.timedelta(days=i)
+            if today.isoweekday() in [6, 7]:
+                continue
+            current_month = today.replace(
+                day=1, hour=0, minute=0, second=0, microsecond=0
+            )
 
-        leave_record = (
-            await self.mongo_client[MONGO_DATABASE][LEAVE_COLLECTION]
-            .find({"month": current_month, "status": "approved"})
-            .to_list(1000)
-        )
+            leave_record = (
+                await self.mongo_client[MONGO_DATABASE][LEAVE_COLLECTION]
+                .find({"month": current_month, "status": "approved"})
+                .to_list(1000)
+            )
 
-        absent_list = []
+            absent_list = []
 
-        if leave_record:
-            for record in leave_record:
-                end_date = record.get("end_date")
-                start_date = record.get("start_date")
+            if leave_record:
+                for record in leave_record:
+                    end_date = record.get("end_date")
+                    start_date = record.get("start_date")
 
-                if not end_date:
-                    end_date = start_date
+                    if not end_date:
+                        end_date = start_date
 
-                if start_date <= today <= end_date:
-                    absent_list.append(record.get("employee_id"))
+                    if start_date <= today <= end_date:
+                        absent_list.append(record.get("employee_id"))
 
-        employee_list = await self.mongo_client[MONGO_DATABASE][
-            EMPLOYEE_COLLECTION
-        ].distinct("employee_id")
+            employee_list = await self.mongo_client[MONGO_DATABASE][
+                EMPLOYEE_COLLECTION
+            ].distinct("employee_id")
 
-        present_list = list(set(employee_list) - set(absent_list))
+            present_list = list(set(employee_list) - set(absent_list))
 
-        attendance_list = []
+            attendance_list = []
 
-        for employee_id in present_list:
-            attendance_list.append(
-                AttendanceInDB(
-                    employee_id=employee_id, date=today, status="present"
-                ).model_dump()
+            for employee_id in present_list:
+                attendance_list.append(
+                    AttendanceInDB(
+                        employee_id=employee_id, date=today, status="present"
+                    ).model_dump()
+                )
+
+            for employee_id in absent_list:
+                attendance_list.append(
+                    AttendanceInDB(
+                        employee_id=employee_id, date=today, status="absent"
+                    ).model_dump()
+                )
+
+            await self.mongo_client[MONGO_DATABASE][ATTENDANCE_COLLECTION].insert_many(
+                attendance_list
             )
 
     async def delete_attendance(self, employee_id):

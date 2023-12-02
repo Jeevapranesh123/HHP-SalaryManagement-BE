@@ -129,63 +129,61 @@ async def get_create_meta(
     #     "data": res,
     # }
 
-    return (
-        {
-            "message": "Success",
-            "status_code": 200,
-            "data": {
-                "basic_information": {
-                    "data": {
-                        "employee_id": {"type": "string", "required": True},
-                        "name": {"type": "string", "required": True},
-                        "email": {"type": "string", "required": True},
-                        "phone": {"type": "string", "required": True},
-                        "profile_image": {"type": "image", "required": True},
-                        "department": {"type": "string"},
-                        "designation": {"type": "string"},
-                        "branch": {"type": "string", "required": True},
-                        "is_marketing_staff": {
-                            "type": "checkbox",
-                            "required": True,
-                        },
-                        "marketing_manager": {"type": "string"},
+    return {
+        "message": "Success",
+        "status_code": 200,
+        "data": {
+            "basic_information": {
+                "data": {
+                    "employee_id": {"type": "string", "required": True},
+                    "name": {"type": "string", "required": True},
+                    "email": {"type": "string", "required": True},
+                    "phone": {"type": "string", "required": True},
+                    "profile_image": {"type": "image", "required": True},
+                    "department": {"type": "string"},
+                    "designation": {"type": "string"},
+                    "branch": {"type": "string", "required": True},
+                    "is_marketing_staff": {
+                        "type": "checkbox",
+                        "required": True,
                     },
-                    "actions": [],
+                    "marketing_manager": {"type": "string"},
                 },
-                "bank_details": {
-                    "data": {
-                        "bank_name": {"type": "string"},
-                        "account_number": {"type": "string"},
-                        "ifsc_code": {"type": "string"},
-                        "branch": {"type": "string"},
-                        "address": {"type": "string"},
-                    },
-                    "actions": [],
+                "actions": [],
+            },
+            "bank_details": {
+                "data": {
+                    "bank_name": {"type": "string"},
+                    "account_number": {"type": "string"},
+                    "ifsc_code": {"type": "string"},
+                    "branch": {"type": "string"},
+                    "address": {"type": "string"},
                 },
-                "address": {
-                    "data": {
-                        "address_line_1": {"type": "string"},
-                        "address_line_2": {"type": "string"},
-                        "city": {"type": "string"},
-                        "state": {"type": "string"},
-                        "country": {"type": "string"},
-                        "pincode": {"type": "string"},
-                    },
-                    "actions": [],
+                "actions": [],
+            },
+            "address": {
+                "data": {
+                    "address_line_1": {"type": "string"},
+                    "address_line_2": {"type": "string"},
+                    "city": {"type": "string"},
+                    "state": {"type": "string"},
+                    "country": {"type": "string"},
+                    "pincode": {"type": "string"},
                 },
-                "govt_id_proofs": {
-                    "data": {
-                        "aadhar": {"type": "string"},
-                        "pan": {"type": "string"},
-                        "voter_id": {"type": "string"},
-                        "driving_license": {"type": "string"},
-                        "passport": {"type": "string"},
-                    },
-                    "actions": [],
+                "actions": [],
+            },
+            "govt_id_proofs": {
+                "data": {
+                    "aadhar": {"type": "string"},
+                    "pan": {"type": "string"},
+                    "voter_id": {"type": "string"},
+                    "driving_license": {"type": "string"},
+                    "passport": {"type": "string"},
                 },
+                "actions": [],
             },
         },
-    )
+    }
 
 
 @router.get("/info/create-required")

@@ -56,10 +56,10 @@ async def ping():
     return {"message": "pong"}
 
 
-# @app.get("/attendance")
-# async def test():
-#     obj = Attendance(mongo.client)
-#     await obj.post_attendance()
+@app.get("/attendance")
+async def test():
+    obj = Attendance(mongo.client)
+    await obj.post_attendance()
 
 
 app.include_router(api_router, prefix="/api/v1")
