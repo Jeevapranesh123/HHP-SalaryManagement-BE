@@ -18,6 +18,39 @@ from fastapi import UploadFile, File
 router = APIRouter()
 
 
+@router.get("/get-branch")
+async def get_branch(
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    # res = await auth_controller.get_branch(mongo_client, payload)
+    res = [
+        {"value": "Head Office", "label": "head-office"},
+        {"value": "Factory", "label": "factory"},
+    ]
+    return {
+        "message": "Branch fetched successfully",
+        "status_code": 200,
+        "data": res,
+    }
+
+
+@router.post("/set-branch")
+async def set_branch(
+    branch: str,
+    employee_id: str,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    obj = EmployeeController(payload, mongo_client)
+    res = await obj.set_branch(employee_id, branch)
+    return {
+        "message": "Branch set successfully",
+        "status_code": 200,
+        "data": res,
+    }
+
+
 @router.get("/{employee_id}")
 async def get_employee(
     employee_id: str,
@@ -198,39 +231,6 @@ async def get_create_required_fields(
     res = await obj.get_create_required_fields()
     return {
         "message": "Success",
-        "status_code": 200,
-        "data": res,
-    }
-
-
-@router.get("/get-branch")
-async def get_branch(
-    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
-    payload: dict = Depends(verify_login_token),
-):
-    # res = await auth_controller.get_branch(mongo_client, payload)
-    res = [
-        {"value": "Head Office", "label": "head-office"},
-        {"value": "Factory", "label": "factory"},
-    ]
-    return {
-        "message": "Branch fetched successfully",
-        "status_code": 200,
-        "data": res,
-    }
-
-
-@router.post("/set-branch")
-async def set_branch(
-    branch: str,
-    employee_id: str,
-    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
-    payload: dict = Depends(verify_login_token),
-):
-    obj = EmployeeController(payload, mongo_client)
-    res = await obj.set_branch(employee_id, branch)
-    return {
-        "message": "Branch set successfully",
         "status_code": 200,
         "data": res,
     }
