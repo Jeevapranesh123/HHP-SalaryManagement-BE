@@ -85,15 +85,23 @@ async def login(login_request, mongo_client: AsyncIOMotorClient):
 
     minio = MinIO()
 
-    profile_image_pre_signed_url = minio.client.presigned_get_object(
-        Config.MINIO_BUCKET,
-        user["info"]["profile_image_path"],
-        expires=timedelta(days=1),
-    )
+    try:
+        object = minio.client.stat_object(
+            Config.MINIO_BUCKET, user["info"]["profile_image_path"]
+        )
+    except:
+        object = None
 
-    await auth_crud.update_profile_pre_signed_url(
-        user["employee_id"], profile_image_pre_signed_url, mongo_client
-    )
+    if object:
+        profile_image_pre_signed_url = minio.client.presigned_get_object(
+            Config.MINIO_BUCKET,
+            user["info"]["profile_image_path"],
+            expires=timedelta(days=1),
+        )
+
+        await auth_crud.update_profile_pre_signed_url(
+            user["employee_id"], profile_image_pre_signed_url, mongo_client
+        )
 
     return {"email": user["email"], "token": token}
 
