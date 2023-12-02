@@ -25,8 +25,8 @@ async def get_branch(
 ):
     # res = await auth_controller.get_branch(mongo_client, payload)
     res = [
-        {"value": "Head Office", "label": "head-office"},
-        {"value": "Factory", "label": "factory"},
+        {"value": "head-office", "label": "Head Office"},
+        {"value": "factory", "label": "Factory"},
     ]
     return {
         "message": "Branch fetched successfully",
