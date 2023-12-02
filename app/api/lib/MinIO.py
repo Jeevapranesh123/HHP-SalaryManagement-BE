@@ -18,8 +18,12 @@ class MinIO:
             secure=False,
         )
 
-        found = self.client.bucket_exists("salary-management")
-        if not found:
-            self.client.make_bucket("salary-management")
-        else:
-            pass
+        try:
+            found = self.client.bucket_exists("salary-management")
+            if not found:
+                self.client.make_bucket("salary-management")
+            else:
+                pass
+
+        except Exception as e:
+            print(e)
