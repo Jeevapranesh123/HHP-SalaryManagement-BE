@@ -13,7 +13,7 @@ class AttendanceBase(BaseModel):
 
 class AttendanceInDB(AttendanceBase):
     id: str = str(uuid.uuid4()).replace("-", "")
-    created_at: Optional[str] = None
+    created_at: Optional[datetime.datetime] = datetime.datetime.now()
     created_by: Optional[str] = "system"
     updated_at: Optional[str] = None
     updated_by: Optional[str] = None

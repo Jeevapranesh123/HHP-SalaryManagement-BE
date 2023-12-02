@@ -16,6 +16,8 @@ from app.api.lib.RabbitMQ import RabbitMQ
 
 from app.api.lib.Attendance import Attendance
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
 
 mq = RabbitMQ()
 
@@ -28,6 +30,18 @@ app = FastAPI(
     description="This is a very fancy project, with auto docs for the API and everything",
     version="0.0.1",
 )
+
+scheduler = AsyncIOScheduler()
+
+
+async def attendance_job():
+    obj = Attendance(mongo.client)
+    list = await obj.post_attendance()
+
+
+scheduler.add_job(attendance_job, "cron", hour=18, minute=0)
+
+scheduler.start()
 
 
 class StatusCodeMiddleware(BaseHTTPMiddleware):

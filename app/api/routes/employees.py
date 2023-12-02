@@ -145,7 +145,7 @@ async def get_create_meta(
                     "branch": {"type": "string", "required": True},
                     "is_marketing_staff": {
                         "type": "checkbox",
-                        "required": True,
+                        "required": False,
                     },
                     "marketing_manager": {"type": "string"},
                 },
