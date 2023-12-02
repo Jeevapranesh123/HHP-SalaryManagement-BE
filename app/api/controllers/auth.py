@@ -243,6 +243,7 @@ async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient)
             "department": emp["department"],
             "designation": emp["designation"],
             "branch": emp["branch"],
+            "profile_image": emp["profile_image"],
         },
         "bank_details": emp["bank_details"],
         "address": emp["address"],
