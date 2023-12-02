@@ -1,4 +1,4 @@
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile, File
 
 from app.database import AsyncIOMotorClient
 
@@ -15,15 +15,30 @@ from app.schemas.salary import SalaryBase, MonthlyCompensationBase, SalaryIncent
 from app.core.config import Config
 from app.api.utils import *
 
-from app.api.lib.RabbitMQ import RabbitMQ
 
+from app.api.lib.RabbitMQ import RabbitMQ
+from app.api.lib.MinIO import MinIO
 from app.api.lib.Notification import Notification
 from app.schemas.notification import NotificationBase
 
+from datetime import timedelta
+
 import datetime
+
 
 MONGO_DATABASE = Config.MONGO_DATABASE
 LEAVE_COLLECTION = Config.LEAVE_COLLECTION
+
+
+async def get_file_size(file: UploadFile):
+    # Seek to the end of the file to find its size
+    await file.seek(0, 2)  # Seek to the end of the file
+    file_size = file.tell()  # Get the file size
+
+    # Seek back to the start of the file for future operations
+    await file.seek(0)
+
+    return file_size
 
 
 class EmployeeController:
@@ -32,6 +47,46 @@ class EmployeeController:
         self.employee_id = payload["employee_id"]
         self.employee_role = payload["primary_role"]
         self.mongo_client = mongo_client
+
+    async def upload_profile_image(self, employee_id, file: UploadFile = File(...)):
+        if file.content_type not in ["image/jpeg", "image/png"]:
+            raise HTTPException(
+                status_code=400, detail="Only JPEG and PNG images are allowed"
+            )
+
+        minio_client = MinIO()
+
+        # await minio.create_employee_profile(employee_id)
+
+        file_extension = file.content_type.split("/")[1]
+        file_name = f"{employee_id}"
+        object_name = f"profile/{file_name}"
+
+        result = minio_client.client.put_object(
+            minio_client.bucket_name,
+            object_name,
+            file.file,
+            length=-1,
+            content_type=file.content_type,
+            part_size=15 * 1024 * 1024,
+        )
+
+        file_path = f"{minio_client.bucket_name}/{object_name}"
+
+        return file_path
+
+    async def set_branch(self, employee_id, branch):
+        if not self.employee_role in ["MD"]:
+            raise HTTPException(status_code=403, detail="Not Enough Permissions")
+        emp = await employee_crud.get_employee(employee_id, self.mongo_client)
+        if not emp:
+            raise HTTPException(status_code=404, detail="Employee not found")
+
+        emp["branch"] = branch
+
+        await employee_crud.update_employee(employee_id, emp, self.mongo_client)
+
+        return emp
 
     async def create_employee(self, employee: EmployeeCreateRequest):
         is_valid, message = await validate_new_employee(employee, self.mongo_client)
@@ -177,10 +232,10 @@ class EmployeeController:
             requester = await employee_crud.get_employee(
                 self.employee_id, self.mongo_client
             )
-            branch = requester["branch"]
+            branch = [requester["branch"]]
 
         elif self.employee_role == "MD":
-            branch = "Head Office"
+            branch = ["Factory", "Head Office"]
             # FIXME: Check with UI, how to implement this
 
         return await employee_crud.get_all_employees(branch, self.mongo_client)

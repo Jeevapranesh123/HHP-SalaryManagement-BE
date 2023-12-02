@@ -13,7 +13,11 @@ from app.api.crud import leave as leave_crud
 from app.api.crud import employees as employee_crud
 
 from app.api.lib.Notification import Notification
-from app.schemas.notification import NotificationBase
+from app.schemas.notification import (
+    NotificationBase,
+    SendNotification,
+    NotificationMeta,
+)
 
 
 class LeaveController:
@@ -102,6 +106,11 @@ class LeaveController:
             requested_by=self.employee_id,
         )
         res["leave_id"] = res["id"]
+
+        notification = Notification(
+            self.employee_id, "request_leave", self.mongo_client
+        )
+        # notifier =
 
         return res
 
