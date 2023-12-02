@@ -129,25 +129,28 @@ async def get_create_meta(
     #     "data": res,
     # }
 
-    return {
-        "message": "Success",
-        "status_code": 200,
-        "data": {
-            "basic_information": {
-                "data": {
-                    "employee_id": {"type": "string", "required": True},
-                    "name": {"type": "string", "required": True},
-                    "email": {"type": "string", "required": True},
-                    "phone": {"type": "string", "required": True},
-                    "profile_image": {"type": "image", "required": True},
-                    "department": {"type": "string"},
-                    "designation": {"type": "string"},
-                    "branch": {"type": "string", "required": True},
-                    "is_marketing_staff": {
-                        "type": "checkbox",
-                        "required": True,
+    return (
+        {
+            "message": "Success",
+            "status_code": 200,
+            "data": {
+                "basic_information": {
+                    "data": {
+                        "employee_id": {"type": "string", "required": True},
+                        "name": {"type": "string", "required": True},
+                        "email": {"type": "string", "required": True},
+                        "phone": {"type": "string", "required": True},
+                        "profile_image": {"type": "image", "required": True},
+                        "department": {"type": "string"},
+                        "designation": {"type": "string"},
+                        "branch": {"type": "string", "required": True},
+                        "is_marketing_staff": {
+                            "type": "checkbox",
+                            "required": True,
+                        },
+                        "marketing_manager": {"type": "string"},
                     },
-                    "marketing_manager": {"type": "string"},
+                    "actions": [],
                 },
                 "bank_details": {
                     "data": {
@@ -156,7 +159,8 @@ async def get_create_meta(
                         "ifsc_code": {"type": "string"},
                         "branch": {"type": "string"},
                         "address": {"type": "string"},
-                    }
+                    },
+                    "actions": [],
                 },
                 "address": {
                     "data": {
@@ -166,7 +170,8 @@ async def get_create_meta(
                         "state": {"type": "string"},
                         "country": {"type": "string"},
                         "pincode": {"type": "string"},
-                    }
+                    },
+                    "actions": [],
                 },
                 "govt_id_proofs": {
                     "data": {
@@ -175,11 +180,12 @@ async def get_create_meta(
                         "voter_id": {"type": "string"},
                         "driving_license": {"type": "string"},
                         "passport": {"type": "string"},
-                    }
+                    },
+                    "actions": [],
                 },
-            }
+            },
         },
-    }
+    )
 
 
 @router.get("/info/create-required")

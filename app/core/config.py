@@ -61,6 +61,8 @@ class Config(object):
         os.getenv("OTHER_SALARY_COMPONENTS_COLLECTION") or "other_salary_components"
     )
 
+    ATTENDANCE_COLLECTION = os.getenv("ATTENDANCE_COLLECTION") or "attendance"
+
 
 # class Settings(BaseModel):
 #     authjwt_secret_key: str = "secret"
