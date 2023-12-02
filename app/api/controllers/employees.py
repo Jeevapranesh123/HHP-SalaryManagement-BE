@@ -54,24 +54,22 @@ class EmployeeController:
                 status_code=400, detail="Only JPEG and PNG images are allowed"
             )
 
-        # minio_client = MinIO()
-
-        # await minio.create_employee_profile(employee_id)
+        minio_client = MinIO()
 
         file_extension = file.content_type.split("/")[1]
         file_name = f"{employee_id}"
         object_name = f"profile/{file_name}"
 
-        # result = minio_client.client.put_object(
-        #     minio_client.bucket_name,
-        #     object_name,
-        #     file.file,
-        #     length=-1,
-        #     content_type=file.content_type,
-        #     part_size=15 * 1024 * 1024,
-        # )
+        result = minio_client.client.put_object(
+            minio_client.bucket_name,
+            object_name,
+            file.file,
+            length=-1,
+            content_type=file.content_type,
+            part_size=15 * 1024 * 1024,
+        )
 
-        # file_path = f"{minio_client.bucket_name}/{object_name}"
+        file_path = f"{minio_client.bucket_name}/{object_name}"
 
         file_path = "salary-management/profile/{}".format(file_name)
 
@@ -110,6 +108,10 @@ class EmployeeController:
                 raise HTTPException(
                     status_code=400, detail="Marketing Manager not found"
                 )
+
+        emp_in_create.profile_image_path = "profile/{}".format(
+            emp_in_create.employee_id
+        )
 
         emp, user = await employee_crud.create_employee(
             emp_in_create, self.employee_id, self.mongo_client
@@ -257,6 +259,16 @@ class EmployeeController:
         if not is_valid:
             raise HTTPException(status_code=400, detail=message)
         # FIXME: Update salary if needed
+        minio = MinIO()
+
+        profile_image_pre_signed_url = minio.client.presigned_get_object(
+            Config.MINIO_BUCKET,
+            emp["profile_image_path"],
+            expires=timedelta(days=1),
+        )
+
+        emp_in_update["profile_image"] = profile_image_pre_signed_url
+
         emp = await employee_crud.update_employee(
             employee_id, emp_in_update, self.mongo_client
         )
