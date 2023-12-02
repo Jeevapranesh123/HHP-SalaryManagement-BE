@@ -1,7 +1,7 @@
 import sys
 
 sys.dont_write_bytecode = True
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response, Depends
 from app.api import api_router
 from app.core.errors import http_error_handler
 from starlette.exceptions import HTTPException
@@ -13,6 +13,8 @@ from app.database import mongo
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.lib.RabbitMQ import RabbitMQ
+
+from app.api.lib.Attendance import Attendance
 
 
 mq = RabbitMQ()
@@ -52,6 +54,12 @@ async def root():
 @app.get("/ping")
 async def ping():
     return {"message": "pong"}
+
+
+# @app.get("/attendance")
+# async def test():
+#     obj = Attendance(mongo.client)
+#     await obj.post_attendance()
 
 
 app.include_router(api_router, prefix="/api/v1")
