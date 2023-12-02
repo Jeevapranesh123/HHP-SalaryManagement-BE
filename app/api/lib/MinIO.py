@@ -21,14 +21,5 @@ class MinIO:
         found = self.client.bucket_exists("salary-management")
         if not found:
             self.client.make_bucket("salary-management")
-            print("Bucket 'asiatrip' created successfully")
         else:
-            print("Bucket 'asiatrip' already exists")
-
-    async def get_presigned_url(self, employee_id):
-        # object_name = self.client.get_b
-        presigned_url = self.client.presigned_get_object(
-            self.bucket_name, object_name, expires=60 * 60 * 24 * 7
-        )
-
-        return presigned_url
+            pass

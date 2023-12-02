@@ -20,6 +20,8 @@ class Config(object):
     MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY") or "minioadmin"
     MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY") or "minioadmin"
 
+    MINIO_BUCKET = os.getenv("MINIO_BUCKET") or "salary-management"
+
     MONGO_HOST = os.getenv("MONGO_HOST") or "localhost"
     MONGO_PORT = os.getenv("MONGO_PORT") or 27017
     MONGO_DATABASE = os.getenv("MONGO_DATABASE") or "hhp-esm"

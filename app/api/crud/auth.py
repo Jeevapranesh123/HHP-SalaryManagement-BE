@@ -188,3 +188,14 @@ async def remove_secondary_role(employee_id, role_id, mongo_client):
     )
 
     return remove
+
+
+async def update_profile_pre_signed_url(employee_id, pre_signed_url, mongo_client):
+    update = await mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].update_one(
+        {"employee_id": employee_id}, {"$set": {"profile_image": pre_signed_url}}
+    )
+
+    if update.matched_count == 1:
+        return pre_signed_url
+
+    return None
