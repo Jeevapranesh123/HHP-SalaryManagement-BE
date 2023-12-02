@@ -10,7 +10,10 @@ from app.api.utils.employees import verify_password
 from app.schemas.salary import SalaryBase, MonthlyCompensationBase, SalaryIncentivesBase
 from app.api.utils import *
 
+from app.api.lib.MinIO import MinIO
+
 from app.api.lib.RabbitMQ import RabbitMQ
+
 from app.api.lib.Notification import Notification
 from app.schemas.notification import (
     NotificationBase,
@@ -77,6 +80,12 @@ async def login(login_request, mongo_client: AsyncIOMotorClient):
             "employee_notification",
             key,
         )
+
+    # Update profile pre-signed url
+
+    minio = MinIO()
+
+    # profile_image = await minio.get_presigned_url(
 
     return {"email": user["email"], "token": token}
 
@@ -211,6 +220,10 @@ async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient)
     )
 
     res = {
+        "alert": {
+            "title": "Leave Exceeded",
+            "description": "You have exceeded your leave limit for the month",
+        },
         "basic_information": {
             "employee_id": emp["employee_id"],
             "name": emp["name"],
@@ -235,6 +248,12 @@ async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient)
             "monthly_leave_days": monthly_leave_days,
             "total_permission_hours": total_permission_hours,
             "monthly_permission_hours": monthly_permission_hours,
+        },
+        "attendance": {
+            "total_working_days": 10,
+            "total_present_days": 8,
+            "total_absent_days": 2,
+            "present_percentage": 80,
         },
     }
 
@@ -278,11 +297,15 @@ async def assign_role(role_req, mongo_client: AsyncIOMotorClient, payload):
 
     bind_key = None
 
+    branch = employee["info"]["branch"].replace(" ", "_")
+
     if update:
         if role_req.role != "employee":
-            bind_key = role_req.role
+            if role_req.role == "HR":
+                bind_key = "HR_{}".format(branch)
         elif role_req.role == "employee":
             bind_key = employee["employee_id"]
+
         mq = RabbitMQ()
         mq.ensure_queue("notifications_employee_{}".format(employee["uuid"]))
         mq.bind_queue(

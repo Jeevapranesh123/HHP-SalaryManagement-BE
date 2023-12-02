@@ -16,6 +16,10 @@ class Config(object):
     RABBITMQ_USERNAME = os.getenv("RABBITMQ_USERNAME") or "root"
     RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD") or "zuvaLabs"
 
+    MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT") or "localhost:9000"
+    MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY") or "minioadmin"
+    MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY") or "minioadmin"
+
     MONGO_HOST = os.getenv("MONGO_HOST") or "localhost"
     MONGO_PORT = os.getenv("MONGO_PORT") or 27017
     MONGO_DATABASE = os.getenv("MONGO_DATABASE") or "hhp-esm"

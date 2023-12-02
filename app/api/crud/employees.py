@@ -304,7 +304,7 @@ async def get_employee_with_salary(employee_id: str, mongo_client: AsyncIOMotorC
 
 async def get_all_employees(branch, mongo_client):
     emps = mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].find(
-        {"branch": branch}, {"employee_id": 1, "name": 1, "email": 1, "_id": 0}
+        {"branch": {"$in": branch}}, {"employee_id": 1, "name": 1, "email": 1, "_id": 0}
     )
 
     return [e async for e in emps]

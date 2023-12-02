@@ -115,23 +115,87 @@ class SalaryController:
 
         res = {
             "basic_salary": {
-                "data": salary_base,
-                "meta": {"url": "/salary/post_salary", "method": "PUT"},
+                "data": {
+                    k: {
+                        "type": "string",
+                        "value": v,
+                        "editable": True if k != "net_salary" else False,
+                    }
+                    for k, v in salary_base.items()
+                },
+                "actions": [
+                    {
+                        "label": "Submit",
+                        "type": "button",
+                        "variant": "default",
+                        "action": {"url": "/salary/post_salary", "method": "PUT"},
+                    }
+                ],
             },
             "monthly_compensation": {
-                "data": monthly_compensation_base,
-                "meta": {"url": "/salary/post_monthly_compensation", "method": "PUT"},
+                "data": {
+                    k: {
+                        "type": "string",
+                        "value": v,
+                        "editable": True,
+                    }
+                    for k, v in monthly_compensation_base.items()
+                },
+                "actions": [
+                    {
+                        "label": "Submit",
+                        "type": "button",
+                        "variant": "default",
+                        "action": {
+                            "url": "/salary/post_monthly_compensation",
+                            "method": "PUT",
+                        },
+                    }
+                ],
             },
             "salary_incentives": {
-                "data": salary_incentives_base,
-                "meta": {"url": "/salary/post_salary_incentives", "method": "PUT"},
+                "data": {
+                    k: {
+                        "type": "string",
+                        "value": v,
+                        "editable": True,
+                    }
+                    for k, v in salary_incentives_base.items()
+                },
+                "actions": [
+                    {
+                        "label": "Submit",
+                        "type": "button",
+                        "variant": "default",
+                        "action": {
+                            "url": "/salary/post_salary_incentives",
+                            "method": "PUT",
+                        },
+                    }
+                ],
             },
             "leaves_and_permissions": {
                 "data": {
-                    "total_leave_days": total_leave_days,
-                    "monthly_leave_days": monthly_leave_days,
-                    "total_permission_hours": total_permission_hours,
-                    "monthly_permission_hours": monthly_permission_hours,
+                    "total_leave_days": {
+                        "type": "string",
+                        "value": total_leave_days,
+                        "editable": False,
+                    },
+                    "monthly_leave_days": {
+                        "type": "string",
+                        "value": monthly_leave_days,
+                        "editable": False,
+                    },
+                    "total_permission_hours": {
+                        "type": "string",
+                        "value": total_permission_hours,
+                        "editable": False,
+                    },
+                    "monthly_permission_hours": {
+                        "type": "string",
+                        "value": monthly_permission_hours,
+                        "editable": False,
+                    },
                 }
             },
         }
