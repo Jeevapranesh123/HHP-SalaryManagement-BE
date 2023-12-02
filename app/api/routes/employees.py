@@ -144,8 +144,11 @@ async def get_create_meta(
                     "designation": {"type": "string"},
                     "branch": {"type": "string", "required": True},
                     "is_marketing_staff": {
-                        "type": "checkbox",
-                        "required": False,
+                        type: "radio",
+                        "options": [
+                            {"label": "Yes", "value": "Yes"},
+                            {"label": "No", "value": "No"},
+                        ],
                     },
                     "marketing_manager": {"type": "string"},
                 },
