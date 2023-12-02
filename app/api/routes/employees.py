@@ -202,7 +202,10 @@ async def get_branch(
     payload: dict = Depends(verify_login_token),
 ):
     # res = await auth_controller.get_branch(mongo_client, payload)
-    res = ["Head Office", "Factory"]
+    res = [
+        {"value": "Head Office", "label": "Head Office"},
+        {"value": "Factory", "label": "Factory"},
+    ]
     return {
         "message": "Branch fetched successfully",
         "status_code": 200,
