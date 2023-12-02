@@ -54,7 +54,7 @@ class EmployeeController:
                 status_code=400, detail="Only JPEG and PNG images are allowed"
             )
 
-        minio_client = MinIO()
+        # minio_client = MinIO()
 
         # await minio.create_employee_profile(employee_id)
 
@@ -62,16 +62,18 @@ class EmployeeController:
         file_name = f"{employee_id}"
         object_name = f"profile/{file_name}"
 
-        result = minio_client.client.put_object(
-            minio_client.bucket_name,
-            object_name,
-            file.file,
-            length=-1,
-            content_type=file.content_type,
-            part_size=15 * 1024 * 1024,
-        )
+        # result = minio_client.client.put_object(
+        #     minio_client.bucket_name,
+        #     object_name,
+        #     file.file,
+        #     length=-1,
+        #     content_type=file.content_type,
+        #     part_size=15 * 1024 * 1024,
+        # )
 
-        file_path = f"{minio_client.bucket_name}/{object_name}"
+        # file_path = f"{minio_client.bucket_name}/{object_name}"
+
+        file_path = "salary-management/profile/{}".format(file_name)
 
         return file_path
 

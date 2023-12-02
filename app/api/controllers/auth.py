@@ -83,7 +83,7 @@ async def login(login_request, mongo_client: AsyncIOMotorClient):
 
     # Update profile pre-signed url
 
-    minio = MinIO()
+    # minio = MinIO()
 
     # profile_image = await minio.get_presigned_url(
 
@@ -220,10 +220,13 @@ async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient)
     )
 
     res = {
-        "alert": {
-            "title": "Leave Exceeded",
-            "description": "You have exceeded your leave limit for the month",
-        },
+        "alert": [
+            {
+                "title": "Leave Excceded",
+                "description": "You have exceeded your leave limit",
+                "type": "warning",
+            }
+        ],
         "basic_information": {
             "employee_id": emp["employee_id"],
             "name": emp["name"],
