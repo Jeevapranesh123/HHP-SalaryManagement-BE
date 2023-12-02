@@ -42,6 +42,8 @@ class EmployeeBase(BaseModel):  # TODO: Add relevant fields in the future
     branch: BranchEnum = BranchEnum.HO
     is_marketing_staff: Optional[bool] = False
     marketing_manager: Optional[str] = None
+    profile_image: Optional[str] = None
+    profile_image_pre_signed_url: Optional[str] = None
     department: Optional[str] = None
     designation: Optional[str] = None
     bank_details: Optional[BankDetails]
