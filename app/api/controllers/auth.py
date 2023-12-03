@@ -473,3 +473,35 @@ async def remove_role(role_req, mongo_client: AsyncIOMotorClient, payload):
         return True
 
     return False
+
+
+async def compute_attendance(
+    self,
+    employee_id,
+    month,
+    mongo_client: AsyncIOMotorClient,
+):
+    attendance = await attendance_crud.get_attendance(employee_id, month, mongo_client)
+
+    total_working_days = total_present_days = total_absent_days = 0
+
+    for day in attendance:
+        if day["is_holiday"]:
+            total_working_days += 1
+            continue
+
+        if day["is_present"]:
+            total_working_days += 1
+            total_present_days += 1
+        else:
+            total_working_days += 1
+            total_absent_days += 1
+
+    present_percentage = (total_present_days / total_working_days) * 100
+
+    return {
+        "total_working_days": total_working_days,
+        "total_present_days": total_present_days,
+        "total_absent_days": total_absent_days,
+        "present_percentage": present_percentage,
+    }

@@ -55,7 +55,8 @@ class MarketingCrud:
 
         if start_date and end_date:
             print(start_date, end_date)
-            query.pop("date")
+            if query.get("date"):
+                query.pop("date")
             start_date = datetime.datetime.combine(start_date, datetime.time.min)
             end_date = datetime.datetime.combine(end_date, datetime.time.max)
             query["date"] = {"$gte": start_date, "$lte": end_date}

@@ -37,11 +37,12 @@ scheduler = AsyncIOScheduler()
 async def attendance_job():
     obj = Attendance(mongo.client)
     list = await obj.post_attendance()
+    print(list)
 
 
-scheduler.add_job(attendance_job, "cron", hour=18, minute=0)
+# scheduler.add_job(attendance_job, "cron", minute="*/2")
 
-scheduler.start()
+# scheduler.start()
 
 
 class StatusCodeMiddleware(BaseHTTPMiddleware):
