@@ -26,6 +26,8 @@ from app.schemas.response import (
 from app.schemas.employees import StatusEnum
 from app.api.utils.employees import verify_login_token
 
+import datetime
+
 router = APIRouter()
 
 
@@ -36,6 +38,20 @@ async def get_all_salaries(
 ):
     sal_obj = SalaryController(payload, mongo_client)
     return await sal_obj.get_all_salaries()
+
+
+@router.get("/get_salary/meta", status_code=200)
+async def get_salary_meta(
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    sal_obj = SalaryController(payload, mongo_client)
+    data = await sal_obj.get_salary_meta()
+    return {
+        "message": "Salary meta fetched successfully",
+        "status_code": 200,
+        "data": data,
+    }
 
 
 @router.get("/get_salary/{employee_id}", status_code=200)
@@ -200,6 +216,9 @@ async def get_meta(
                     "month": {
                         "type": "month",
                         "format": "YYYY-MM-DD",
+                        "value": "{}".format(
+                            datetime.datetime.now().strftime("%Y-%m-%d")
+                        ),
                         "required": True,
                     },
                     "remarks": {"type": "textarea", "value": "", "required": True},
@@ -222,7 +241,7 @@ async def get_meta(
     elif access_type == "post":
         data["data"]["salary_advance"]["actions"] = advance_post_action
         data["data"]["salary_advance"]["data"]["employee_id"]["editable"] = False
-
+    print(data)
     return data
 
 

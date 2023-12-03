@@ -153,12 +153,12 @@ class RabbitMQ:
             def callback(ch, method, properties, body):
                 self.on_message(ch, method, properties, body, sio, sid)
 
-                # Other setup code remains the same...
-                self.channel.basic_consume(
-                    queue=queue,
-                    on_message_callback=callback,
-                    auto_ack=True,
-                )
+            # Other setup code remains the same...
+            self.channel.basic_consume(
+                queue=queue,
+                on_message_callback=callback,
+                auto_ack=True,
+            )
 
             while not self.should_stop.is_set():
                 self.connection.process_data_events(time_limit=1)  # 1 second timeout

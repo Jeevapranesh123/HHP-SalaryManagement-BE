@@ -54,6 +54,9 @@ async def connect(sid, environ):
     exchange_name = "employee_notification"
     binding_key = payload["employee_id"]
 
+    print("Employee ID", binding_key)
+    print("Queue name", queue_name)
+
     mq = RabbitMQ(
         queue_name=queue_name,
         exchange_name=exchange_name,

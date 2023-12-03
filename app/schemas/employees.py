@@ -30,8 +30,8 @@ class GovtIDProofs(BaseModel):
 
 
 class BranchEnum(str, Enum):
-    HO = "Head Office"
-    FACTORY = "Factory"
+    HO = "head_office"
+    FACTORY = "factory"
 
 
 class EmployeeBase(BaseModel):  # TODO: Add relevant fields in the future

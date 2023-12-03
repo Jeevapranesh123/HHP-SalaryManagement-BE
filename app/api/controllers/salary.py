@@ -60,6 +60,110 @@ class SalaryController:
     async def get_all_salaries(self):
         return await salary_crud.get_all_salaries(self.mongo_client)
 
+    async def get_salary_meta(self):
+        salary_base = SalaryBase(employee_id=self.employee_id).model_dump(
+            exclude={"employee_id"}
+        )
+
+        salary_base["net_salary"] = None
+
+        monthly_compensation_base = MonthlyCompensationBase(
+            employee_id=self.employee_id
+        ).model_dump(exclude={"employee_id"})
+
+        salary_incentives_base = SalaryIncentivesBase(
+            employee_id=self.employee_id
+        ).model_dump(exclude={"employee_id"})
+
+        res = {
+            "basic_salary": {
+                "data": {
+                    k: {
+                        "type": "number",
+                        "editable": True if k != "net_salary" else False,
+                    }
+                    for k, v in salary_base.items()
+                },
+                "actions": [
+                    {
+                        "label": "Submit",
+                        "type": "button",
+                        "variant": "default",
+                        "action": {"url": "/salary/post_salary", "method": "PUT"},
+                    }
+                ],
+            },
+            "monthly_compensation": {
+                "data": {
+                    k: {
+                        "type": "number",
+                        "editable": True,
+                    }
+                    for k, v in monthly_compensation_base.items()
+                },
+                "actions": [
+                    {
+                        "label": "Submit",
+                        "type": "button",
+                        "variant": "default",
+                        "action": {
+                            "url": "/salary/post_monthly_compensation",
+                            "method": "PUT",
+                        },
+                    }
+                ],
+            },
+            "salary_incentives": {
+                "data": {
+                    k: {
+                        "type": "number",
+                        "editable": True,
+                    }
+                    for k, v in salary_incentives_base.items()
+                },
+                "actions": [
+                    {
+                        "label": "Submit",
+                        "type": "button",
+                        "variant": "default",
+                        "action": {
+                            "url": "/salary/post_salary_incentives",
+                            "method": "PUT",
+                        },
+                    }
+                ],
+            },
+            "leaves_and_permissions": {
+                "data": {
+                    "total_leave_days": {
+                        "type": "string",
+                        "editable": False,
+                    },
+                    "monthly_leave_days": {
+                        "type": "string",
+                        "editable": False,
+                    },
+                    "total_permission_hours": {
+                        "type": "string",
+                        "editable": False,
+                    },
+                    "monthly_permission_hours": {
+                        "type": "string",
+                        "editable": False,
+                    },
+                },
+                "actions": [],
+            },
+        }
+
+        if self.employee_role == "HR":
+            res["basic_salary"]["data"].pop("net_salary")
+            res["basic_salary"]["data"].pop("gross_salary")
+            res["monthly_compensation"]["data"].pop("other_special_allowance")
+            res.pop("salary_incentives")
+
+        return res
+
     async def get_salary(self, employee_id: str):
         if not self.employee_role in ["HR", "MD"] and employee_id != self.employee_id:
             raise HTTPException(status_code=403, detail="Not enough permissions")
@@ -114,98 +218,26 @@ class SalaryController:
         )
 
         res = {
-            "basic_salary": {
-                "data": {
-                    k: {
-                        "type": "string",
-                        "value": v,
-                        "editable": True if k != "net_salary" else False,
-                    }
-                    for k, v in salary_base.items()
-                },
-                "actions": [
-                    {
-                        "label": "Submit",
-                        "type": "button",
-                        "variant": "default",
-                        "action": {"url": "/salary/post_salary", "method": "PUT"},
-                    }
-                ],
-            },
+            "basic_salary": {k: v for k, v in salary_base.items()},
             "monthly_compensation": {
-                "data": {
-                    k: {
-                        "type": "string",
-                        "value": v,
-                        "editable": True,
-                    }
-                    for k, v in monthly_compensation_base.items()
-                },
-                "actions": [
-                    {
-                        "label": "Submit",
-                        "type": "button",
-                        "variant": "default",
-                        "action": {
-                            "url": "/salary/post_monthly_compensation",
-                            "method": "PUT",
-                        },
-                    }
-                ],
+                k: v for k, v in monthly_compensation_base.items()
             },
-            "salary_incentives": {
-                "data": {
-                    k: {
-                        "type": "string",
-                        "value": v,
-                        "editable": True,
-                    }
-                    for k, v in salary_incentives_base.items()
-                },
-                "actions": [
-                    {
-                        "label": "Submit",
-                        "type": "button",
-                        "variant": "default",
-                        "action": {
-                            "url": "/salary/post_salary_incentives",
-                            "method": "PUT",
-                        },
-                    }
-                ],
-            },
+            "salary_incentives": {k: v for k, v in salary_incentives_base.items()},
             "leaves_and_permissions": {
-                "data": {
-                    "total_leave_days": {
-                        "type": "string",
-                        "value": total_leave_days,
-                        "editable": False,
-                    },
-                    "monthly_leave_days": {
-                        "type": "string",
-                        "value": monthly_leave_days,
-                        "editable": False,
-                    },
-                    "total_permission_hours": {
-                        "type": "string",
-                        "value": total_permission_hours,
-                        "editable": False,
-                    },
-                    "monthly_permission_hours": {
-                        "type": "string",
-                        "value": monthly_permission_hours,
-                        "editable": False,
-                    },
-                }
+                "total_leave_days": total_leave_days,
+                "monthly_leave_days": monthly_leave_days,
+                "total_permission_hours": total_permission_hours,
+                "monthly_permission_hours": monthly_permission_hours,
             },
         }
 
-        if self.employee_role == "HR" and self.employee_id == employee_id:
-            pass
+        if self.employee_role == "employee" and self.employee_id != employee_id:
+            return HTTPException(status_code=403, detail="Not enough permissions")
+
         elif self.employee_role == "HR":
-            res["basic_salary"]["data"].pop("net_salary")
-            res["basic_salary"]["data"].pop("gross_salary")
-            res["monthly_compensation"]["data"].pop("other_special_allowance")
+            res["basic_salary"].pop("net_salary")
+            res["basic_salary"].pop("gross_salary")
+            res["monthly_compensation"].pop("other_special_allowance")
             res.pop("salary_incentives")
 
         return res
@@ -325,8 +357,10 @@ class SalaryController:
         employee_notification = NotificationBase(
             title="Salary Updated",
             description="Your salary has been updated by {}".format(self.employee_id),
-            payload={},
-            ui_action="read",
+            payload={
+                "url": "/profile",
+            },
+            ui_action="action",
             type="salary",
             source="post_salary",
             target=salary_in_create.employee_id,

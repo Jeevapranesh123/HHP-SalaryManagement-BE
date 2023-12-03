@@ -232,15 +232,11 @@ class EmployeeController:
 
     async def get_all_employees(self):
         branch = None
-        if self.employee_role == "HR":
-            requester = await employee_crud.get_employee(
-                self.employee_id, self.mongo_client
-            )
-            branch = [requester["branch"]]
-
-        elif self.employee_role == "MD":
-            branch = ["Factory", "Head Office"]
-            # FIXME: Check with UI, how to implement this
+        requester = await employee_crud.get_employee(
+            self.employee_id, self.mongo_client
+        )
+        branch = requester["branch"]
+        # FIXME: Check with UI, how to implement this
 
         return await employee_crud.get_all_employees(branch, self.mongo_client)
 

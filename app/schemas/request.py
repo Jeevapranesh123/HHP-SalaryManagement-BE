@@ -24,7 +24,14 @@ def validate_phone_number(cls, value, field):
 
 
 class EmployeeCreateRequest(EmployeeBase):
-    pass
+    @root_validator(pre=True)
+    def test(cls, values):
+        basic_information = values.get("basic_information")
+        if basic_information:
+            for key, value in basic_information.items():
+                values[key] = value.strip() if isinstance(value, str) else value
+            pprint.pprint(values)
+        return values
 
 
 # TODO: Keep this and EmployeeBase in sync
@@ -94,6 +101,20 @@ class PostSalaryRequest(BaseModel):
     gross_salary: Optional[float] = None
     pf: Optional[float] = None
     esi: Optional[float] = None
+
+    @root_validator(pre=True)
+    def validate(cls, values):
+        for key, value in values.items():
+            if value == "":
+                values[key] = None
+
+            elif value is None:
+                values[key] = None
+
+            elif isinstance(value, str) and key != "employee_id":
+                values[key] = float(value)
+
+        return values
 
 
 class PostMonthlyCompensationRequest(BaseModel):

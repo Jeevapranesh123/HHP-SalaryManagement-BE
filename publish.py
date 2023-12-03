@@ -6,12 +6,12 @@ credentials = pika.PlainCredentials("root", "zuvaLabs")
 
 # Establish a connection with RabbitMQ server
 connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host="lab.zuvatech.com", credentials=credentials)
+    pika.ConnectionParameters(host="localhost", credentials=credentials)
 )
 channel = connection.channel()
 
 
-queue_name = "notifications_employee_a349d57692ca4a4f83b6496ceacf9eba"
+queue_name = "notifications_employee_30eee43cccec4290af2dcf4453f245f2"
 # Declare a queue (creates it if it doesn't already exist)
 channel.queue_declare(queue=queue_name, durable=True)
 
@@ -19,9 +19,9 @@ channel.queue_declare(queue=queue_name, durable=True)
 message = "Hello World!"
 
 body = {
-    "title": "Test",
-    "payload": {"url": "/employees"},
-    "ui_action": "read",
+    "title": "Your loan request have been approved",
+    "payload": {"url": "/loan/history"},
+    "ui_action": "action",
 }
 
 body = json.dumps(body)
@@ -29,7 +29,7 @@ body = json.dumps(body)
 # Publish the message to the queue
 channel.basic_publish(
     exchange="",
-    routing_key="notifications_employee_a349d57692ca4a4f83b6496ceacf9eba",
+    routing_key=queue_name,
     body=str(body),
     properties=pika.BasicProperties(
         delivery_mode=2,  # make message persistent
