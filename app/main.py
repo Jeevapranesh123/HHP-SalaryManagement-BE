@@ -108,3 +108,8 @@ app.add_middleware(
 
 
 # FIXME: THE JWT Secret should be stored in a .env file, it currently in the crud file
+
+
+# Loan
+
+# FIXME: Run a cron every month to update the status of loan repayment schedule

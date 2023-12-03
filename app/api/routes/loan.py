@@ -1,7 +1,11 @@
 from fastapi import APIRouter, Depends, Response, Request
 from app.database import get_mongo, AsyncIOMotorClient
 
-from app.schemas.request import LoanCreateRequest, LoanRespondRequest
+from app.schemas.request import (
+    LoanCreateRequest,
+    LoanRespondRequest,
+    LoanAdjustmentRequest,
+)
 
 from app.api.controllers.loan import LoanController
 
@@ -14,6 +18,7 @@ from app.schemas.response import (
     LoanRespondResponse,
     LoanResponse,
     LoanHistoryResponse,
+    GetRepaymentRecordResponse,
 )
 
 from app.schemas.employees import StatusEnum
@@ -171,19 +176,68 @@ async def respond_loan(
     )
 
 
-@router.post("/adjust")
-@role_required(["MD"])
-async def adjust_loan(
+@router.get("/repayment/schedule/{loan_id}")
+async def get_repayment_schedule(
+    loan_id: str,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
     loan_controller = LoanController(payload, mongo_client)
-    res = await loan_controller.adjust_loan(LoanRespondRequest)
-    return LoanRespondResponse(
-        message="Loan adjusted successfully",
+    res = await loan_controller.get_repayment_schedule(loan_id)
+
+    return {
+        "message": "Repayment schedule fetched successfully",
+        "status_code": 200,
+        "data": res,
+    }
+
+
+@router.get("/repayment/emi/{repayment_id}")
+async def get_repayment_emi(
+    repayment_id: str,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    loan_controller = LoanController(payload, mongo_client)
+    res = await loan_controller.get_repayment_emi(repayment_id)
+
+    return GetRepaymentRecordResponse(
+        message="Repayment record fetched successfully",
         status_code=200,
         data=res,
     )
+
+
+@router.get("/adjust/meta")
+async def get_loan_adjust_meta(
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    loan_controller = LoanController(payload, mongo_client)
+    res = await loan_controller.get_loan_adjust_meta()
+
+    return {
+        "message": "Adjustment meta fetched successfully",
+        "status_code": 200,
+        "data": res,
+    }
+
+
+@router.post("/adjust")
+@role_required(["MD"])
+async def adjust_loan(
+    loan_adjustment: LoanAdjustmentRequest,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    loan_controller = LoanController(payload, mongo_client)
+    res = await loan_controller.adjust_loan(loan_adjustment)
+    return res
+    # return LoanRespondResponse(
+    #     message="Loan adjusted successfully",
+    #     status_code=200,
+    #     data=res,
+    # )
 
 
 @router.get("/history")

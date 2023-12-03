@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from app.schemas.employees import EmployeeBase, BankDetails, Address, GovtIDProofs
 from app.schemas.salary import SalaryBase, SalaryAdvanceBase, SalaryIncentivesBase
 from app.schemas.leave import LeaveBase, PermissionBase
-from app.schemas.loan import LoanBase
+from app.schemas.loan import LoanBase, LoanAdjustmentBase
 
 from enum import Enum
 
@@ -404,3 +404,7 @@ class SalaryAdvanceRespondRequest(BaseModel):
     id: str
     status: SalaryAdvanceResponse
     remarks: Optional[str] = None
+
+
+class LoanAdjustmentRequest(LoanAdjustmentBase):
+    pass
