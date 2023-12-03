@@ -22,7 +22,7 @@ class LocationEntry(BaseModel):
     address: Optional[str] = None
     city: Optional[str] = None
     state: Optional[str] = None
-    zip: Optional[str] = None
+    pincode: Optional[str] = None
     latitude: float
     longitude: float
     category: Optional[str] = None

@@ -95,19 +95,36 @@ class EmployeeController:
 
         emp_in_create = EmployeeBase(**employee.model_dump())
 
-        if emp_in_create.is_marketing_staff:
+        if emp_in_create.is_marketing_staff and not emp_in_create.is_marketing_manager:
             if not emp_in_create.marketing_manager:
                 raise HTTPException(
                     status_code=400,
                     detail="Marketing Manager is required for Marketing Staff",
                 )
 
-            if not await employee_crud.get_employee(
+            manager = await employee_crud.get_employee(
                 emp_in_create.marketing_manager, self.mongo_client
-            ):
+            )
+
+            if not manager:
                 raise HTTPException(
                     status_code=400, detail="Marketing Manager not found"
                 )
+
+            if not manager["is_marketing_manager"]:
+                raise HTTPException(
+                    status_code=400,
+                    detail="{} is not a Marketing Manager".format(
+                        manager["employee_id"]
+                    ),
+                )
+
+        elif emp_in_create.is_marketing_manager:
+            emp_in_create.is_marketing_staff = True
+
+            emp_in_create.marketing_manager = None
+
+            # Add the MD id as marketing manager
 
         emp_in_create.profile_image_path = "profile/{}".format(
             emp_in_create.employee_id

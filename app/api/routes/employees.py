@@ -172,11 +172,18 @@ async def get_create_meta(
                     "name": {"type": "string", "required": True},
                     "email": {"type": "string", "required": True},
                     "phone": {"type": "string", "required": True},
+                    "branch": {"type": "string", "required": True},
                     "profile_image": {"type": "image", "required": True},
                     "department": {"type": "string"},
                     "designation": {"type": "string"},
-                    "branch": {"type": "string", "required": True},
                     "is_marketing_staff": {
+                        "type": "radio",
+                        "options": [
+                            {"label": "Yes", "value": "Yes"},
+                            {"label": "No", "value": "No"},
+                        ],
+                    },
+                    "is_marketing_manager": {
                         "type": "radio",
                         "options": [
                             {"label": "Yes", "value": "Yes"},

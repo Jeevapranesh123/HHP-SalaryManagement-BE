@@ -30,7 +30,36 @@ class EmployeeCreateRequest(EmployeeBase):
         if basic_information:
             for key, value in basic_information.items():
                 values[key] = value.strip() if isinstance(value, str) else value
-            pprint.pprint(values)
+
+        is_marketing_staff = values.get("is_marketing_staff", None)
+        is_marketing_manager = values.get("is_marketing_manager", None)
+
+        if is_marketing_staff:
+            if is_marketing_staff == "Yes":
+                values["is_marketing_staff"] = True
+            elif is_marketing_staff == "No":
+                values["is_marketing_staff"] = False
+            else:
+                raise HTTPException(
+                    status_code=400, detail="Is Marketing Staff must be Yes or No"
+                )
+
+        if is_marketing_manager:
+            if is_marketing_manager == "Yes":
+                values["is_marketing_manager"] = True
+            elif is_marketing_manager == "No":
+                values["is_marketing_manager"] = False
+            else:
+                raise HTTPException(
+                    status_code=400, detail="Is Marketing Manager must be Yes or No"
+                )
+
+        if is_marketing_staff and not is_marketing_manager:
+            if not values.get("marketing_manager"):
+                raise HTTPException(
+                    status_code=400, detail="Marketing Staff must have a manager"
+                )
+
         return values
 
 
@@ -42,6 +71,7 @@ class EmployeeUpdateRequest(BaseModel):
     designation: Optional[str] = None
     branch: Optional[str] = None
     is_marketing_staff: Optional[bool] = False
+    is_marketing_manager: Optional[bool] = False
     marketing_manager: Optional[str] = None
     bank_details: Optional[BankDetails] = None
     address: Optional[Address] = None
@@ -56,27 +86,40 @@ class EmployeeUpdateRequest(BaseModel):
                 values[key] = value
         values.pop("basic_information", None)
 
-        if values.get("is_marketing_staff"):
-            is_marketing_staff = values.get("is_marketing_staff")
+        is_marketing_staff = values.get("is_marketing_staff")
+        is_marketing_manager = values.get("is_marketing_manager")
 
+        if is_marketing_staff == "Yes":
+            values["is_marketing_staff"] = True
+        elif is_marketing_staff == "No":
+            values["is_marketing_staff"] = False
+        else:
+            raise HTTPException(
+                status_code=400, detail="Is Marketing Staff must be Yes or No"
+            )
+
+        if is_marketing_manager == "Yes":
+            values["is_marketing_manager"] = True
+        elif is_marketing_manager == "No":
+            values["is_marketing_manager"] = False
+        else:
+            raise HTTPException(
+                status_code=400, detail="Is Marketing Manager must be Yes or No"
+            )
+
+        print(is_marketing_staff, is_marketing_manager)
+
+        if is_marketing_staff and not is_marketing_manager:
             if not values.get("marketing_manager"):
                 raise HTTPException(
                     status_code=400, detail="Marketing Staff must have a manager"
                 )
-            if values.get("marketing_manager") == values.get("employee_id"):
-                raise HTTPException(
-                    status_code=400,
-                    detail="Marketing Staff cannot be their own manager",
-                )
 
-            if is_marketing_staff == "Yes":
-                values["is_marketing_staff"] = True
-            elif is_marketing_staff == "No":
-                values["is_marketing_staff"] = False
-            else:
-                raise HTTPException(
-                    status_code=400, detail="Is Marketing Staff must be Yes or No"
-                )
+        if values.get("marketing_manager") == values.get("employee_id"):
+            raise HTTPException(
+                status_code=400,
+                detail="Marketing Staff cannot be their own manager",
+            )
 
         return values
 
