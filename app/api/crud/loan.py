@@ -202,7 +202,13 @@ async def get_repayment_schedule(loan_id, mongo_client: AsyncIOMotorClient):
     if not repayment_schedule:
         raise HTTPException(status_code=400, detail="Repayment schedule not built yet")
 
-    return repayment_schedule
+    res = (
+        await mongo_client[MONGO_DATABASE][LOAN_SCHEDULE_COLLECTION]
+        .find({"loan_id": loan_id}, {"_id": 0})
+        .to_list(length=100)
+    )
+
+    return res
 
 
 async def get_repayment_emi(repayment_id, mongo_client: AsyncIOMotorClient):

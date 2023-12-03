@@ -6,12 +6,12 @@ credentials = pika.PlainCredentials("root", "zuvaLabs")
 
 # Establish a connection with RabbitMQ server
 connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host="localhost", credentials=credentials)
+    pika.ConnectionParameters(host="lab.zuvatech.com", credentials=credentials)
 )
 channel = connection.channel()
 
 
-queue_name = "notifications_employee_30eee43cccec4290af2dcf4453f245f2"
+queue_name = "notifications_employee_c94aa1eb90524966b6a805d8e16eb385"
 # Declare a queue (creates it if it doesn't already exist)
 channel.queue_declare(queue=queue_name, durable=True)
 

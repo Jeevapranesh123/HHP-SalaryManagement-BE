@@ -24,7 +24,7 @@ class MarketingController:
                     "required": True,
                     "editable": False,
                 },
-                "entry_type": {
+                "type": {
                     "type": "dropdown",
                     "required": True,
                     "options": [
@@ -60,12 +60,10 @@ class MarketingController:
                 },
                 "state": {
                     "type": "string",
-                    "required": True,
                     "editable": False,
                 },
                 "pincode": {
                     "type": "string",
-                    "required": True,
                     "editable": False,
                 },
                 "address": {

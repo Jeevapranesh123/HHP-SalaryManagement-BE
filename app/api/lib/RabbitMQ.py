@@ -129,7 +129,7 @@ class RabbitMQ:
             try:
                 print(message)
                 message = json.loads(message)
-                message["delivery_tag"] = method.delivery_tag
+                message["payload"]["delivery_tag"] = method.delivery_tag
             except json.decoder.JSONDecodeError:
                 print("Message is not a JSON object")
                 message = {"data": message, "delivery_tag": method.delivery_tag}

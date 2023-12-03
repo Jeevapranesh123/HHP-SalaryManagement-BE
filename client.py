@@ -29,9 +29,9 @@ def mark_message_as_read(message_id):
 
 
 if __name__ == "__main__":
-    jwt_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiZjNlYTZmODM1YjMyNGZkMmFiMzdhODRmZDgyZWRmMmIiLCJlbWFpbCI6ImVtbWFqb2huc29uQHRlY2hjb3JwLmNvbSIsImNoYW5nZWRfcGFzc3dvcmRfYXRfZmlyc3RfbG9naW4iOnRydWUsImVtcGxveWVlX2lkIjoiTUQ0MDA0IiwicHJpbWFyeV9yb2xlIjoiTUQiLCJzZWNvbmRhcnlfcm9sZXMiOlsiZW1wbG95ZWUiXSwianRpIjoiM2Y0YTFjZTA4OTAzNDE1YTgxMzc0OTYxZjdmYWNhMGEiLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzAxMTA5Mjk2fQ.72_ETdgDhscTE2Kn6VGsR6BOyxsR3tWm3n1uqeCkEWg"
+    jwt_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiMzBlZWU0M2NjY2VjNDI5MGFmMmRjZjQ0NTNmMjQ1ZjIiLCJlbWFpbCI6ImVtbWFqb2huc29uQHRlY2hjb3JwLmNvbSIsImJyYW5jaCI6ImhlYWRfb2ZmaWNlIiwiY2hhbmdlZF9wYXNzd29yZF9hdF9maXJzdF9sb2dpbiI6dHJ1ZSwiZW1wbG95ZWVfaWQiOiJNRDQwMDQiLCJwcmltYXJ5X3JvbGUiOiJNRCIsInNlY29uZGFyeV9yb2xlcyI6WyJlbXBsb3llZSJdLCJqdGkiOiIxOTYzOTViN2IyYzc0M2Y1OWViOWIzMjE4YTI4N2U5YyIsInR5cGUiOiJhY2Nlc3MiLCJleHAiOjE3MDE3MDg5MTN9.j3w7UFTzZtEnpX_QwqJ-KiRUK7a4uNAvBX7NrEKrS1o"
     sio.connect(
-        "http://localhost:9000", headers={"Authorization": f"Bearer {jwt_token}"}
+        "http://localhost:9003", headers={"Authorization": f"Bearer {jwt_token}"}
     )
     try:
         sio.wait()

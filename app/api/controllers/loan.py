@@ -147,12 +147,12 @@ class LoanController:
                     "required": True,
                     "editable": False,
                 },
-                "total_loan_amount": {
+                "loan_outstanding": {
                     "type": "number",
                     "required": True,
                     "editable": False,
                 },
-                "load_id": {
+                "loan_id": {
                     "type": "string",
                     "required": True,
                     "editable": False,
@@ -170,10 +170,10 @@ class LoanController:
                     "type": "number",
                     "required": True,
                 },
-                "adjustment_month": {
-                    "type": "string",
-                    "required": False,
-                },
+                # "adjustment_month": {
+                #     "type": "month",
+                #     "required": False,
+                # },
                 "remarks": {
                     "type": "textarea",
                     "required": True,

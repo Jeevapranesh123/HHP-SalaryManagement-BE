@@ -11,6 +11,7 @@ from app.schemas.leave import LeaveBase, PermissionBase
 
 from app.api.crud import leave as leave_crud
 from app.api.crud import employees as employee_crud
+from app.api.crud import auth as auth_crud
 
 from app.api.lib.Notification import Notification
 from app.schemas.notification import (
@@ -107,10 +108,56 @@ class LeaveController:
         )
         res["leave_id"] = res["id"]
 
+        emp = await auth_crud.get_user_with_employee_id(
+            leave_in_create.employee_id, self.mongo_client
+        )
+
+        print(emp)
+
         notification = Notification(
             self.employee_id, "request_leave", self.mongo_client
         )
-        # notifier =
+        notifiers = ["HR", "MD"]
+
+        hr_notification = NotificationBase(
+            title="Leave Request",
+            description="{} has requested for a leave".format(res["employee_id"]),
+            payload={
+                "url": "/employees/{}/leave/respond?id={}&type=leave".format(
+                    res["employee_id"], res["id"]
+                )
+            },
+            ui_action="action",
+            type="leave",
+            source="leave_request",
+            target="HR_{}".format(emp["info"]["branch"]),
+            meta=NotificationMeta(
+                to=notifiers,
+                from_=self.employee_id,
+            ),
+        )
+
+        md_notification = NotificationBase(
+            title="Leave Request",
+            description="{} has requested for a leave".format(res["employee_id"]),
+            payload={
+                "url": "/employees/{}/leave/respond?id={}&type=leave".format(
+                    res["employee_id"], res["id"]
+                )
+            },
+            ui_action="action",
+            type="leave",
+            source="leave_request",
+            target="MD",
+            meta=NotificationMeta(
+                to=notifiers,
+                from_=self.employee_id,
+            ),
+        )
+
+        send = SendNotification(notifier=[hr_notification, md_notification])
+
+        await notification.send_notification(send)
 
         return res
 
