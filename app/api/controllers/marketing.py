@@ -110,15 +110,15 @@ class MarketingController:
 
         location_entry = location_entry.model_dump()
 
-        if (
-            not self.primary_role in ["marketing_manager", "MD"]
-            and not self.employee_id == location_entry["employee_id"]
-        ):
-            print("Not enough permissions")
-            raise HTTPException(
-                status_code=403,
-                detail="Not Enough Permissions",
-            )
+        # if (
+        #     not self.primary_role in ["marketing_manager", "MD"]
+        #     and not self.employee_id == location_entry["employee_id"]
+        # ):
+        #     print("Not enough permissions")
+        #     raise HTTPException(
+        #         status_code=403,
+        #         detail="Not Enough Permissions",
+        #     )
 
         emp = await get_employee(location_entry["employee_id"], self.mongo_client)
 
@@ -129,12 +129,12 @@ class MarketingController:
                 detail="Employee not found",
             )
 
-        if not emp["is_marketing_staff"]:
-            print("not marketing staff")
-            raise HTTPException(
-                status_code=403,
-                detail="Not Enough Permissions",
-            )
+        # if not emp["is_marketing_staff"]:
+        #     print("not marketing staff")
+        #     raise HTTPException(
+        #         status_code=403,
+        #         detail="Not Enough Permissions",
+        # )
 
         curd_obj = MarketingCrud(self.employee_id, self.mongo_client)
 

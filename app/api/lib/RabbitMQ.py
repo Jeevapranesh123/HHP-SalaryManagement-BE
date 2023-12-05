@@ -127,9 +127,9 @@ class RabbitMQ:
             # Decode the message
             message = body.decode("utf-8")
             try:
-                print(message)
                 message = json.loads(message)
                 message["payload"]["delivery_tag"] = method.delivery_tag
+                print(message)
             except json.decoder.JSONDecodeError:
                 print("Message is not a JSON object")
                 message = {"data": message, "delivery_tag": method.delivery_tag}
@@ -157,7 +157,7 @@ class RabbitMQ:
             self.channel.basic_consume(
                 queue=queue,
                 on_message_callback=callback,
-                auto_ack=True,
+                auto_ack=False,
             )
 
             while not self.should_stop.is_set():
