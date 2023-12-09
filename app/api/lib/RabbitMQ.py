@@ -157,7 +157,7 @@ class RabbitMQ:
             self.channel.basic_consume(
                 queue=queue,
                 on_message_callback=callback,
-                auto_ack=False,
+                auto_ack=True,
             )
 
             while not self.should_stop.is_set():

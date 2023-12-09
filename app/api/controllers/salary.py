@@ -245,9 +245,15 @@ class SalaryController:
     async def get_salary_advance_history(self, employee_id: str, status):
         if not self.employee_role in ["MD"] and employee_id != self.employee_id:
             raise HTTPException(status_code=403, detail="Not enough permissions")
-        return await salary_crud.get_salary_advance_history(
+        res = await salary_crud.get_salary_advance_history(
             employee_id, status, self.mongo_client
         )
+        for i in res:
+            i["requested_date"] = datetime.datetime.strftime(
+                i["requested_at"], "%d-%m-%Y"
+            )
+
+        return res
 
     async def get_salary_history(self, employee_id: str):
         if not self.employee_role in ["MD", "HR"] and employee_id != self.employee_id:

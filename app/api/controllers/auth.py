@@ -189,93 +189,39 @@ async def reset_password(
 
 
 async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient):
-    emp = await employee_crud.get_employee_with_salary(employee_id, mongo_client)
-
-    salary_base = SalaryBase(**emp)
-    salary_base = salary_base.model_dump(exclude={"employee_id"})
-    salary_base["net_salary"] = emp["net_salary"]
-
-    monthly_compensation_base = MonthlyCompensationBase(**emp)
-    monthly_compensation_base = monthly_compensation_base.model_dump(
-        exclude={"employee_id"}
-    )
-
-    salary_incentives_base = SalaryIncentivesBase(**emp)
-    salary_incentives_base = salary_incentives_base.model_dump(exclude={"employee_id"})
-
-    monthly_leave_days = (
-        total_leave_days
-    ) = total_permission_hours = monthly_permission_hours = 0
-
-    current_month = first_day_of_current_month()
-
-    docs = mongo_client[MONGO_DATABASE][LEAVE_COLLECTION].find(
-        {
-            "employee_id": employee_id,
-            "status": "approved",
-        }
-    )
-
-    async for i in docs:
-        if i["type"] == "permission":
-            if i["month"] == current_month:
-                monthly_permission_hours += i["no_of_hours"]
-            total_permission_hours += i["no_of_hours"]
-        else:
-            if i["month"] == current_month:
-                monthly_leave_days += i["no_of_days"]
-            total_leave_days += i["no_of_days"]
-
-    monthly_permission_hours = "{} Hours {} Minutes".format(
-        str(datetime.timedelta(hours=monthly_permission_hours)).split(":")[0],
-        str(datetime.timedelta(hours=monthly_permission_hours)).split(":")[1],
-    )
-    total_permission_hours = "{} Hours {} Minutes".format(
-        str(datetime.timedelta(hours=total_permission_hours)).split(":")[0],
-        str(datetime.timedelta(hours=total_permission_hours)).split(":")[1],
+    res, emp = await employee_crud.get_employee_with_computed_fields(
+        employee_id, mongo_client
     )
 
     res = {
-        "alert": [
-            {
-                "title": "Leave Excceded",
-                "description": "You have exceeded your leave limit",
-                "type": "warning",
-            }
-        ],
-        "basic_information": {
-            "employee_id": emp["employee_id"],
-            "name": emp["name"],
-            "email": emp["email"],
-            "phone": emp["phone"],
-            "department": emp["department"],
-            "designation": emp["designation"],
-            "branch": emp["branch"],
-            "profile_image": emp["profile_image"],
-        },
-        "bank_details": emp["bank_details"],
-        "address": emp["address"],
-        "govt_id_proofs": emp["govt_id_proofs"],
-        "basic_salary": salary_base,
-        "monthly_compensation": monthly_compensation_base,
-        "loan_and_advance": {
-            "loan": emp["loan"],
-            "salary_advance": emp["salary_advance"],
-        },
-        "salary_incentives": salary_incentives_base,
-        "leaves_and_permissions": {
-            "total_leave_days": total_leave_days,
-            "monthly_leave_days": monthly_leave_days,
-            "total_permission_hours": total_permission_hours,
-            "monthly_permission_hours": monthly_permission_hours,
-        },
-        "attendance": {
-            "total_working_days": 10,
-            "total_present_days": 8,
-            "total_absent_days": 2,
-            "present_percentage": 80,
-        },
+        "alert": [],
+        **res,
     }
+
+    monthly_leave_days = res["leaves_and_permissions"]["monthly_leave_days"]
+    monthly_permission_days = res["leaves_and_permissions"]["monthly_permission_hours"]
+
+    alert = []
+    # FIXME: Store the rules in the database and fetch them here
+    if monthly_leave_days == 0:
+        alert.append(
+            {
+                "title": "Leave Exceeded",
+                "description": "You have exceeded your monthly leave limit of {} days".format(
+                    1
+                ),
+            }
+        )
+        alert.append(
+            {
+                "title": "Permission Exceeded",
+                "description": "You have exceeded your monthly permission limit of {} hours".format(
+                    2
+                ),
+            }
+        )
+
+    res["alert"] = alert
 
     if emp["is_marketing_staff"]:
         res["basic_information"]["is_marketing_staff"] = emp["is_marketing_staff"]

@@ -10,16 +10,13 @@ from app.api.controllers.salary import SalaryController
 from app.schemas.request import EmployeeCreateRequest, EmployeeUpdateRequest
 from app.schemas.employees import EmployeeBase
 
-from app.schemas.salary import SalaryBase, MonthlyCompensationBase, SalaryIncentivesBase
-
 from app.core.config import Config
 from app.api.utils import *
 
 
 from app.api.lib.RabbitMQ import RabbitMQ
 from app.api.lib.MinIO import MinIO
-from app.api.lib.Notification import Notification
-from app.schemas.notification import NotificationBase
+
 
 from datetime import timedelta
 
@@ -28,6 +25,7 @@ import datetime
 
 MONGO_DATABASE = Config.MONGO_DATABASE
 LEAVE_COLLECTION = Config.LEAVE_COLLECTION
+ATTENDANCE_COLLECTION = Config.ATTENDANCE_COLLECTION
 
 
 async def get_file_size(file: UploadFile):
@@ -95,6 +93,8 @@ class EmployeeController:
 
         emp_in_create = EmployeeBase(**employee.model_dump())
 
+        # FIXME: Validate this logic of marketing staff and manager
+
         if emp_in_create.is_marketing_staff and not emp_in_create.is_marketing_manager:
             if not emp_in_create.marketing_manager:
                 raise HTTPException(
@@ -134,7 +134,7 @@ class EmployeeController:
             emp_in_create, self.employee_id, self.mongo_client
         )
 
-        sal_obj = SalaryController(self.payload, self.mongo_client)
+        # sal_obj = SalaryController(self.payload, self.mongo_client)
 
         # await sal_obj.create_all_salaries(emp_in_create)
 
@@ -152,83 +152,10 @@ class EmployeeController:
     async def get_employee(self, employee_id: str):
         if not self.employee_role in ["HR", "MD"] and employee_id != self.employee_id:
             raise HTTPException(status_code=403, detail="Forbidden")
-        emp = await employee_crud.get_employee_with_salary(
+
+        res, emp = await employee_crud.get_employee_with_computed_fields(
             employee_id, self.mongo_client
         )
-
-        salary_base = SalaryBase(**emp)
-        salary_base = salary_base.model_dump(exclude={"employee_id"})
-        salary_base["net_salary"] = emp["net_salary"]
-
-        monthly_compensation_base = MonthlyCompensationBase(**emp)
-        monthly_compensation_base = monthly_compensation_base.model_dump(
-            exclude={"employee_id"}
-        )
-
-        salary_incentives_base = SalaryIncentivesBase(**emp)
-        salary_incentives_base = salary_incentives_base.model_dump(
-            exclude={"employee_id"}
-        )
-
-        monthly_leave_days = (
-            total_leave_days
-        ) = total_permission_hours = monthly_permission_hours = 0
-
-        current_month = first_day_of_current_month()
-
-        docs = self.mongo_client[MONGO_DATABASE][LEAVE_COLLECTION].find(
-            {
-                "employee_id": employee_id,
-                "status": "approved",
-            }
-        )
-
-        async for i in docs:
-            if i["leave_type"] == "permission":
-                if i["month"] == current_month:
-                    monthly_permission_hours += i["no_of_hours"]
-                total_permission_hours += i["no_of_hours"]
-            else:
-                if i["month"] == current_month:
-                    monthly_leave_days += i["no_of_days"]
-                total_leave_days += i["no_of_days"]
-
-        monthly_permission_hours = "{} Hours {} Minutes".format(
-            str(datetime.timedelta(hours=monthly_permission_hours)).split(":")[0],
-            str(datetime.timedelta(hours=monthly_permission_hours)).split(":")[1],
-        )
-        total_permission_hours = "{} Hours {} Minutes".format(
-            str(datetime.timedelta(hours=total_permission_hours)).split(":")[0],
-            str(datetime.timedelta(hours=total_permission_hours)).split(":")[1],
-        )
-
-        res = {
-            "basic_information": {
-                "employee_id": emp["employee_id"],
-                "name": emp["name"],
-                "email": emp["email"],
-                "phone": emp["phone"],
-                "department": emp["department"],
-                "designation": emp["designation"],
-                "branch": emp["branch"],
-            },
-            "bank_details": emp["bank_details"],
-            "address": emp["address"],
-            "govt_id_proofs": emp["govt_id_proofs"],
-            "basic_salary": salary_base,
-            "monthly_compensation": monthly_compensation_base,
-            "loan_and_advance": {
-                "loan": emp["loan"],
-                "salary_advance": emp["salary_advance"],
-            },
-            "salary_incentives": salary_incentives_base,
-            "leaves_and_permissions": {
-                "total_leave_days": total_leave_days,
-                "monthly_leave_days": monthly_leave_days,
-                "total_permission_hours": total_permission_hours,
-                "monthly_permission_hours": monthly_permission_hours,
-            },
-        }
 
         if emp["is_marketing_staff"]:
             res["basic_information"]["is_marketing_staff"] = (
@@ -297,7 +224,9 @@ class EmployeeController:
                     "department": True,
                     "designation": True,
                     "branch": True,
+                    # "profile_image": True,
                     "is_marketing_staff": True,
+                    "is_marketing_manager": True,
                     "marketing_manager": True,
                 }
             },

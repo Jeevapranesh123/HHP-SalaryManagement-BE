@@ -4,16 +4,124 @@ from app.schemas.request import EmployeeUpdateRequest
 from app.database import AsyncIOMotorClient
 from app.core.config import Config
 from app.api.utils.employees import generate_random_password, hash_password
+from app.schemas.salary import SalaryBase, MonthlyCompensationBase, SalaryIncentivesBase
 from app.schemas.auth import UserBase
 import uuid
 from fastapi import HTTPException
-from datetime import datetime, timezone
+from app.api.utils import *
+from datetime import datetime, timezone, timedelta
 
 
 MONGO_DATABASE = Config.MONGO_DATABASE
 EMPLOYEE_COLLECTION = Config.EMPLOYEE_COLLECTION
 USERS_COLLECTION = Config.USERS_COLLECTION
 ROLES_COLLECTION = Config.ROLES_COLLECTION
+LEAVE_COLLECTION = Config.LEAVE_COLLECTION
+ATTENDANCE_COLLECTION = Config.ATTENDANCE_COLLECTION
+
+
+async def get_employee_with_computed_fields(employee_id, mongo_client):
+    emp = await get_employee_with_salary(employee_id, mongo_client)
+
+    salary_base = SalaryBase(**emp)
+    salary_base = salary_base.model_dump(exclude={"employee_id"})
+    salary_base["net_salary"] = emp["net_salary"]
+
+    monthly_compensation_base = MonthlyCompensationBase(**emp)
+    monthly_compensation_base = monthly_compensation_base.model_dump(
+        exclude={"employee_id"}
+    )
+
+    salary_incentives_base = SalaryIncentivesBase(**emp)
+    salary_incentives_base = salary_incentives_base.model_dump(exclude={"employee_id"})
+
+    monthly_leave_days = (
+        total_leave_days
+    ) = total_permission_hours = monthly_permission_hours = 0
+
+    current_month = first_day_of_current_month()
+
+    docs = mongo_client[MONGO_DATABASE][LEAVE_COLLECTION].find(
+        {
+            "employee_id": employee_id,
+            "status": "approved",
+        }
+    )
+
+    async for i in docs:
+        if i["leave_type"] == "permission":
+            if i["month"] == current_month:
+                monthly_permission_hours += i["no_of_hours"]
+            total_permission_hours += i["no_of_hours"]
+        else:
+            if i["month"] == current_month:
+                monthly_leave_days += i["no_of_days"]
+            total_leave_days += i["no_of_days"]
+
+    monthly_permission_hours = "{} Hours {} Minutes".format(
+        str(timedelta(hours=monthly_permission_hours)).split(":")[0],
+        str(timedelta(hours=monthly_permission_hours)).split(":")[1],
+    )
+    total_permission_hours = "{} Hours {} Minutes".format(
+        str(timedelta(hours=total_permission_hours)).split(":")[0],
+        str(timedelta(hours=total_permission_hours)).split(":")[1],
+    )
+
+    last_day = last_day_of_current_month()
+    attendance = mongo_client[MONGO_DATABASE][ATTENDANCE_COLLECTION].find(
+        {"employee_id": employee_id, "date": {"$gte": current_month, "$lte": last_day}}
+    )
+    present = 0
+    absent = 0
+    async for i in attendance:
+        if i["status"] == "present":
+            present += 1
+        elif i["status"] == "absent":
+            absent += 1
+
+    total_working_days = present + absent
+    total_present_days = present
+    total_absent_days = absent
+    present_percentage = (
+        (present / total_working_days) * 100
+        if total_working_days != 0 and present != 0
+        else 0
+    )
+    res = {
+        "basic_information": {
+            "employee_id": emp["employee_id"],
+            "name": emp["name"],
+            "email": emp["email"],
+            "phone": emp["phone"],
+            "department": emp["department"],
+            "designation": emp["designation"],
+            "branch": emp["branch"],
+        },
+        "bank_details": emp["bank_details"],
+        "address": emp["address"],
+        "govt_id_proofs": emp["govt_id_proofs"],
+        "basic_salary": salary_base,
+        "monthly_compensation": monthly_compensation_base,
+        "loan_and_advance": {
+            "loan": emp["loan"],
+            "salary_advance": emp["salary_advance"],
+        },
+        "salary_incentives": salary_incentives_base,
+        "leaves_and_permissions": {
+            "total_leave_days": total_leave_days,
+            "monthly_leave_days": monthly_leave_days,
+            "total_permission_hours": total_permission_hours,
+            "monthly_permission_hours": monthly_permission_hours,
+        },
+        "attendance": {
+            "total_working_days": total_working_days,
+            "total_present_days": total_present_days,
+            "total_absent_days": total_absent_days,
+            "present_percentage": present_percentage,
+        },
+    }
+
+    return res, emp
 
 
 async def create_employee(

@@ -228,8 +228,6 @@ async def get_outstanding_amount_for_loan(
     if not loan:
         raise HTTPException(status_code=404, detail="Loan record not found")
 
-    print(month)
-
     pipeline = [
         {
             "$match": {

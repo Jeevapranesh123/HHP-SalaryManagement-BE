@@ -54,7 +54,6 @@ class MarketingCrud:
             query["date"] = date
 
         if start_date and end_date:
-            print(start_date, end_date)
             if query.get("date"):
                 query.pop("date")
             start_date = datetime.datetime.combine(start_date, datetime.time.min)

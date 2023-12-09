@@ -154,14 +154,6 @@ async def get_create_meta(
     payload: dict = Depends(verify_login_token),
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
 ):
-    # obj = EmployeeController(payload, mongo_client)
-    # res = await obj.get_create_meta()
-    # return {
-    #     "message": "Success",
-    #     "status_code": 200,
-    #     "data": res,
-    # }
-
     return {
         "message": "Success",
         "status_code": 200,

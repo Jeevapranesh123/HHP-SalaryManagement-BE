@@ -26,6 +26,7 @@ def validate_phone_number(cls, value, field):
 class EmployeeCreateRequest(EmployeeBase):
     @root_validator(pre=True)
     def test(cls, values):
+        pprint.pprint(values)
         basic_information = values.get("basic_information")
         if basic_information:
             for key, value in basic_information.items():
@@ -44,7 +45,11 @@ class EmployeeCreateRequest(EmployeeBase):
                     status_code=400, detail="Is Marketing Staff must be Yes or No"
                 )
 
+        if is_marketing_staff is None:
+            values["is_marketing_staff"] = False
+
         if is_marketing_manager:
+            print(type(is_marketing_manager))
             if is_marketing_manager == "Yes":
                 values["is_marketing_manager"] = True
             elif is_marketing_manager == "No":
@@ -54,11 +59,16 @@ class EmployeeCreateRequest(EmployeeBase):
                     status_code=400, detail="Is Marketing Manager must be Yes or No"
                 )
 
+        if is_marketing_manager is None:
+            values["is_marketing_manager"] = False
+
         if is_marketing_staff and not is_marketing_manager:
             if not values.get("marketing_manager"):
                 raise HTTPException(
                     status_code=400, detail="Marketing Staff must have a manager"
                 )
+
+        pprint.pprint(values)
 
         return values
 
@@ -80,6 +90,7 @@ class EmployeeUpdateRequest(BaseModel):
 
     @root_validator(pre=True)
     def convert_basic_information(cls, values):
+        pprint.pprint(values)
         basic_information = values.get("basic_information")
         if basic_information:
             for key, value in basic_information.items():
