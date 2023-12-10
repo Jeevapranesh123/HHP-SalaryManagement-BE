@@ -32,3 +32,9 @@ def last_day_of_current_month():
             return datetime.datetime(year, month, 31, 0, 0, 0)
         else:
             return datetime.datetime(year, month, 30, 0, 0, 0)
+
+
+def get_next_month(month, year):
+    if month == 12:
+        return 1, year + 1
+    return month + 1, year

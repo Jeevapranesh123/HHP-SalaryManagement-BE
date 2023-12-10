@@ -50,6 +50,15 @@ async def get_user_with_employee_id(employee_id, mongo: AsyncIOMotorClient):
             }
         },
         {"$addFields": {"info": {"$arrayElemAt": ["$info", 0]}}},
+        {
+            "$lookup": {
+                "from": "roles",
+                "localField": "primary_role",
+                "foreignField": "_id",
+                "as": "primary_role",
+            }
+        },
+        {"$addFields": {"primary_role": {"$arrayElemAt": ["$primary_role", 0]}}},
     ]
 
     user = await mongo[MONGO_DATABASE][USERS_COLLECTION].aggregate(pipeline).to_list(1)
@@ -197,5 +206,31 @@ async def update_profile_pre_signed_url(employee_id, pre_signed_url, mongo_clien
 
     if update.matched_count == 1:
         return pre_signed_url
+
+    return None
+
+
+async def get_user_role(employee_id, mongo_client):
+    pipeline = [
+        {"$match": {"employee_id": employee_id}},
+        {
+            "$lookup": {
+                "from": "roles",
+                "localField": "primary_role",
+                "foreignField": "_id",
+                "as": "primary_role",
+            }
+        },
+        {"$addFields": {"primary_role": {"$arrayElemAt": ["$primary_role", 0]}}},
+    ]
+
+    user = (
+        await mongo_client[MONGO_DATABASE][USERS_COLLECTION]
+        .aggregate(pipeline)
+        .to_list(1)
+    )
+
+    if user:
+        return user[0]
 
     return None

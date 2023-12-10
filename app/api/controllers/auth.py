@@ -60,6 +60,7 @@ async def login(login_request, mongo_client: AsyncIOMotorClient):
             "employee_id": user["employee_id"],
             "primary_role": primary_role,
             "secondary_roles": secondary_roles,
+            "employee_name": user["info"]["name"],
         },
         token_type="access",
         mongo_client=mongo_client,
@@ -75,6 +76,8 @@ async def login(login_request, mongo_client: AsyncIOMotorClient):
     mq = RabbitMQ()
     mq.ensure_queue("notifications_employee_{}".format(user["uuid"]))
     for key in bind_key:
+        if key == "HR":
+            key = "HR_{}".format(user["info"]["branch"].replace(" ", "_"))
         mq.bind_queue(
             "notifications_employee_{}".format(user["uuid"]),
             "employee_notification",
@@ -101,6 +104,11 @@ async def login(login_request, mongo_client: AsyncIOMotorClient):
 
         await auth_crud.update_profile_pre_signed_url(
             user["employee_id"], profile_image_pre_signed_url, mongo_client
+        )
+
+    else:
+        await auth_crud.update_profile_pre_signed_url(
+            user["employee_id"], None, mongo_client
         )
 
     return {"email": user["email"], "token": token}
@@ -198,12 +206,12 @@ async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient)
         **res,
     }
 
-    monthly_leave_days = res["leaves_and_permissions"]["monthly_leave_days"]
+    monthly_absent_days = res["attendance"]["total_absent_days"]
     monthly_permission_days = res["leaves_and_permissions"]["monthly_permission_hours"]
 
     alert = []
     # FIXME: Store the rules in the database and fetch them here
-    if monthly_leave_days == 0:
+    if monthly_absent_days > 1:
         alert.append(
             {
                 "title": "Leave Exceeded",
@@ -212,14 +220,14 @@ async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient)
                 ),
             }
         )
-        alert.append(
-            {
-                "title": "Permission Exceeded",
-                "description": "You have exceeded your monthly permission limit of {} hours".format(
-                    2
-                ),
-            }
-        )
+    alert.append(
+        {
+            "title": "Permission Exceeded",
+            "description": "You have exceeded your monthly permission limit of {} hours".format(
+                2
+            ),
+        }
+    )
 
     res["alert"] = alert
 
@@ -362,6 +370,8 @@ async def remove_role(role_req, mongo_client: AsyncIOMotorClient, payload):
     if update:
         if role_req.role != "employee":
             bind_key = role_req.role
+            if role_req.role == "HR":
+                bind_key = "HR_{}".format(employee["info"]["branch"].replace(" ", "_"))
         elif role_req.role == "employee":
             bind_key = employee["employee_id"]
 

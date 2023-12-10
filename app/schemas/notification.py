@@ -22,6 +22,7 @@ class NotificationType(str, Enum):
     ANNOUNCEMENT = "announcement"
     DOCUMENT = "document"
     OTHER = "other"
+    LOAN = "loan"
 
 
 class UIAction(str, Enum):

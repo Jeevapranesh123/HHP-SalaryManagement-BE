@@ -1,13 +1,23 @@
-from pydantic import BaseModel, validator, root_validator
+from pydantic import (
+    BaseModel,
+    validator,
+    root_validator,
+    ValidationError,
+    model_validator,
+)
 from fastapi import HTTPException
 from app.schemas.employees import EmployeeBase, BankDetails, Address, GovtIDProofs
-from app.schemas.salary import SalaryBase, SalaryAdvanceBase, SalaryIncentivesBase
+from app.schemas.salary import (
+    SalaryBase,
+    SalaryAdvanceBase,
+    SalaryIncentivesBase,
+    MonthlyCompensationBase,
+)
 from app.schemas.leave import LeaveBase, PermissionBase
 from app.schemas.loan import LoanBase, LoanAdjustmentBase
 
 from enum import Enum
 
-from pydantic import Field, create_model, ValidationError
 import datetime
 from typing import Optional
 import pprint
@@ -150,20 +160,20 @@ class EmployeeUpdateRequest(BaseModel):
         return v
 
 
-class PostSalaryRequest(BaseModel):
-    employee_id: str
-    gross_salary: Optional[float] = None
-    pf: Optional[float] = None
-    esi: Optional[float] = None
+class PostSalaryRequest(SalaryBase):
+    # employee_id: str
+    # gross_salary: Optional[float] = None
+    # pf: Optional[float] = None
+    # esi: Optional[float] = None
 
     @root_validator(pre=True)
     def validate(cls, values):
         for key, value in values.items():
             if value == "":
-                values[key] = None
+                values[key] = 0.0
 
             elif value is None:
-                values[key] = None
+                values[key] = 0.0
 
             elif isinstance(value, str) and key != "employee_id":
                 values[key] = float(value)
@@ -171,18 +181,44 @@ class PostSalaryRequest(BaseModel):
         return values
 
 
-class PostMonthlyCompensationRequest(BaseModel):
-    employee_id: str
-    loss_of_pay: Optional[float] = None
-    leave_cashback: Optional[float] = None
-    last_year_leave_cashback: Optional[float] = None
-    attendance_special_allowance: Optional[float] = None
-    other_special_allowance: Optional[float] = None
-    overtime: Optional[float] = None
+class PostMonthlyCompensationRequest(MonthlyCompensationBase):
+    # employee_id: str
+    # loss_of_pay: Optional[float] = None
+    # leave_cashback: Optional[float] = None
+    # last_year_leave_cashback: Optional[float] = None
+    # attendance_special_allowance: Optional[float] = None
+    # other_special_allowance: Optional[float] = None
+    # overtime: Optional[float] = None
+
+    @root_validator(pre=True)
+    def validate(cls, values):
+        for key, value in values.items():
+            if value == "":
+                values[key] = 0.0
+
+            elif value is None:
+                values[key] = 0.0
+
+            elif isinstance(value, str) and key != "employee_id":
+                values[key] = float(value)
+
+        return values
 
 
 class PostSalaryIncentivesRequest(SalaryIncentivesBase):
-    pass
+    @root_validator(pre=True)
+    def validate(cls, values):
+        for key, value in values.items():
+            if value == "":
+                values[key] = 0.0
+
+            elif value is None:
+                values[key] = 0.0
+
+            elif isinstance(value, str) and key != "employee_id":
+                values[key] = float(value)
+
+        return values
 
 
 class LeaveCreateRequest(LeaveBase):
@@ -218,7 +254,7 @@ class LeaveCreateRequest(LeaveBase):
                 values["no_of_days"] = (
                     datetime.datetime.strptime(end_date_str, "%Y-%m-%d").date()
                     - datetime.datetime.strptime(start_date_str, "%Y-%m-%d").date()
-                ).days
+                ).days + 1
         if start_date_str and not end_date_str:
             values["end_date"] = start_date_str
             values["no_of_days"] = 1

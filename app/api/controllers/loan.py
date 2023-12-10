@@ -9,10 +9,15 @@ from app.schemas.loan import LoanBase
 from fastapi import HTTPException
 from app.api.crud import loan as loan_crud
 from app.api.crud import employees as employee_crud
-from app.api.utils.auth import role_required
+from app.api.crud import auth as auth_crud
 
-import math
-import datetime
+
+from app.api.lib.Notification import Notification
+from app.schemas.notification import (
+    NotificationBase,
+    SendNotification,
+    NotificationMeta,
+)
 
 
 class LoanController:
@@ -20,6 +25,7 @@ class LoanController:
         self.payload = payload
         self.employee_id = payload["employee_id"]
         self.employee_role = payload["primary_role"]
+        self.employee_name = payload["employee_name"]
         self.mongo_client = mongo_client
 
     async def get_loan_history(self, employee_id, status):
@@ -34,9 +40,10 @@ class LoanController:
     ):
         loan_in_create = LoanBase(**LoanCreateRequest.model_dump())
 
-        if not await employee_crud.get_employee(
+        emp = await employee_crud.get_employee(
             loan_in_create.employee_id, self.mongo_client
-        ):
+        )
+        if not emp:
             raise HTTPException(
                 status_code=404,
                 detail="Employee '{}' not found".format(loan_in_create["employee_id"]),
@@ -46,6 +53,34 @@ class LoanController:
         )
         res["loan_id"] = res["id"]
         await loan_crud.build_repayment_schedule(res, self.mongo_client)
+
+        user = await auth_crud.get_user_with_employee_id(
+            loan_in_create.employee_id, self.mongo_client
+        )
+
+        branch = emp["branch"]
+
+        notification = Notification(self.employee_id, "post_loan", self.mongo_client)
+
+        notifiers = [res["employee_id"]]
+
+        emp_notification = NotificationBase(
+            title="Loan Approved",
+            description="Loan has been approved for you",
+            payload={"url": "/loan/history"},
+            ui_action="action",
+            source="loan",
+            target="{}".format(res["employee_id"]),
+            meta=NotificationMeta(
+                to=notifiers,
+                from_=self.employee_id,
+            ),
+        )
+
+        send = SendNotification(notifier=[emp_notification])
+
+        await notification.send_notification(send)
+
         return res
 
     async def request_loan(
@@ -53,9 +88,10 @@ class LoanController:
         LoanCreateRequest: LoanCreateRequest,
     ):
         loan_in_create = LoanBase(**LoanCreateRequest.model_dump())
-        if not await employee_crud.get_employee(
+        emp = await employee_crud.get_employee(
             loan_in_create.employee_id, self.mongo_client
-        ):
+        )
+        if not emp:
             raise HTTPException(
                 status_code=404,
                 detail="Employee '{}' not found".format(loan_in_create.employee_id),
@@ -71,6 +107,60 @@ class LoanController:
             loan_in_create, self.mongo_client, "request", self.employee_id
         )
         res["loan_id"] = res["id"]
+
+        user = await auth_crud.get_user_with_employee_id(
+            loan_in_create.employee_id, self.mongo_client
+        )
+
+        branch = emp["branch"]
+
+        notification = Notification(self.employee_id, "request_loan", self.mongo_client)
+
+        notifiers = [res["employee_id"], "MD"]
+
+        emp_notification = NotificationBase(
+            title="Loan Requested",
+            description="{} has requested a loan for you".format(self.employee_name),
+            payload={"url": "/loan/history"},
+            ui_action="action",
+            type="loan",
+            source="request_loan",
+            target="{}".format(res["employee_id"]),
+            meta=NotificationMeta(
+                to=notifiers,
+                from_=self.employee_id,
+            ),
+        )
+
+        md_notification = NotificationBase(
+            title="Loan Requested",
+            description="{} has requested a loan".format(self.employee_name),
+            payload={
+                "url": "/employees/{}/loan/respond?id={}".format(
+                    res["employee_id"], res["id"]
+                )
+            },
+            ui_action="action",
+            type="loan",
+            source="request_loan",
+            target="MD",
+            meta=NotificationMeta(
+                to=notifiers,
+                from_=self.employee_id,
+            ),
+        )
+
+        notifier = []
+
+        if self.employee_role == "MD":
+            notifier = [emp_notification]
+
+        elif self.employee_role == "employee":
+            notifier = [md_notification]
+
+        send = SendNotification(notifier=notifier)
+
+        await notification.send_notification(send)
 
         return res
 
@@ -100,6 +190,35 @@ class LoanController:
                 res, self.mongo_client
             )
         res["loan_id"] = res["id"]
+
+        user = await auth_crud.get_user_with_employee_id(
+            res["employee_id"], self.mongo_client
+        )
+
+        branch = user["info"]["branch"]
+
+        notification = Notification(self.employee_id, "respond_loan", self.mongo_client)
+
+        notifiers = [res["employee_id"]]
+
+        emp_notification = NotificationBase(
+            title="Loan {}".format(res["status"].capitalize()),
+            description="Loan has been {} for you".format(res["status"]),
+            payload={"url": "/loan/history"},
+            ui_action="action",
+            source="loan",
+            type="loan",
+            target="{}".format(res["employee_id"]),
+            meta=NotificationMeta(
+                to=notifiers,
+                from_=self.employee_id,
+            ),
+        )
+
+        send = SendNotification(notifier=[emp_notification])
+
+        await notification.send_notification(send)
+
         return res
 
     # async def adjust_loan(self, LoanRespondRequest: LoanRespondRequest):

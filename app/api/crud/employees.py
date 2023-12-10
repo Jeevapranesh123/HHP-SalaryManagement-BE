@@ -96,17 +96,18 @@ async def get_employee_with_computed_fields(employee_id, mongo_client):
             "department": emp["department"],
             "designation": emp["designation"],
             "branch": emp["branch"],
+            "profile_image": emp["profile_image"],
         },
         "bank_details": emp["bank_details"],
         "address": emp["address"],
         "govt_id_proofs": emp["govt_id_proofs"],
         "basic_salary": salary_base,
         "monthly_compensation": monthly_compensation_base,
+        "salary_incentives": salary_incentives_base,
         "loan_and_advance": {
             "loan": emp["loan"],
             "salary_advance": emp["salary_advance"],
         },
-        "salary_incentives": salary_incentives_base,
         "leaves_and_permissions": {
             "total_leave_days": total_leave_days,
             "monthly_leave_days": monthly_leave_days,
@@ -207,9 +208,7 @@ async def get_employee(employee_id: str, mongo_client: AsyncIOMotorClient):
 
 
 async def get_employee_with_salary(employee_id: str, mongo_client: AsyncIOMotorClient):
-    current_month = datetime.now(tz=timezone.utc).replace(
-        day=1, hour=0, minute=0, second=0, microsecond=0
-    )
+    current_month = first_day_of_current_month()
 
     pipeline = [
         {
@@ -223,6 +222,19 @@ async def get_employee_with_salary(employee_id: str, mongo_client: AsyncIOMotorC
                 "localField": "employee_id",
                 "foreignField": "employee_id",
                 "as": "salary_info",
+                "let": {"employee_id": "$employee_id", "targetDate": current_month},
+                "pipeline": [
+                    {
+                        "$match": {
+                            "$expr": {
+                                "$and": [
+                                    {"$eq": ["$employee_id", "$$employee_id"]},
+                                    {"$eq": ["$month", "$$targetDate"]},
+                                ]
+                            }
+                        }
+                    }
+                ],
             }
         },
         {
