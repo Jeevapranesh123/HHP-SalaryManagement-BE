@@ -4,7 +4,9 @@ import sys
 
 # Connect to MongoDB
 local_client = MongoClient("mongodb://localhost:27017/")
-cloud_client = MongoClient("mongodb://root:zuvaLabs@lab.zuvatech.com:27017/")
+cloud_client = MongoClient(
+    "mongodb://yourusername:yourpassword@lab.zuvatech.com:27017/"
+)
 
 # Check if the queue name is passed as an argument
 if len(sys.argv) < 2:

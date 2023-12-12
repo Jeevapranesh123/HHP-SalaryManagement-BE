@@ -20,6 +20,7 @@ from app.schemas.notification import (
     SendNotification,
     NotificationMeta,
 )
+import pprint
 
 
 LEAVE_COLLECTION = Config.LEAVE_COLLECTION
@@ -200,6 +201,7 @@ async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient)
     res, emp = await employee_crud.get_employee_with_computed_fields(
         employee_id, mongo_client
     )
+    pprint.pprint(emp)
 
     res = {
         "alert": [],
@@ -234,7 +236,7 @@ async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient)
     if emp["is_marketing_staff"]:
         res["basic_information"]["is_marketing_staff"] = emp["is_marketing_staff"]
         res["basic_information"]["marketing_manager"] = emp["marketing_manager"]
-
+    # pprint.pprint(res)
     return res
 
 

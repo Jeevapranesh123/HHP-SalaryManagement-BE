@@ -151,6 +151,7 @@ async def get_editable_fields(
 
 @router.get("/info/create-meta")
 async def get_create_meta(
+    type: str = None,
     payload: dict = Depends(verify_login_token),
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
 ):
@@ -164,7 +165,13 @@ async def get_create_meta(
                     "name": {"type": "string", "required": True},
                     "email": {"type": "string", "required": True},
                     "phone": {"type": "string", "required": True},
-                    "branch": {"type": "string", "required": True},
+                    "branch": {
+                        "type": "dropdown",
+                        "options": [
+                            {"label": "Head Office", "value": "head_office"},
+                            {"label": "Factory", "value": "factory"},
+                        ],
+                    },
                     "profile_image": {"type": "image", "required": True},
                     "department": {"type": "string"},
                     "designation": {"type": "string"},

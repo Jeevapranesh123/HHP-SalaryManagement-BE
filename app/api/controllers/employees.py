@@ -156,12 +156,23 @@ class EmployeeController:
         res, emp = await employee_crud.get_employee_with_computed_fields(
             employee_id, self.mongo_client
         )
+        import pprint
 
-        if emp["is_marketing_staff"]:
+        pprint.pprint(emp)
+        is_marketing_staff = emp.get("is_marketing_staff", None)
+        is_marketing_manager = emp.get("is_marketing_manager", None)
+
+        if is_marketing_staff is not None:
             res["basic_information"]["is_marketing_staff"] = (
                 "Yes" if emp["is_marketing_staff"] else "No"
             )
-            res["basic_information"]["marketing_manager"] = emp["marketing_manager"]
+
+        if is_marketing_manager is not None:
+            res["basic_information"]["is_marketing_manager"] = (
+                "Yes" if emp["is_marketing_manager"] else "No"
+            )
+
+        res["basic_information"]["marketing_manager"] = emp["marketing_manager"]
 
         if self.employee_role == "HR" and self.employee_id == employee_id:
             pass
