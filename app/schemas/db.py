@@ -24,6 +24,7 @@ class EmployeeInDB(EmployeeBase):
 
 class SalaryInDB(SalaryBase):
     id: str = str(uuid.uuid4()).replace("-", "")
+    month: datetime.datetime = first_day_of_current_month()
     created_at: datetime.datetime = datetime.datetime.now()
     created_by: str = "admin"
     updated_at: datetime.datetime = None

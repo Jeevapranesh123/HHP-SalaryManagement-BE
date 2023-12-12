@@ -20,6 +20,7 @@ from app.schemas.salary import (
 
 from app.api.crud import salary as salary_crud
 from app.api.crud import employees as employee_crud
+from app.api.crud import auth as auth_crud
 
 from app.api.lib.Notification import Notification
 from app.schemas.notification import (
@@ -29,6 +30,7 @@ from app.schemas.notification import (
 )
 
 from app.api.utils import first_day_of_current_month
+
 
 from app.core.config import Config
 
@@ -55,10 +57,115 @@ class SalaryController:
         self.payload = payload
         self.employee_id = payload["employee_id"]
         self.employee_role = payload["primary_role"]
+        self.employee_name = payload["employee_name"]
         self.mongo_client = mongo_client
 
     async def get_all_salaries(self):
         return await salary_crud.get_all_salaries(self.mongo_client)
+
+    async def get_salary_meta(self):
+        salary_base = SalaryBase(employee_id=self.employee_id).model_dump(
+            exclude={"employee_id"}
+        )
+
+        salary_base["net_salary"] = None
+
+        monthly_compensation_base = MonthlyCompensationBase(
+            employee_id=self.employee_id
+        ).model_dump(exclude={"employee_id"})
+
+        salary_incentives_base = SalaryIncentivesBase(
+            employee_id=self.employee_id
+        ).model_dump(exclude={"employee_id"})
+
+        res = {
+            "basic_salary": {
+                "data": {
+                    k: {
+                        "type": "number",
+                        "editable": True if k != "net_salary" else False,
+                    }
+                    for k, v in salary_base.items()
+                },
+                "actions": [
+                    {
+                        "label": "Submit",
+                        "type": "button",
+                        "variant": "default",
+                        "action": {"url": "/salary/post_salary", "method": "PUT"},
+                    }
+                ],
+            },
+            "monthly_compensation": {
+                "data": {
+                    k: {
+                        "type": "number",
+                        "editable": True,
+                    }
+                    for k, v in monthly_compensation_base.items()
+                },
+                "actions": [
+                    {
+                        "label": "Submit",
+                        "type": "button",
+                        "variant": "default",
+                        "action": {
+                            "url": "/salary/post_monthly_compensation",
+                            "method": "PUT",
+                        },
+                    }
+                ],
+            },
+            "salary_incentives": {
+                "data": {
+                    k: {
+                        "type": "number",
+                        "editable": True,
+                    }
+                    for k, v in salary_incentives_base.items()
+                },
+                "actions": [
+                    {
+                        "label": "Submit",
+                        "type": "button",
+                        "variant": "default",
+                        "action": {
+                            "url": "/salary/post_salary_incentives",
+                            "method": "PUT",
+                        },
+                    }
+                ],
+            },
+            "leaves_and_permissions": {
+                "data": {
+                    "total_leave_days": {
+                        "type": "string",
+                        "editable": False,
+                    },
+                    "monthly_leave_days": {
+                        "type": "string",
+                        "editable": False,
+                    },
+                    "total_permission_hours": {
+                        "type": "string",
+                        "editable": False,
+                    },
+                    "monthly_permission_hours": {
+                        "type": "string",
+                        "editable": False,
+                    },
+                },
+                "actions": [],
+            },
+        }
+
+        if self.employee_role == "HR":
+            res["basic_salary"]["data"].pop("net_salary")
+            res["basic_salary"]["data"].pop("gross_salary")
+            res["monthly_compensation"]["data"].pop("other_special_allowance")
+            res.pop("salary_incentives")
+
+        return res
 
     async def get_salary(self, employee_id: str):
         if not self.employee_role in ["HR", "MD"] and employee_id != self.employee_id:
@@ -114,98 +221,26 @@ class SalaryController:
         )
 
         res = {
-            "basic_salary": {
-                "data": {
-                    k: {
-                        "type": "string",
-                        "value": v,
-                        "editable": True if k != "net_salary" else False,
-                    }
-                    for k, v in salary_base.items()
-                },
-                "actions": [
-                    {
-                        "label": "Submit",
-                        "type": "button",
-                        "variant": "default",
-                        "action": {"url": "/salary/post_salary", "method": "PUT"},
-                    }
-                ],
-            },
+            "basic_salary": {k: v for k, v in salary_base.items()},
             "monthly_compensation": {
-                "data": {
-                    k: {
-                        "type": "string",
-                        "value": v,
-                        "editable": True,
-                    }
-                    for k, v in monthly_compensation_base.items()
-                },
-                "actions": [
-                    {
-                        "label": "Submit",
-                        "type": "button",
-                        "variant": "default",
-                        "action": {
-                            "url": "/salary/post_monthly_compensation",
-                            "method": "PUT",
-                        },
-                    }
-                ],
+                k: v for k, v in monthly_compensation_base.items()
             },
-            "salary_incentives": {
-                "data": {
-                    k: {
-                        "type": "string",
-                        "value": v,
-                        "editable": True,
-                    }
-                    for k, v in salary_incentives_base.items()
-                },
-                "actions": [
-                    {
-                        "label": "Submit",
-                        "type": "button",
-                        "variant": "default",
-                        "action": {
-                            "url": "/salary/post_salary_incentives",
-                            "method": "PUT",
-                        },
-                    }
-                ],
-            },
+            "salary_incentives": {k: v for k, v in salary_incentives_base.items()},
             "leaves_and_permissions": {
-                "data": {
-                    "total_leave_days": {
-                        "type": "string",
-                        "value": total_leave_days,
-                        "editable": False,
-                    },
-                    "monthly_leave_days": {
-                        "type": "string",
-                        "value": monthly_leave_days,
-                        "editable": False,
-                    },
-                    "total_permission_hours": {
-                        "type": "string",
-                        "value": total_permission_hours,
-                        "editable": False,
-                    },
-                    "monthly_permission_hours": {
-                        "type": "string",
-                        "value": monthly_permission_hours,
-                        "editable": False,
-                    },
-                }
+                "total_leave_days": total_leave_days,
+                "monthly_leave_days": monthly_leave_days,
+                "total_permission_hours": total_permission_hours,
+                "monthly_permission_hours": monthly_permission_hours,
             },
         }
 
-        if self.employee_role == "HR" and self.employee_id == employee_id:
-            pass
+        if self.employee_role == "employee" and self.employee_id != employee_id:
+            return HTTPException(status_code=403, detail="Not enough permissions")
+
         elif self.employee_role == "HR":
-            res["basic_salary"]["data"].pop("net_salary")
-            res["basic_salary"]["data"].pop("gross_salary")
-            res["monthly_compensation"]["data"].pop("other_special_allowance")
+            res["basic_salary"].pop("net_salary")
+            res["basic_salary"].pop("gross_salary")
+            res["monthly_compensation"].pop("other_special_allowance")
             res.pop("salary_incentives")
 
         return res
@@ -213,9 +248,15 @@ class SalaryController:
     async def get_salary_advance_history(self, employee_id: str, status):
         if not self.employee_role in ["MD"] and employee_id != self.employee_id:
             raise HTTPException(status_code=403, detail="Not enough permissions")
-        return await salary_crud.get_salary_advance_history(
+        res = await salary_crud.get_salary_advance_history(
             employee_id, status, self.mongo_client
         )
+        for i in res:
+            i["requested_date"] = datetime.datetime.strftime(
+                i["requested_at"], "%d-%m-%Y"
+            )
+
+        return res
 
     async def get_salary_history(self, employee_id: str):
         if not self.employee_role in ["MD", "HR"] and employee_id != self.employee_id:
@@ -320,13 +361,21 @@ class SalaryController:
             salary_in_create, self.mongo_client, self.payload["employee_id"]
         )
 
+        user = await auth_crud.get_user_with_employee_id(
+            salary_in_create.employee_id, self.mongo_client
+        )
+
+        branch = emp["branch"]
+
         notification = Notification(self.employee_id, "post_salary", self.mongo_client)
         notifiers = [salary_in_create.employee_id, "HR", "MD"]
         employee_notification = NotificationBase(
             title="Salary Updated",
-            description="Your salary has been updated by {}".format(self.employee_id),
-            payload={},
-            ui_action="read",
+            description="Your salary has been updated by {}".format(self.employee_name),
+            payload={
+                "url": "/profile",
+            },
+            ui_action="action",
             type="salary",
             source="post_salary",
             target=salary_in_create.employee_id,
@@ -339,13 +388,15 @@ class SalaryController:
         hr_notification = NotificationBase(
             title="Salary Updated",
             description="Salary has been updated for {} by {}".format(
-                salary_in_create.employee_id, self.employee_id
+                user["info"]["name"], self.employee_name
             ),
-            payload={},
-            ui_action="read",
+            payload={
+                "url": "/employees/{}".format(salary_in_create.employee_id),
+            },
+            ui_action="action",
             type="salary",
             source="post_salary",
-            target="HR",
+            target="HR_{}".format(branch.replace(" ", "_")),
             meta=NotificationMeta(
                 to=notifiers,
                 from_=self.employee_id,
@@ -355,10 +406,12 @@ class SalaryController:
         md_notification = NotificationBase(
             title="Salary Updated",
             description="Salary has been updated for {} by {}".format(
-                salary_in_create.employee_id, self.employee_id
+                user["info"]["name"], self.employee_name
             ),
-            payload={},
-            ui_action="read",
+            payload={
+                "url": "/employees/{}".format(salary_in_create.employee_id),
+            },
+            ui_action="action",
             type="salary",
             source="post_salary",
             target="MD",
@@ -368,8 +421,27 @@ class SalaryController:
             ),
         )
 
+        notifier = [employee_notification]
+
+        user_role = user["primary_role"]["role"]
+
+        if self.employee_role == "MD":
+            if user_role == "HR":
+                pass
+            else:
+                if salary_in_create.pf != 0 or salary_in_create.esi != 0:
+                    notifier.append(hr_notification)
+
+        elif self.employee_role == "HR":
+            print("Posting by HR")
+            if user_role == "MD":
+                pass
+
+            else:
+                notifier.append(md_notification)
+
         send = SendNotification(
-            notifier=[employee_notification, hr_notification, md_notification]
+            notifier=notifier,
         )
 
         await notification.send_notification(send)
@@ -390,11 +462,105 @@ class SalaryController:
         )
         if not emp:
             raise HTTPException(status_code=404, detail="Employee not found")
-        return await salary_crud.update_monthly_compensation(
+        res = await salary_crud.update_monthly_compensation(
             monthly_compensation_in_create,
             self.mongo_client,
             self.payload["employee_id"],
         )
+
+        user = await auth_crud.get_user_with_employee_id(
+            monthly_compensation_in_create.employee_id, self.mongo_client
+        )
+
+        branch = emp["branch"]
+
+        notification = Notification(
+            self.employee_id, "post_monthly_compensation", self.mongo_client
+        )
+
+        notifiers = [monthly_compensation_in_create.employee_id, "HR", "MD"]
+
+        employee_notification = NotificationBase(
+            title="Monthly Compensation Updated",
+            description="Your monthly compensation has been updated by {}".format(
+                self.employee_name
+            ),
+            payload={
+                "url": "/profile",
+            },
+            ui_action="action",
+            type="salary",
+            source="post_monthly_compensation",
+            target=monthly_compensation_in_create.employee_id,
+            meta=NotificationMeta(
+                to=notifiers,
+                from_=self.employee_id,
+            ),
+        )
+
+        hr_notification = NotificationBase(
+            title="Monthly Compensation Updated",
+            description="Monthly Compensation has been updated for {} by {}".format(
+                user["info"]["name"], self.employee_name
+            ),
+            payload={
+                "url": "/employees/{}".format(
+                    monthly_compensation_in_create.employee_id
+                ),
+            },
+            ui_action="action",
+            type="salary",
+            source="post_monthly_compensation",
+            target="HR_{}".format(branch.replace(" ", "_")),
+            meta=NotificationMeta(
+                to=notifiers,
+                from_=self.employee_id,
+            ),
+        )
+
+        md_notification = NotificationBase(
+            title="Monthly Compensation Updated",
+            description="Monthly Compensation has been updated for {} by {}".format(
+                user["info"]["name"], self.employee_name
+            ),
+            payload={
+                "url": "/employees/{}".format(
+                    monthly_compensation_in_create.employee_id
+                ),
+            },
+            ui_action="action",
+            type="salary",
+            source="post_monthly_compensation",
+            target="MD",
+            meta=NotificationMeta(
+                to=notifiers,
+                from_=self.employee_id,
+            ),
+        )
+
+        notifier = [employee_notification]
+
+        user_role = user["primary_role"]["role"]
+
+        if self.employee_role == "MD":
+            if user_role == "HR":
+                pass
+            else:
+                notifier.append(hr_notification)
+
+        elif self.employee_role == "HR":
+            if user_role == "MD":
+                pass
+            else:
+                notifier.append(md_notification)
+
+        send = SendNotification(
+            notifier=notifier,
+        )
+
+        await notification.send_notification(send)
+
+        return res
 
     @role_required(["MD"])
     async def post_salary_incentives(
@@ -409,11 +575,43 @@ class SalaryController:
 
         if not emp:
             raise HTTPException(status_code=404, detail="Employee not found")
-        return await salary_crud.update_salary_incentives(
+        res = await salary_crud.update_salary_incentives(
             salary_incentives_in_create,
             self.mongo_client,
             self.payload["employee_id"],
         )
+
+        notification = Notification(
+            self.employee_id, "post_salary_incentives", self.mongo_client
+        )
+
+        notifiers = [salary_incentives_in_create.employee_id]
+
+        employee_notification = NotificationBase(
+            title="Salary Incentives Updated",
+            description="Your salary incentives have been updated by {}".format(
+                self.employee_name
+            ),
+            payload={
+                "url": "/profile",
+            },
+            ui_action="action",
+            type="salary",
+            source="post_salary_incentives",
+            target=salary_incentives_in_create.employee_id,
+            meta=NotificationMeta(
+                to=notifiers,
+                from_=self.employee_id,
+            ),
+        )
+
+        send = SendNotification(
+            notifier=[employee_notification],
+        )
+
+        await notification.send_notification(send)
+
+        return res
 
     @role_required(["MD"])
     async def post_advance(self, SalaryAdvanceRequest: SalaryAdvanceRequest):
@@ -433,6 +631,35 @@ class SalaryController:
             salary_advance_in_create, self.mongo_client, "post", self.employee_id
         )
         res["salary_advance_id"] = res["id"]
+
+        notification = Notification(self.employee_id, "post_advance", self.mongo_client)
+
+        notifiers = [salary_advance_in_create["employee_id"]]
+
+        employee_notification = NotificationBase(
+            title="Salary Advance Posted",
+            description="Your salary advance has been posted by {}".format(
+                self.employee_name
+            ),
+            payload={
+                "url": "/salary-advance/history",
+            },
+            ui_action="action",
+            type="salary",
+            source="post_advance",
+            target=salary_advance_in_create["employee_id"],
+            meta=NotificationMeta(
+                to=notifiers,
+                from_=self.employee_id,
+            ),
+        )
+
+        send = SendNotification(
+            notifier=[employee_notification],
+        )
+
+        await notification.send_notification(send)
+
         return res
 
     async def request_advance(self, SalaryAdvanceRequest: SalaryAdvanceRequest):
@@ -459,6 +686,75 @@ class SalaryController:
             salary_advance_in_create, self.mongo_client, "request", self.employee_id
         )
         res["salary_advance_id"] = res["id"]
+
+        user = await auth_crud.get_user_with_employee_id(
+            salary_advance_in_create["employee_id"], self.mongo_client
+        )
+
+        notification = Notification(
+            self.employee_id, "request_advance", self.mongo_client
+        )
+
+        notifiers = [salary_advance_in_create["employee_id"], "MD"]
+
+        employee_notification = NotificationBase(
+            title="Salary Advance Requested",
+            description="Your salary advance has been requested by {}".format(
+                self.employee_name
+            ),
+            payload={
+                "url": "/profile",
+            },
+            ui_action="action",
+            type="salary",
+            source="request_advance",
+            target=salary_advance_in_create["employee_id"],
+            meta=NotificationMeta(
+                to=notifiers,
+                from_=self.employee_id,
+            ),
+        )
+
+        md_notification = NotificationBase(
+            title="Salary Advance Requested",
+            description="Salary Advance has been requested for {} by {}".format(
+                user["info"]["name"], self.employee_name
+            )
+            if self.employee_role == "HR"
+            else "Salary Advance has been requested by {}".format(self.employee_name),
+            payload={
+                "url": "/employees/{}/advance-salary/respond?id={}".format(
+                    salary_advance_in_create["employee_id"], res["id"]
+                ),
+            },
+            ui_action="action",
+            type="salary",
+            source="request_advance",
+            target="MD",
+            meta=NotificationMeta(
+                to=notifiers,
+                from_=self.employee_id,
+            ),
+        )
+
+        notifier = []
+
+        if self.employee_role == "MD":
+            notifier.append(employee_notification)
+
+        elif self.employee_role == "HR":
+            notifier.append(md_notification)
+            notifier.append(employee_notification)
+
+        elif self.employee_role == "employee":
+            notifier.append(md_notification)
+
+        send = SendNotification(
+            notifier=notifier,
+        )
+
+        await notification.send_notification(send)
+
         return res
 
     @role_required(["MD"])
@@ -474,6 +770,38 @@ class SalaryController:
             raise HTTPException(
                 status_code=404, detail="Salary Advance Record not found"
             )
-        return await salary_crud.respond_salary_advance(
+        res = await salary_crud.respond_salary_advance(
             salary_advance_in_create, self.employee_id, self.mongo_client
         )
+
+        notification = Notification(
+            self.employee_id, "respond_salary_advance", self.mongo_client
+        )
+
+        notifiers = [res["employee_id"]]
+
+        employee_notification = NotificationBase(
+            title="Salary Advance {}".format(res["status"].capitalize()),
+            description="Your salary advance request has been {} by {}".format(
+                res["status"].lower(), self.employee_name
+            ),
+            payload={
+                "url": "/salary-advance/history",
+            },
+            ui_action="action",
+            type="salary",
+            source="respond_salary_advance",
+            target=res["employee_id"],
+            meta=NotificationMeta(
+                to=notifiers,
+                from_=self.employee_id,
+            ),
+        )
+
+        send = SendNotification(
+            notifier=[employee_notification],
+        )
+
+        await notification.send_notification(send)
+
+        return res

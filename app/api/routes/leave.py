@@ -202,8 +202,8 @@ async def get_meta(
         data["data"]["type"]["permission"]["actions"] = permission_post_action
         data["data"]["type"]["leave"]["data"]["employee_id"]["editable"] = False
         data["data"]["type"]["permission"]["data"]["employee_id"]["editable"] = False
-        data["data"]["type"]["leave"]["data"].pop("remarks")
-        data["data"]["type"]["permission"]["data"].pop("remarks")
+        data["data"]["type"]["leave"]["data"].pop("reason")
+        data["data"]["type"]["permission"]["data"].pop("reason")
 
     if type == "leave" and access_type == "respond":
         data["data"]["type"].pop("permission")

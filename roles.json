@@ -13,6 +13,10 @@
         "role": "MD",
         "permissions":[]
   
+      },
+      {
+        "role": "marketing_manager",
+        "permissions":[]
       }
     ]
   }

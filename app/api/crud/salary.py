@@ -201,94 +201,137 @@ async def get_salary(employee_id: str, mongo_client: AsyncIOMotorClient):
 async def update_salary(
     SalaryCreateRequest: SalaryBase, mongo_client: AsyncIOMotorClient, updated_by: str
 ):
-    salary = SalaryCreateRequest.model_dump(exclude_none=True)
+    employee_id = SalaryCreateRequest.employee_id
 
-    employee_id = salary.pop("employee_id")
-    salary["updated_by"] = updated_by
-    salary["updated_at"] = datetime.datetime.now()
+    month = first_day_of_current_month()
 
     existing_salary = await mongo_client[MONGO_DATABASE][SALARY_COLLECTION].find_one(
-        {"employee_id": employee_id}, {"_id": 0}
+        {"employee_id": employee_id, "month": month}, {"_id": 0}
     )
 
     if not existing_salary:
-        salary["created_at"] = datetime.datetime.now()
+        salary = SalaryBase(
+            employee_id=employee_id,
+            gross_salary=SalaryCreateRequest.gross_salary or 0.0,
+            pf=SalaryCreateRequest.pf or 0.0,
+            esi=SalaryCreateRequest.esi or 0.0,
+        )
+        salary = SalaryInDB(**salary.model_dump())
+        salary = salary.model_dump()
+        salary["month"] = month
+        salary["created_by"] = updated_by
 
-    if await mongo_client[MONGO_DATABASE][SALARY_COLLECTION].update_one(
-        {"employee_id": employee_id},
-        {"$set": salary},
-        upsert=True,
-    ):
-        salary["employee_id"] = employee_id
-        return salary
+        if await mongo_client[MONGO_DATABASE][SALARY_COLLECTION].insert_one(salary):
+            return salary
+
+    else:
+        salary = SalaryCreateRequest.model_dump(exclude_none=True)
+        salary["updated_by"] = updated_by
+        salary["updated_at"] = datetime.datetime.now()
+
+        if await mongo_client[MONGO_DATABASE][SALARY_COLLECTION].update_one(
+            {"employee_id": employee_id, "month": month},
+            {"$set": salary},
+            upsert=True,
+        ):
+            return salary
 
 
 async def update_monthly_compensation(
-    MonthlyCompensationBase: MonthlyCompensationBase,
+    MonthlyCompensationCreateRequest: MonthlyCompensationBase,
     mongo_client: AsyncIOMotorClient,
     updated_by: str,
 ):
-    salary = MonthlyCompensationBase.model_dump(exclude_none=True)
+    employee_id = MonthlyCompensationCreateRequest.employee_id
 
-    employee_id = salary["employee_id"]
-    salary["updated_by"] = updated_by
-    salary["updated_at"] = datetime.datetime.now()
-
-    month = first_day_of_current_month(11, 2023)
+    month = first_day_of_current_month()
 
     existing_record = await mongo_client[MONGO_DATABASE][
         MONTHLY_COMPENSATION_COLLECTION
     ].find_one({"employee_id": employee_id, "month": month}, {"_id": 0})
 
     if not existing_record:
-        salary["month"] = month
-        salary = MonthlyCompensationInDB(**salary)
-        salary = salary.model_dump()
-        salary["created_by"] = updated_by
-        salary["updated_at"] = datetime.datetime.now()
-        salary["updated_by"] = updated_by
+        salary = MonthlyCompensationBase(
+            employee_id=employee_id,
+            loss_of_pay=MonthlyCompensationCreateRequest.loss_of_pay or 0.0,
+            leave_cashback=MonthlyCompensationCreateRequest.leave_cashback or 0.0,
+            last_year_leave_cashback=MonthlyCompensationCreateRequest.last_year_leave_cashback
+            or 0.0,
+            attendance_special_allowance=MonthlyCompensationCreateRequest.attendance_special_allowance
+            or 0.0,
+            other_special_allowance=MonthlyCompensationCreateRequest.other_special_allowance
+            or 0.0,
+            overtime=MonthlyCompensationCreateRequest.overtime or 0.0,
+        )
 
-    if await mongo_client[MONGO_DATABASE][MONTHLY_COMPENSATION_COLLECTION].update_one(
-        {"employee_id": employee_id, "month": month},
-        {"$set": salary},
-        upsert=True,
-    ):
-        salary["employee_id"] = employee_id
-        return salary
+        salary = MonthlyCompensationInDB(**salary.model_dump())
+        salary = salary.model_dump()
+        salary["month"] = month
+        salary["created_by"] = updated_by
+
+        if await mongo_client[MONGO_DATABASE][
+            MONTHLY_COMPENSATION_COLLECTION
+        ].insert_one(salary):
+            return salary
+
+    else:
+        salary = MonthlyCompensationCreateRequest.model_dump(exclude_none=True)
+        salary["updated_by"] = updated_by
+        salary["updated_at"] = datetime.datetime.now()
+
+        if await mongo_client[MONGO_DATABASE][
+            MONTHLY_COMPENSATION_COLLECTION
+        ].find_one_and_update(
+            {"employee_id": employee_id, "month": month},
+            {"$set": salary},
+            return_document=True,
+        ):
+            return salary
 
 
 async def update_salary_incentives(
-    SalaryIncentivesBase: SalaryIncentivesBase,
+    SalaryIncentivesCreateRequest: SalaryIncentivesBase,
     mongo_client: AsyncIOMotorClient,
     updated_by: str,
 ):
-    salary = SalaryIncentivesBase.model_dump(exclude_none=True)
-
-    employee_id = salary["employee_id"]
-    salary["updated_by"] = updated_by
-    salary["updated_at"] = datetime.datetime.now()
+    employee_id = SalaryIncentivesCreateRequest.employee_id
 
     month = first_day_of_current_month()
 
-    existing_record = await mongo_client[MONGO_DATABASE][SALARY_COLLECTION].find_one(
-        {"employee_id": employee_id, "month": month}, {"_id": 0}
-    )
+    existing_record = await mongo_client[MONGO_DATABASE][
+        SALARY_INCENTIVES_COLLECTION
+    ].find_one({"employee_id": employee_id, "month": month}, {"_id": 0})
 
     if not existing_record:
-        salary["month"] = month
-        salary = SalaryIncentivesInDB(**salary)
+        salary = SalaryIncentivesBase(
+            employee_id=employee_id,
+            allowance=SalaryIncentivesCreateRequest.allowance or 0.0,
+            increment=SalaryIncentivesCreateRequest.increment or 0.0,
+            bonus=SalaryIncentivesCreateRequest.bonus or 0.0,
+        )
+        salary = SalaryIncentivesInDB(**salary.model_dump())
         salary = salary.model_dump()
+        salary["month"] = month
         salary["created_by"] = updated_by
-        salary["updated_at"] = datetime.datetime.now()
-        salary["updated_by"] = updated_by
 
-    if await mongo_client[MONGO_DATABASE][SALARY_INCENTIVES_COLLECTION].update_one(
-        {"employee_id": employee_id, "month": month},
-        {"$set": salary},
-        upsert=True,
-    ):
-        salary["employee_id"] = employee_id
-        return salary
+        if await mongo_client[MONGO_DATABASE][SALARY_INCENTIVES_COLLECTION].insert_one(
+            salary
+        ):
+            return salary
+
+    else:
+        salary = SalaryIncentivesCreateRequest.model_dump(exclude_none=True)
+        salary["updated_by"] = updated_by
+        salary["updated_at"] = datetime.datetime.now()
+
+        if await mongo_client[MONGO_DATABASE][
+            SALARY_INCENTIVES_COLLECTION
+        ].find_one_and_update(
+            {"employee_id": employee_id, "month": month},
+            {"$set": salary},
+            return_document=True,
+        ):
+            return salary
 
 
 async def get_salary_advance(salary_advance_id: str, mongo_client: AsyncIOMotorClient):

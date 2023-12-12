@@ -1,3 +1,7 @@
+import sys
+
+sys.dont_write_bytecode = True
+
 import jwt
 from datetime import datetime
 from jwt.exceptions import InvalidTokenError

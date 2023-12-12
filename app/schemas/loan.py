@@ -17,3 +17,15 @@ class LoanBase(BaseModel):
     emi: Optional[float] = None
     tenure: Optional[int] = None
     remarks: Optional[str] = ""
+
+
+class LoanAdjustmentBase(BaseModel):
+    employee_id: str
+    loan_id: str
+    repayment_id: str
+    old_emi: float
+    new_emi: float
+    adjustment_month: datetime.date = datetime.date.today().replace(
+        day=1
+    ) + datetime.timedelta(days=30)
+    remarks: Optional[str] = ""

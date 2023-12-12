@@ -8,13 +8,14 @@ from starlette.exceptions import HTTPException
 
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.database import mongo
+from app.database import mongo, AsyncIOMotorClient, get_mongo
 
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.lib.RabbitMQ import RabbitMQ
 
 from app.api.lib.Attendance import Attendance
+from app.api.crons.salary import SalaryCron
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -39,7 +40,16 @@ async def attendance_job():
     list = await obj.post_attendance()
 
 
-scheduler.add_job(attendance_job, "cron", hour=18, minute=0)
+async def salary_job():
+    obj = SalaryCron(mongo.client)
+    await obj.update_basic_salary()
+    print("Salary Job Ran")
+
+
+scheduler.add_job(salary_job, "cron", hour=14, minute=52, second=0)
+
+
+# scheduler.add_job(attendance_job, "cron", minute="*/2")
 
 scheduler.start()
 
@@ -76,6 +86,14 @@ async def test():
     await obj.post_attendance()
 
 
+@app.get("/increment")
+async def inc(
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+):
+    obj = SalaryCron(mongo_client)
+    await obj.update_basic_salary()
+
+
 app.include_router(api_router, prefix="/api/v1")
 
 app.add_exception_handler(HTTPException, http_error_handler)
@@ -108,3 +126,8 @@ app.add_middleware(
 
 
 # FIXME: THE JWT Secret should be stored in a .env file, it currently in the crud file
+
+
+# Loan
+
+# FIXME: Run a cron every month to update the status of loan repayment schedule

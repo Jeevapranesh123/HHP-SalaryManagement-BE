@@ -63,6 +63,12 @@ class Config(object):
 
     ATTENDANCE_COLLECTION = os.getenv("ATTENDANCE_COLLECTION") or "attendance"
 
+    LOCATION_COLLECTION = os.getenv("LOCATION_COLLECTION") or "location"
+
+    RULES_AND_GUIDELINES_COLLECTION = (
+        os.getenv("RULES_AND_GUIDELINES_COLLECTION") or "rules_and_guidelines"
+    )
+
 
 # class Settings(BaseModel):
 #     authjwt_secret_key: str = "secret"

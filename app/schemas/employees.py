@@ -30,8 +30,8 @@ class GovtIDProofs(BaseModel):
 
 
 class BranchEnum(str, Enum):
-    HO = "Head Office"
-    FACTORY = "Factory"
+    HO = "head_office"
+    FACTORY = "factory"
 
 
 class EmployeeBase(BaseModel):  # TODO: Add relevant fields in the future
@@ -41,6 +41,7 @@ class EmployeeBase(BaseModel):  # TODO: Add relevant fields in the future
     phone: str = "0000000000"
     branch: BranchEnum = BranchEnum.HO
     is_marketing_staff: Optional[bool] = False
+    is_marketing_manager: Optional[bool] = False
     marketing_manager: Optional[str] = None
     profile_image_path: Optional[str] = None
     profile_image: Optional[str] = None
@@ -50,14 +51,6 @@ class EmployeeBase(BaseModel):  # TODO: Add relevant fields in the future
     address: Optional[Address]
     govt_id_proofs: Optional[GovtIDProofs]
     # TODO: Father/Husband Phone Number (Optional) - decide on how to store this
-
-    @root_validator(pre=True)
-    def marketing_manager_validator(cls, values):
-        if values.get("is_marketing_staff") and not values.get("marketing_manager"):
-            raise HTTPException(
-                status_code=400, detail="Marketing Staff must have a manager"
-            )
-        return values
 
     @validator("phone")
     def phone_validator(cls, v):

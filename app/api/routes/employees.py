@@ -18,6 +18,39 @@ from fastapi import UploadFile, File
 router = APIRouter()
 
 
+@router.get("/get-branch")
+async def get_branch(
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    # res = await auth_controller.get_branch(mongo_client, payload)
+    res = [
+        {"value": "head_office", "label": "Head Office"},
+        {"value": "factory", "label": "Factory"},
+    ]
+    return {
+        "message": "Branch fetched successfully",
+        "status_code": 200,
+        "data": res,
+    }
+
+
+@router.post("/set-branch")
+async def set_branch(
+    branch: str,
+    employee_id: str,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    obj = EmployeeController(payload, mongo_client)
+    res = await obj.set_branch(employee_id, branch)
+    return {
+        "message": "Branch set successfully",
+        "status_code": 200,
+        "data": res,
+    }
+
+
 @router.get("/{employee_id}")
 async def get_employee(
     employee_id: str,
@@ -121,14 +154,6 @@ async def get_create_meta(
     payload: dict = Depends(verify_login_token),
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
 ):
-    # obj = EmployeeController(payload, mongo_client)
-    # res = await obj.get_create_meta()
-    # return {
-    #     "message": "Success",
-    #     "status_code": 200,
-    #     "data": res,
-    # }
-
     return {
         "message": "Success",
         "status_code": 200,
@@ -139,11 +164,18 @@ async def get_create_meta(
                     "name": {"type": "string", "required": True},
                     "email": {"type": "string", "required": True},
                     "phone": {"type": "string", "required": True},
+                    "branch": {"type": "string", "required": True},
                     "profile_image": {"type": "image", "required": True},
                     "department": {"type": "string"},
                     "designation": {"type": "string"},
-                    "branch": {"type": "string", "required": True},
                     "is_marketing_staff": {
+                        "type": "radio",
+                        "options": [
+                            {"label": "Yes", "value": "Yes"},
+                            {"label": "No", "value": "No"},
+                        ],
+                    },
+                    "is_marketing_manager": {
                         "type": "radio",
                         "options": [
                             {"label": "Yes", "value": "Yes"},
@@ -198,39 +230,6 @@ async def get_create_required_fields(
     res = await obj.get_create_required_fields()
     return {
         "message": "Success",
-        "status_code": 200,
-        "data": res,
-    }
-
-
-@router.get("/get-branch")
-async def get_branch(
-    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
-    payload: dict = Depends(verify_login_token),
-):
-    # res = await auth_controller.get_branch(mongo_client, payload)
-    res = [
-        {"value": "Head Office", "label": "head-office"},
-        {"value": "Factory", "label": "factory"},
-    ]
-    return {
-        "message": "Branch fetched successfully",
-        "status_code": 200,
-        "data": res,
-    }
-
-
-@router.post("/set-branch")
-async def set_branch(
-    branch: str,
-    employee_id: str,
-    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
-    payload: dict = Depends(verify_login_token),
-):
-    obj = EmployeeController(payload, mongo_client)
-    res = await obj.set_branch(employee_id, branch)
-    return {
-        "message": "Branch set successfully",
         "status_code": 200,
         "data": res,
     }

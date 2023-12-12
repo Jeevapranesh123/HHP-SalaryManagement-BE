@@ -60,6 +60,7 @@ async def login(login_request, mongo_client: AsyncIOMotorClient):
             "employee_id": user["employee_id"],
             "primary_role": primary_role,
             "secondary_roles": secondary_roles,
+            "employee_name": user["info"]["name"],
         },
         token_type="access",
         mongo_client=mongo_client,
@@ -75,6 +76,8 @@ async def login(login_request, mongo_client: AsyncIOMotorClient):
     mq = RabbitMQ()
     mq.ensure_queue("notifications_employee_{}".format(user["uuid"]))
     for key in bind_key:
+        if key == "HR":
+            key = "HR_{}".format(user["info"]["branch"].replace(" ", "_"))
         mq.bind_queue(
             "notifications_employee_{}".format(user["uuid"]),
             "employee_notification",
@@ -101,6 +104,11 @@ async def login(login_request, mongo_client: AsyncIOMotorClient):
 
         await auth_crud.update_profile_pre_signed_url(
             user["employee_id"], profile_image_pre_signed_url, mongo_client
+        )
+
+    else:
+        await auth_crud.update_profile_pre_signed_url(
+            user["employee_id"], None, mongo_client
         )
 
     return {"email": user["email"], "token": token}
@@ -189,93 +197,39 @@ async def reset_password(
 
 
 async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient):
-    emp = await employee_crud.get_employee_with_salary(employee_id, mongo_client)
-
-    salary_base = SalaryBase(**emp)
-    salary_base = salary_base.model_dump(exclude={"employee_id"})
-    salary_base["net_salary"] = emp["net_salary"]
-
-    monthly_compensation_base = MonthlyCompensationBase(**emp)
-    monthly_compensation_base = monthly_compensation_base.model_dump(
-        exclude={"employee_id"}
-    )
-
-    salary_incentives_base = SalaryIncentivesBase(**emp)
-    salary_incentives_base = salary_incentives_base.model_dump(exclude={"employee_id"})
-
-    monthly_leave_days = (
-        total_leave_days
-    ) = total_permission_hours = monthly_permission_hours = 0
-
-    current_month = first_day_of_current_month()
-
-    docs = mongo_client[MONGO_DATABASE][LEAVE_COLLECTION].find(
-        {
-            "employee_id": employee_id,
-            "status": "approved",
-        }
-    )
-
-    async for i in docs:
-        if i["type"] == "permission":
-            if i["month"] == current_month:
-                monthly_permission_hours += i["no_of_hours"]
-            total_permission_hours += i["no_of_hours"]
-        else:
-            if i["month"] == current_month:
-                monthly_leave_days += i["no_of_days"]
-            total_leave_days += i["no_of_days"]
-
-    monthly_permission_hours = "{} Hours {} Minutes".format(
-        str(datetime.timedelta(hours=monthly_permission_hours)).split(":")[0],
-        str(datetime.timedelta(hours=monthly_permission_hours)).split(":")[1],
-    )
-    total_permission_hours = "{} Hours {} Minutes".format(
-        str(datetime.timedelta(hours=total_permission_hours)).split(":")[0],
-        str(datetime.timedelta(hours=total_permission_hours)).split(":")[1],
+    res, emp = await employee_crud.get_employee_with_computed_fields(
+        employee_id, mongo_client
     )
 
     res = {
-        "alert": [
-            {
-                "title": "Leave Excceded",
-                "description": "You have exceeded your leave limit",
-                "type": "warning",
-            }
-        ],
-        "basic_information": {
-            "employee_id": emp["employee_id"],
-            "name": emp["name"],
-            "email": emp["email"],
-            "phone": emp["phone"],
-            "department": emp["department"],
-            "designation": emp["designation"],
-            "branch": emp["branch"],
-            "profile_image": emp["profile_image"],
-        },
-        "bank_details": emp["bank_details"],
-        "address": emp["address"],
-        "govt_id_proofs": emp["govt_id_proofs"],
-        "basic_salary": salary_base,
-        "monthly_compensation": monthly_compensation_base,
-        "loan_and_advance": {
-            "loan": emp["loan"],
-            "salary_advance": emp["salary_advance"],
-        },
-        "salary_incentives": salary_incentives_base,
-        "leaves_and_permissions": {
-            "total_leave_days": total_leave_days,
-            "monthly_leave_days": monthly_leave_days,
-            "total_permission_hours": total_permission_hours,
-            "monthly_permission_hours": monthly_permission_hours,
-        },
-        "attendance": {
-            "total_working_days": 10,
-            "total_present_days": 8,
-            "total_absent_days": 2,
-            "present_percentage": 80,
-        },
+        "alert": [],
+        **res,
     }
+
+    monthly_absent_days = res["attendance"]["total_absent_days"]
+    monthly_permission_days = res["leaves_and_permissions"]["monthly_permission_hours"]
+
+    alert = []
+    # FIXME: Store the rules in the database and fetch them here
+    if monthly_absent_days > 1:
+        alert.append(
+            {
+                "title": "Leave Exceeded",
+                "description": "You have exceeded your monthly leave limit of {} days".format(
+                    1
+                ),
+            }
+        )
+    alert.append(
+        {
+            "title": "Permission Exceeded",
+            "description": "You have exceeded your monthly permission limit of {} hours".format(
+                2
+            ),
+        }
+    )
+
+    res["alert"] = alert
 
     if emp["is_marketing_staff"]:
         res["basic_information"]["is_marketing_staff"] = emp["is_marketing_staff"]
@@ -416,6 +370,8 @@ async def remove_role(role_req, mongo_client: AsyncIOMotorClient, payload):
     if update:
         if role_req.role != "employee":
             bind_key = role_req.role
+            if role_req.role == "HR":
+                bind_key = "HR_{}".format(employee["info"]["branch"].replace(" ", "_"))
         elif role_req.role == "employee":
             bind_key = employee["employee_id"]
 
@@ -473,3 +429,35 @@ async def remove_role(role_req, mongo_client: AsyncIOMotorClient, payload):
         return True
 
     return False
+
+
+async def compute_attendance(
+    self,
+    employee_id,
+    month,
+    mongo_client: AsyncIOMotorClient,
+):
+    attendance = await attendance_crud.get_attendance(employee_id, month, mongo_client)
+
+    total_working_days = total_present_days = total_absent_days = 0
+
+    for day in attendance:
+        if day["is_holiday"]:
+            total_working_days += 1
+            continue
+
+        if day["is_present"]:
+            total_working_days += 1
+            total_present_days += 1
+        else:
+            total_working_days += 1
+            total_absent_days += 1
+
+    present_percentage = (total_present_days / total_working_days) * 100
+
+    return {
+        "total_working_days": total_working_days,
+        "total_present_days": total_present_days,
+        "total_absent_days": total_absent_days,
+        "present_percentage": present_percentage,
+    }

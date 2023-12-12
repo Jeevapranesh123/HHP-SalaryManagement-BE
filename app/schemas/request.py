@@ -1,13 +1,23 @@
-from pydantic import BaseModel, validator, root_validator
+from pydantic import (
+    BaseModel,
+    validator,
+    root_validator,
+    ValidationError,
+    model_validator,
+)
 from fastapi import HTTPException
 from app.schemas.employees import EmployeeBase, BankDetails, Address, GovtIDProofs
-from app.schemas.salary import SalaryBase, SalaryAdvanceBase, SalaryIncentivesBase
+from app.schemas.salary import (
+    SalaryBase,
+    SalaryAdvanceBase,
+    SalaryIncentivesBase,
+    MonthlyCompensationBase,
+)
 from app.schemas.leave import LeaveBase, PermissionBase
-from app.schemas.loan import LoanBase
+from app.schemas.loan import LoanBase, LoanAdjustmentBase
 
 from enum import Enum
 
-from pydantic import Field, create_model, ValidationError
 import datetime
 from typing import Optional
 import pprint
@@ -24,7 +34,53 @@ def validate_phone_number(cls, value, field):
 
 
 class EmployeeCreateRequest(EmployeeBase):
-    pass
+    @root_validator(pre=True)
+    def test(cls, values):
+        pprint.pprint(values)
+        basic_information = values.get("basic_information")
+        if basic_information:
+            for key, value in basic_information.items():
+                values[key] = value.strip() if isinstance(value, str) else value
+
+        is_marketing_staff = values.get("is_marketing_staff", None)
+        is_marketing_manager = values.get("is_marketing_manager", None)
+
+        if is_marketing_staff:
+            if is_marketing_staff == "Yes":
+                values["is_marketing_staff"] = True
+            elif is_marketing_staff == "No":
+                values["is_marketing_staff"] = False
+            else:
+                raise HTTPException(
+                    status_code=400, detail="Is Marketing Staff must be Yes or No"
+                )
+
+        if is_marketing_staff is None:
+            values["is_marketing_staff"] = False
+
+        if is_marketing_manager:
+            print(type(is_marketing_manager))
+            if is_marketing_manager == "Yes":
+                values["is_marketing_manager"] = True
+            elif is_marketing_manager == "No":
+                values["is_marketing_manager"] = False
+            else:
+                raise HTTPException(
+                    status_code=400, detail="Is Marketing Manager must be Yes or No"
+                )
+
+        if is_marketing_manager is None:
+            values["is_marketing_manager"] = False
+
+        if is_marketing_staff and not is_marketing_manager:
+            if not values.get("marketing_manager"):
+                raise HTTPException(
+                    status_code=400, detail="Marketing Staff must have a manager"
+                )
+
+        pprint.pprint(values)
+
+        return values
 
 
 # TODO: Keep this and EmployeeBase in sync
@@ -35,6 +91,7 @@ class EmployeeUpdateRequest(BaseModel):
     designation: Optional[str] = None
     branch: Optional[str] = None
     is_marketing_staff: Optional[bool] = False
+    is_marketing_manager: Optional[bool] = False
     marketing_manager: Optional[str] = None
     bank_details: Optional[BankDetails] = None
     address: Optional[Address] = None
@@ -43,33 +100,47 @@ class EmployeeUpdateRequest(BaseModel):
 
     @root_validator(pre=True)
     def convert_basic_information(cls, values):
+        pprint.pprint(values)
         basic_information = values.get("basic_information")
         if basic_information:
             for key, value in basic_information.items():
                 values[key] = value
         values.pop("basic_information", None)
 
-        if values.get("is_marketing_staff"):
-            is_marketing_staff = values.get("is_marketing_staff")
+        is_marketing_staff = values.get("is_marketing_staff")
+        is_marketing_manager = values.get("is_marketing_manager")
 
+        if is_marketing_staff == "Yes":
+            values["is_marketing_staff"] = True
+        elif is_marketing_staff == "No":
+            values["is_marketing_staff"] = False
+        else:
+            raise HTTPException(
+                status_code=400, detail="Is Marketing Staff must be Yes or No"
+            )
+
+        if is_marketing_manager == "Yes":
+            values["is_marketing_manager"] = True
+        elif is_marketing_manager == "No":
+            values["is_marketing_manager"] = False
+        else:
+            raise HTTPException(
+                status_code=400, detail="Is Marketing Manager must be Yes or No"
+            )
+
+        print(is_marketing_staff, is_marketing_manager)
+
+        if is_marketing_staff and not is_marketing_manager:
             if not values.get("marketing_manager"):
                 raise HTTPException(
                     status_code=400, detail="Marketing Staff must have a manager"
                 )
-            if values.get("marketing_manager") == values.get("employee_id"):
-                raise HTTPException(
-                    status_code=400,
-                    detail="Marketing Staff cannot be their own manager",
-                )
 
-            if is_marketing_staff == "Yes":
-                values["is_marketing_staff"] = True
-            elif is_marketing_staff == "No":
-                values["is_marketing_staff"] = False
-            else:
-                raise HTTPException(
-                    status_code=400, detail="Is Marketing Staff must be Yes or No"
-                )
+        if values.get("marketing_manager") == values.get("employee_id"):
+            raise HTTPException(
+                status_code=400,
+                detail="Marketing Staff cannot be their own manager",
+            )
 
         return values
 
@@ -89,25 +160,65 @@ class EmployeeUpdateRequest(BaseModel):
         return v
 
 
-class PostSalaryRequest(BaseModel):
-    employee_id: str
-    gross_salary: Optional[float] = None
-    pf: Optional[float] = None
-    esi: Optional[float] = None
+class PostSalaryRequest(SalaryBase):
+    # employee_id: str
+    # gross_salary: Optional[float] = None
+    # pf: Optional[float] = None
+    # esi: Optional[float] = None
+
+    @root_validator(pre=True)
+    def validate(cls, values):
+        for key, value in values.items():
+            if value == "":
+                values[key] = 0.0
+
+            elif value is None:
+                values[key] = 0.0
+
+            elif isinstance(value, str) and key != "employee_id":
+                values[key] = float(value)
+
+        return values
 
 
-class PostMonthlyCompensationRequest(BaseModel):
-    employee_id: str
-    loss_of_pay: Optional[float] = None
-    leave_cashback: Optional[float] = None
-    last_year_leave_cashback: Optional[float] = None
-    attendance_special_allowance: Optional[float] = None
-    other_special_allowance: Optional[float] = None
-    overtime: Optional[float] = None
+class PostMonthlyCompensationRequest(MonthlyCompensationBase):
+    # employee_id: str
+    # loss_of_pay: Optional[float] = None
+    # leave_cashback: Optional[float] = None
+    # last_year_leave_cashback: Optional[float] = None
+    # attendance_special_allowance: Optional[float] = None
+    # other_special_allowance: Optional[float] = None
+    # overtime: Optional[float] = None
+
+    @root_validator(pre=True)
+    def validate(cls, values):
+        for key, value in values.items():
+            if value == "":
+                values[key] = 0.0
+
+            elif value is None:
+                values[key] = 0.0
+
+            elif isinstance(value, str) and key != "employee_id":
+                values[key] = float(value)
+
+        return values
 
 
 class PostSalaryIncentivesRequest(SalaryIncentivesBase):
-    pass
+    @root_validator(pre=True)
+    def validate(cls, values):
+        for key, value in values.items():
+            if value == "":
+                values[key] = 0.0
+
+            elif value is None:
+                values[key] = 0.0
+
+            elif isinstance(value, str) and key != "employee_id":
+                values[key] = float(value)
+
+        return values
 
 
 class LeaveCreateRequest(LeaveBase):
@@ -143,7 +254,7 @@ class LeaveCreateRequest(LeaveBase):
                 values["no_of_days"] = (
                     datetime.datetime.strptime(end_date_str, "%Y-%m-%d").date()
                     - datetime.datetime.strptime(start_date_str, "%Y-%m-%d").date()
-                ).days
+                ).days + 1
         if start_date_str and not end_date_str:
             values["end_date"] = start_date_str
             values["no_of_days"] = 1
@@ -340,3 +451,7 @@ class SalaryAdvanceRespondRequest(BaseModel):
     id: str
     status: SalaryAdvanceResponse
     remarks: Optional[str] = None
+
+
+class LoanAdjustmentRequest(LoanAdjustmentBase):
+    pass

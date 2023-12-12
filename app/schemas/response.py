@@ -2,6 +2,8 @@ from pydantic import BaseModel, root_validator
 from app.schemas.salary import SalaryBase
 from datetime import datetime
 
+from typing import Optional, List
+
 
 class BaseResponse(BaseModel):
     message: str
@@ -213,3 +215,35 @@ class LoanRespondResponse(BaseResponse):
 
 class LoanHistoryResponse(BaseResponse):
     data: list
+
+
+class RepaymentRecordResponse(BaseModel):
+    employee_id: str
+    month: str
+    loan_id: str
+    repayment_id: str
+    loan_outstanding: float
+    tenure_remaining: int
+    old_emi: float
+    new_emi: float
+    remarks: Optional[str] = ""
+
+    @root_validator(pre=True)
+    def convert_data(cls, values):
+        date = values.get("month")
+        values["month"] = datetime.strftime(date, "%Y-%m-%d")
+
+        amount = values.get("amount")
+
+        if amount:
+            values["new_emi"] = amount
+            values["old_emi"] = amount
+
+        if values.get("id"):
+            values["repayment_id"] = values.get("id")
+
+        return values
+
+
+class GetRepaymentRecordResponse(BaseResponse):
+    data: RepaymentRecordResponse

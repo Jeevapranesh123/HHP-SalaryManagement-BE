@@ -172,6 +172,7 @@ async def build_repayment_schedule(loan, mongo_client: AsyncIOMotorClient):
         repayment_schedule.append(
             {
                 "employee_id": loan["employee_id"],
+                "id": str(uuid.uuid4()).replace("-", ""),
                 "loan_id": loan["id"],
                 "month": month,
                 "amount": loan_emi if loan_amount > loan_emi else loan_amount,
@@ -191,3 +192,102 @@ async def build_repayment_schedule(loan, mongo_client: AsyncIOMotorClient):
             {"id": loan["id"]}, {"$set": {"repayment_schedule": repayment_schedule}}
         )
         return True
+
+
+async def get_repayment_schedule(loan_id, mongo_client: AsyncIOMotorClient):
+    loan = await get_loan(loan_id, mongo_client)
+    if not loan:
+        raise HTTPException(status_code=404, detail="Loan record not found")
+    repayment_schedule = loan.get("repayment_schedule", None)
+    if not repayment_schedule:
+        raise HTTPException(status_code=400, detail="Repayment schedule not built yet")
+
+    res = (
+        await mongo_client[MONGO_DATABASE][LOAN_SCHEDULE_COLLECTION]
+        .find({"loan_id": loan_id}, {"_id": 0})
+        .to_list(length=100)
+    )
+
+    return res
+
+
+async def get_repayment_emi(repayment_id, mongo_client: AsyncIOMotorClient):
+    repayment = await mongo_client[MONGO_DATABASE][LOAN_SCHEDULE_COLLECTION].find_one(
+        {"id": repayment_id}, {"_id": 0}
+    )
+    if not repayment:
+        raise HTTPException(status_code=404, detail="Repayment record not found")
+
+    return repayment
+
+
+async def get_outstanding_amount_for_loan(
+    loan_id, month, mongo_client: AsyncIOMotorClient
+):
+    loan = await get_loan(loan_id, mongo_client)
+    if not loan:
+        raise HTTPException(status_code=404, detail="Loan record not found")
+
+    pipeline = [
+        {
+            "$match": {
+                "loan_id": loan_id,
+                "month": {"$gte": month},
+            }
+        },
+        {
+            "$group": {
+                "_id": "$loan_id",
+                "repayment_outstanding": {"$sum": "$amount"},
+                "tenure_remaining": {"$count": {}},
+            }
+        },
+    ]
+
+    outstanding_amount = (
+        await mongo_client[MONGO_DATABASE][LOAN_SCHEDULE_COLLECTION]
+        .aggregate(pipeline)
+        .to_list(length=1)
+    )
+
+    if not outstanding_amount:
+        return {"repayment_outstanding": 0, "tenure_left": 0}
+
+    outstanding_amount = outstanding_amount[0]
+
+    return {
+        "repayment_outstanding": outstanding_amount["repayment_outstanding"],
+        "tenure_remaining": outstanding_amount["tenure_remaining"],
+    }
+
+
+async def get_outstanding_months_by_range(
+    loan_id, mongo_client: AsyncIOMotorClient, **kwargs
+):
+    start_month = kwargs.get("start_month", None)
+    end_month = kwargs.get("end_month", None)
+    pipeline = []
+
+    query = {
+        "loan_id": loan_id,
+    }
+
+    if start_month and end_month:
+        query["month"] = {"$gte": start_month, "$lte": end_month}
+
+    elif start_month:
+        query["month"] = {"$gte": start_month}
+
+    elif end_month:
+        query["month"] = {"$lte": end_month}
+    pipeline.append({"$match": query})
+    pipeline.append({"$sort": {"month": 1}})
+    pipeline.append({"$project": {"_id": 0}})
+
+    outstanding_months = (
+        await mongo_client[MONGO_DATABASE][LOAN_SCHEDULE_COLLECTION]
+        .aggregate(pipeline)
+        .to_list(length=100)
+    )
+
+    return outstanding_months
