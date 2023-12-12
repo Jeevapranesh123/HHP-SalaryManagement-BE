@@ -1,5 +1,6 @@
 from pydantic import BaseModel, root_validator
 import datetime
+from typing import List, Dict
 
 
 class Rules(BaseModel):
@@ -16,3 +17,7 @@ class RulesInDB(Rules):
     created_by: str = "MD"
     updated_at: datetime.datetime
     updated_by: str = "MD"
+
+
+class Guidelines(BaseModel):
+    guidelines: List[Dict]

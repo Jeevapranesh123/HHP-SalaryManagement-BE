@@ -8,19 +8,17 @@ from app.schemas.auth import (
     ResetPasswordRequest,
     ResetPasswordResponse,
     ChangePasswordRequest,
-    AssignRoleReq,
-    RemoveRoleReq,
 )
 
 from app.database import get_mongo, AsyncIOMotorClient
 
-from app.api.controllers import auth as auth_controller
 from app.api.utils.employees import (
     verify_login_token,
     verify_tokens,
 )
-from app.api.utils.auth import role_required
-from app.api.utils.employees import verify_login_token, verify_custom_master_token
+from app.api.controllers import auth as auth_controller
+
+from app.api.utils.employees import verify_login_token
 
 
 router = APIRouter()
@@ -121,41 +119,3 @@ async def get_logged_in_user(
         "status_code": 200,
         "data": res,
     }
-
-
-# FIXME: Assign role and remove role should be restricted, use a separate validator to accept both JWT and Custom Token for backend Uses
-@router.post("/assign-role")
-@role_required(["MD"])
-async def assign_role(
-    role_request: AssignRoleReq,
-    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
-    payload: dict = Depends(verify_custom_master_token),
-):
-    res = await auth_controller.assign_role(role_request, mongo_client, payload)
-
-    if res:
-        return {
-            "message": "Role assigned successfully",
-            "status_code": 200,
-        }
-
-    raise HTTPException(status_code=400, detail="Role assignment failed")
-
-
-# FIXME: Assign role and remove role should be restricted, use a separate validator to accept both JWT and Custom Token for backend Uses
-@router.delete("/remove-role")
-@role_required(["MD"])
-async def remove_role(
-    role_request: RemoveRoleReq,
-    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
-    payload: dict = Depends(verify_custom_master_token),
-):
-    res = await auth_controller.remove_role(role_request, mongo_client, payload)
-
-    if res:
-        return {
-            "message": "Role deleted successfully",
-            "status_code": 200,
-        }
-
-    raise HTTPException(status_code=400, detail="Role deletion failed")
