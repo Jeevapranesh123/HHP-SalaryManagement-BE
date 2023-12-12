@@ -2,16 +2,16 @@ version: '3'
 
 services:
 
-  mongodb:
-    image: mongo
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
+  # mongodb:
+  #   image: mongo
+  #   ports:
+  #     - "27017:27017"
+  #   volumes:
+  #     - mongo_data:/data/db
       
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: zuvaLabs
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: root
+  #     MONGO_INITDB_ROOT_PASSWORD: zuvaLabs
 
   # mq:
   #   image: rabbitmq:3.12-management
@@ -36,11 +36,11 @@ services:
     #   - .:/usr/src/app
     ports:
       - "8000:8000"
-    depends_on:
-      - mongodb
+    # depends_on:
+    #   - mongodb
       # - mq
     environment:
-      - MONGO_HOST=mongodb
+      - MONGO_HOST=lab.zuvatech.com
       - MONGO_PORT=27017
 
   socket:
@@ -50,12 +50,12 @@ services:
     # volumes:
     #   - .:/usr/src/app
     ports:
-      - "9000:9000"
-    depends_on:
-      - mongodb
+      - "9003:9000"
+    # depends_on:
+    #   - mongodb
       # - mq
     environment:
-      - MONGO_HOST=mongodb
+      - MONGO_HOST=lab.zuvatech.com
       - MONGO_PORT=27017
 
 volumes:
