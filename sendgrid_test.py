@@ -1,18 +1,13 @@
-import os
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
+from app.api.lib.SendGrid import SendGrid
+import asyncio
 
-message = Mail(
-    from_email="contact@zuvatech.com",
-    to_emails="jeevapranesh.r2020@vitstudent.ac.in",
-    subject="Sending with Twilio SendGrid is Fun",
-    html_content="<strong>and easy to do anywhere, even with Python</strong>",
-)
-try:
-    sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
-    response = sg.send(message)
-    print(response.status_code)
-    print(response.body)
-    print(response.headers)
-except Exception as e:
-    print(e.message)
+sendgrid = SendGrid()
+
+
+async def send_email():
+    await sendgrid.send_onboarding_email(
+        "jpranesh14@gmail.com", "Jeeva Pranesh", "test"
+    )
+
+
+asyncio.run(send_email())

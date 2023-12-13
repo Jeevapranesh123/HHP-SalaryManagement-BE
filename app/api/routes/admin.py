@@ -113,6 +113,23 @@ async def get_roles(
     return {"message": "Roles fetching failed"}
 
 
+@router.get("/roles/{employee_id}")
+async def get_employee_role(
+    employee_id: str,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    """Create a new location entry"""
+
+    obj = AdminController(payload, mongo_client)
+    res = await obj.get_employee_role(employee_id)
+
+    if res:
+        return {"message": "Roles fetched successfully", "data": res}
+    print(res)
+    return {"message": "Roles fetching failed"}
+
+
 # FIXME: Assign role and remove role should be restricted, use a separate validator to accept both JWT and Custom Token for backend Uses
 @router.post("/roles")
 @role_required(["MD"])
@@ -133,7 +150,7 @@ async def assign_role(
 
 
 # FIXME: Assign role and remove role should be restricted, use a separate validator to accept both JWT and Custom Token for backend Uses
-@router.delete("/remove-role")
+@router.put("/remove-role")
 @role_required(["MD"])
 async def remove_role(
     role_request: RemoveRoleReq,

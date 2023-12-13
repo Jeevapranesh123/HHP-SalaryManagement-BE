@@ -70,7 +70,6 @@ async def get_employee(
 
 @router.get("/")
 async def get_all_employees(
-    branch: str = None,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
