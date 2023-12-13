@@ -193,7 +193,7 @@ class EmployeeController:
 
         return res
 
-    async def get_all_employees(self):
+    async def get_all_employees(self, **kwargs):
         branch = None
         requester = await employee_crud.get_employee(
             self.employee_id, self.mongo_client
@@ -201,7 +201,9 @@ class EmployeeController:
         branch = requester["branch"]
         # FIXME: Check with UI, how to implement this
 
-        return await employee_crud.get_all_employees(branch, self.mongo_client)
+        return await employee_crud.get_all_employees(
+            self.mongo_client, branch=branch, **kwargs
+        )
 
     async def update_employee(
         self, employee_id, employee_details: EmployeeUpdateRequest

@@ -21,6 +21,7 @@ class SendGrid:
         self.sg_client = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
         self.sender = "contact@zuvatech.com"
         self.portal_link = "http://localhost:3000/"
+        self.reset_password_link = "http://localhost:3000/reset-password?token={}"
         self.template_config = template_config
         self.TEMPLATE_DIR = TEMPLATE_DIR
 
@@ -47,6 +48,25 @@ class SendGrid:
             from_email=self.sender,
             to_emails=email,
             subject=self.template_config["onboarding"]["subject"],
+            html_content=html_content,
+        )
+
+        await self.send(message)
+
+    async def send_forgot_password_email(self, email, name, token):
+        html_content = await self.read_template(
+            self.template_config["forgot_password"]["template"]
+        )
+
+        html_content = html_content.replace("{{ employee_name }}", name)
+        html_content = html_content.replace(
+            "{{ reset_link }}", self.reset_password_link.format(token)
+        )
+
+        message = Mail(
+            from_email=self.sender,
+            to_emails=email,
+            subject=self.template_config["forgot_password"]["subject"],
             html_content=html_content,
         )
 
