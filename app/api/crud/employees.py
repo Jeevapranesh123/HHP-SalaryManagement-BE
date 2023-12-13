@@ -142,12 +142,13 @@ async def create_employee(
 
     emp_in_db = EmployeeInDB(**employee)
 
-    if await mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].insert_one(
-        emp_in_db.model_dump()
-    ):
-        res = emp_in_db.model_dump()
-        res["password"] = password
-        return res, user
+    emp_in_db.branch = emp_in_db.branch.value
+
+    emp_in_db = emp_in_db.model_dump()
+
+    if await mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].insert_one(emp_in_db):
+        emp_in_db["password"] = password
+        return emp_in_db, user
 
 
 async def create_user(employee: dict, created_by, mongo_client: AsyncIOMotorClient):

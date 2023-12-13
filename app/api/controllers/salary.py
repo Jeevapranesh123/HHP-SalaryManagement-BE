@@ -373,7 +373,7 @@ class SalaryController:
             title="Salary Updated",
             description="Your salary has been updated by {}".format(self.employee_name),
             payload={
-                "url": "/profile",
+                "url": "/salary/basic",
             },
             ui_action="action",
             type="salary",
@@ -433,7 +433,6 @@ class SalaryController:
                     notifier.append(hr_notification)
 
         elif self.employee_role == "HR":
-            print("Posting by HR")
             if user_role == "MD":
                 pass
 
@@ -486,7 +485,7 @@ class SalaryController:
                 self.employee_name
             ),
             payload={
-                "url": "/profile",
+                "url": "/salary/monthly-compensation",
             },
             ui_action="action",
             type="salary",
@@ -593,7 +592,7 @@ class SalaryController:
                 self.employee_name
             ),
             payload={
-                "url": "/profile",
+                "url": "/salary/incentives",
             },
             ui_action="action",
             type="salary",

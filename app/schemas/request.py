@@ -36,7 +36,6 @@ def validate_phone_number(cls, value, field):
 class EmployeeCreateRequest(EmployeeBase):
     @root_validator(pre=True)
     def test(cls, values):
-        pprint.pprint(values)
         basic_information = values.get("basic_information")
         if basic_information:
             for key, value in basic_information.items():
@@ -59,7 +58,6 @@ class EmployeeCreateRequest(EmployeeBase):
             values["is_marketing_staff"] = False
 
         if is_marketing_manager:
-            print(type(is_marketing_manager))
             if is_marketing_manager == "Yes":
                 values["is_marketing_manager"] = True
             elif is_marketing_manager == "No":
@@ -78,7 +76,9 @@ class EmployeeCreateRequest(EmployeeBase):
                     status_code=400, detail="Marketing Staff must have a manager"
                 )
 
-        pprint.pprint(values)
+        for key, value in values.items():
+            if isinstance(value, str):
+                values[key] = value.strip()
 
         return values
 
@@ -100,7 +100,6 @@ class EmployeeUpdateRequest(BaseModel):
 
     @root_validator(pre=True)
     def convert_basic_information(cls, values):
-        pprint.pprint(values)
         basic_information = values.get("basic_information")
         if basic_information:
             for key, value in basic_information.items():
@@ -127,8 +126,6 @@ class EmployeeUpdateRequest(BaseModel):
             raise HTTPException(
                 status_code=400, detail="Is Marketing Manager must be Yes or No"
             )
-
-        print(is_marketing_staff, is_marketing_manager)
 
         if is_marketing_staff and not is_marketing_manager:
             if not values.get("marketing_manager"):
@@ -286,14 +283,6 @@ class PermissionCreateRequest(PermissionBase):
         today = datetime.datetime.today()
         now = datetime.datetime.now()
 
-        date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
-        if date_obj < today.date():
-            raise HTTPException(status_code=400, detail="Date cannot be in the past")
-
-        if date_obj == today.date() and start_time < now.time():
-            raise HTTPException(
-                status_code=400, detail="Start time cannot be in the past"
-            )
         # Ensure start_time and end_time are datetime.datetime objects
         if isinstance(start_time, str):
             try:
@@ -310,6 +299,15 @@ class PermissionCreateRequest(PermissionBase):
                 values["end_time"] = end_time  # Update the values dictionary
             except ValueError:
                 raise ValidationError(f"Invalid end_time format: {end_time}")
+
+        date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+        if date_obj < today.date():
+            raise HTTPException(status_code=400, detail="Date cannot be in the past")
+
+        if date_obj == today.date() and start_time < now:
+            raise HTTPException(
+                status_code=400, detail="Start time cannot be in the past"
+            )
 
         if start_time > end_time:
             raise HTTPException(
@@ -348,6 +346,9 @@ class LoanCreateRequest(LoanBase):
         amount = int(values.get("amount"))
         payback_type = values.get("payback_type")
         payback_value = int(values.get("payback_value"))
+
+        if amount <= 0 or payback_value <= 0:
+            raise HTTPException(status_code=400, detail="values must be greater than 0")
 
         month = values.get("month")
         month = month + "-01"

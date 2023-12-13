@@ -70,6 +70,7 @@ class LoanController:
             payload={"url": "/loan/history"},
             ui_action="action",
             source="loan",
+            type="loan",
             target="{}".format(res["employee_id"]),
             meta=NotificationMeta(
                 to=notifiers,

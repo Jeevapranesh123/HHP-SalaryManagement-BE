@@ -180,7 +180,7 @@ async def forgot_password(forgot_password_request, mongo_client: AsyncIOMotorCli
     sendgrid = SendGrid()
 
     await sendgrid.send_forgot_password_email(user["email"], employee["name"], token)
-
+    print(token)
     return {"token": token}
 
 
@@ -210,15 +210,20 @@ async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient)
     res, emp = await employee_crud.get_employee_with_computed_fields(
         employee_id, mongo_client
     )
-    pprint.pprint(emp)
 
     res = {
         "alert": [],
         **res,
     }
 
-    monthly_absent_days = res["attendance"]["total_absent_days"]
-    monthly_permission_days = res["leaves_and_permissions"]["monthly_permission_hours"]
+    monthly_absent_days = res["leaves_and_permissions"]["monthly_leave_days"]
+    monthly_permission_hours = res["leaves_and_permissions"]["monthly_permission_hours"]
+
+    hour = monthly_permission_hours.split(" ")[0]
+    hour = int(hour)
+
+    minutes = monthly_permission_hours.split(" ")[2]
+    minutes = int(minutes)
 
     alert = []
     # FIXME: Store the rules in the database and fetch them here
@@ -231,21 +236,27 @@ async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient)
                 ),
             }
         )
-    alert.append(
-        {
-            "title": "Permission Exceeded",
-            "description": "You have exceeded your monthly permission limit of {} hours".format(
-                2
-            ),
-        }
-    )
+
+    if hour > 2 or (hour == 2 and minutes > 0):
+        alert.append(
+            {
+                "title": "Permission Exceeded",
+                "description": "You have exceeded your monthly permission limit of {} hours".format(
+                    2
+                ),
+            }
+        )
 
     res["alert"] = alert
 
     if emp["is_marketing_staff"]:
-        res["basic_information"]["is_marketing_staff"] = emp["is_marketing_staff"]
+        res["basic_information"]["is_marketing_staff"] = "Yes"
         res["basic_information"]["marketing_manager"] = emp["marketing_manager"]
-    # pprint.pprint(res)
+
+    if emp["is_marketing_manager"]:
+        res["basic_information"]["is_marketing_manager"] = "Yes"
+        res["basic_information"]["marketing_manager"] = emp["marketing_manager"]
+
     return res
 
 
@@ -360,7 +371,7 @@ async def remove_role(role_req, mongo_client: AsyncIOMotorClient, payload):
         )
 
     role = await auth_crud.get_role(role_req.role, mongo_client)
-    print(role)
+
     if not role:
         raise HTTPException(status_code=400, detail="Role does not exist")
 
