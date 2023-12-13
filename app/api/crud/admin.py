@@ -49,7 +49,10 @@ class AdminCrud:
             RULES_AND_GUIDELINES_COLLECTION
         ].find_one({"id": "guidelines"}, {"_id": 0})
 
-        return guidelines
+        if guidelines:
+            return guidelines
+
+        return []
 
     async def get_roles(self):
         roles = (

@@ -16,6 +16,7 @@ from app.api.utils import *
 
 from app.api.lib.RabbitMQ import RabbitMQ
 from app.api.lib.MinIO import MinIO
+from app.api.lib.SendGrid import SendGrid
 
 
 from datetime import timedelta
@@ -134,6 +135,13 @@ class EmployeeController:
             emp_in_create, self.employee_id, self.mongo_client
         )
 
+        sendgrid = SendGrid()
+
+        await sendgrid.send_onboarding_email(
+            emp["email"],
+            emp["name"],
+            emp["password"],
+        )
         # sal_obj = SalaryController(self.payload, self.mongo_client)
 
         # await sal_obj.create_all_salaries(emp_in_create)

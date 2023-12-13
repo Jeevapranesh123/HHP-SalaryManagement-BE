@@ -77,10 +77,7 @@ async def get_guidelines(
     obj = AdminController(payload, mongo_client)
     res = await obj.get_guidelines()
 
-    if res:
-        return {"message": "Guidelines fetched successfully", "data": res}
-
-    return {"message": "Guidelines fetching failed"}
+    return {"message": "Guidelines fetched successfully", "data": res}
 
 
 @router.put("/guidelines")

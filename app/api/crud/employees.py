@@ -132,9 +132,8 @@ async def create_employee(
 
     employee["uuid"] = str(uuid.uuid4()).replace("-", "")
 
-    # password = generate_random_password()
+    password = await generate_random_password()
 
-    password = "string"
     employee["password"] = await hash_password(password)
 
     user = await create_user(employee, created_by, mongo_client)
