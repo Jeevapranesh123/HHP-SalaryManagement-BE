@@ -360,14 +360,23 @@ async def remove_role(role_req, mongo_client: AsyncIOMotorClient, payload):
         )
 
     role = await auth_crud.get_role(role_req.role, mongo_client)
-
+    print(role)
     if not role:
         raise HTTPException(status_code=400, detail="Role does not exist")
 
     if role_req.type.value == "primary":
+        if employee["primary_role"]["_id"] != role["_id"]:
+            raise HTTPException(
+                status_code=400, detail="Role not associated with employee"
+            )
         update = await auth_crud.remove_primary_role(
             employee["employee_id"], role["_id"], mongo_client
         )
+        if role_req.role in ["HR", "MD"]:
+            new_role = await auth_crud.get_role("employee", mongo_client)
+            await auth_crud.assign_primary_role(
+                employee["employee_id"], new_role["_id"], mongo_client
+            )
 
     elif role_req.type.value == "secondary":
         update = await auth_crud.remove_secondary_role(
