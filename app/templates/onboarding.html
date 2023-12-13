@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome to Our Team!</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            background-color: white; 
+            color: #161A30; 
+        }
+        .container { 
+            width: 80%; 
+            margin: 0 auto; 
+            padding: 20px; 
+            border: 1px solid #ddd; 
+            background-color: white; 
+        }
+        .header { 
+            background-color: #161A30; 
+            color: white; 
+            padding: 10px; 
+            text-align: center; 
+        }
+        .content { 
+            margin-top: 20px; 
+            color: #161A30; 
+        }
+        .login-details {
+            background-color: #f2f2f2;
+            padding: 15px;
+            margin-top: 15px;
+            border-left: 4px solid #161A30;
+        }
+        .footer { 
+            margin-top: 30px; 
+            font-size: 0.8em; 
+            text-align: center; 
+            color: #161A30;
+        }
+        .button {
+            background-color: #161A30;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Welcome Aboard, {{ employee_name }}!</h1>
+        </div>
+        <div class="content">
+            <p>Dear {{ employee_name }},</p>
+            <p>We are thrilled to welcome you to our team! Here are your login credentials for the salary management portal:</p>
+            
+            <div class="login-details">
+                <p><strong>Your Email:</strong> {{ employee_email }}</p>
+                <p><strong>Your Temporary Password:</strong> {{ employee_password }}</p>
+                <p>Please change your password after your initial login for security reasons.</p>
+            </div>
+
+            <p><a href="{{ portal_link }}" class="button">Access Your Portal</a></p>
+            <p>If you have any questions or need assistance, feel free to reach out to our HR department.</p>
+            <p>Welcome aboard, and we look forward to a successful journey together!</p>
+        </div>
+        <div class="footer">
+            Warm Regards,<br>
+            The HR Team<br>
+            <em>Your Company Name</em>
+        </div>
+    </div>
+</body>
+</html>

@@ -8,3 +8,4 @@ minio-py
 __pycache__/
 __pycache__
 
+sendgrid.env
