@@ -82,7 +82,7 @@ class MarketingCrud:
             LOCATION_COLLECTION
         ].insert_one(location_dict)
 
-        return True
+        return location_dict
 
     async def get_daily_entries(self, employee_id, date):
         """Get daily entries"""

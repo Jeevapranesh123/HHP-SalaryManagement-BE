@@ -100,7 +100,7 @@ class LeaveController:
         emp_notification = NotificationBase(
             title="Leave Approved",
             description="Leave has been approved for you",
-            payload={"url": "/leave/history"},
+            payload={"url": "/leave/history?tab=leave"},
             ui_action="action",
             type="leave",
             source="leave_request",
@@ -115,7 +115,7 @@ class LeaveController:
             title="Leave Approved",
             description="{} has approved a leave".format(self.employee_name),
             payload={
-                "url": "/employees/{}/leave/respond?id={}&type=leave".format(
+                "url": "/employees/{}/leave/respond?id={}&type=leave&tab=leave".format(
                     res["employee_id"], res["id"]
                 )
             },
@@ -133,7 +133,7 @@ class LeaveController:
             title="Leave Approved",
             description="{} has approved a leave".format(self.employee_name),
             payload={
-                "url": "/employees/{}/leave/respond?id={}&type=leave".format(
+                "url": "/employees/{}/leave/respond?id={}&type=leave&tab=leave".format(
                     res["employee_id"], res["id"]
                 )
             },
@@ -201,7 +201,7 @@ class LeaveController:
             description="Leave has been requested for you by {}".format(
                 self.employee_name
             ),
-            payload={"url": "/leave/history"},
+            payload={"url": "/leave/history?tab=leave"},
             ui_action="action",
             type="leave",
             source="leave_request",
@@ -216,7 +216,7 @@ class LeaveController:
             title="Leave Request",
             description="{} has requested leave".format(user["info"]["name"]),
             payload={
-                "url": "/employees/{}/leave/respond?id={}&type=leave".format(
+                "url": "/employees/{}/leave/respond?id={}&type=leave&tab=leave".format(
                     res["employee_id"], res["id"]
                 )
             },
@@ -234,7 +234,7 @@ class LeaveController:
             title="Leave Request",
             description="{} has requested leave".format(user["info"]["name"]),
             payload={
-                "url": "/employees/{}/leave/respond?id={}&type=leave".format(
+                "url": "/employees/{}/leave/respond?id={}&type=leave&tab=leave".format(
                     res["employee_id"], res["id"]
                 )
             },
@@ -288,7 +288,7 @@ class LeaveController:
         emp_notification = NotificationBase(
             title="Leave {}".format(res["status"].capitalize()),
             description="Your leave request has been {}".format(res["status"]),
-            payload={"url": "/leave/history"},
+            payload={"url": "/leave/history?tab=leave"},
             ui_action="action",
             type="leave",
             source="leave_request",
@@ -305,7 +305,7 @@ class LeaveController:
                 self.employee_name, res["status"]
             ),
             payload={
-                "url": "/employees/{}/leave/respond?id={}&type=leave".format(
+                "url": "/employees/{}/leave/respond?id={}&type=leave&tab=leave".format(
                     res["employee_id"], res["id"]
                 )
             },
@@ -325,7 +325,7 @@ class LeaveController:
                 self.employee_name, res["status"]
             ),
             payload={
-                "url": "/employees/{}/leave/respond?id={}&type=leave".format(
+                "url": "/employees/{}/leave/respond?id={}&type=leave&tab=leave".format(
                     res["employee_id"], res["id"]
                 )
             },
@@ -391,7 +391,7 @@ class LeaveController:
         emp_notification = NotificationBase(
             title="Permission Approved",
             description="Permission has been approved for you",
-            payload={"url": "/leave/history"},
+            payload={"url": "/leave/history?tab=permission"},
             ui_action="action",
             type="leave",
             source="leave_request",
@@ -406,7 +406,7 @@ class LeaveController:
             title="Permission Approved",
             description="{} has approved a permission".format(self.employee_name),
             payload={
-                "url": "/employees/{}/leave/respond?id={}&type=permission".format(
+                "url": "/employees/{}/leave/respond?id={}&type=permission&tab=permission".format(
                     res["employee_id"], res["id"]
                 )
             },
@@ -424,7 +424,7 @@ class LeaveController:
             title="Permission Approved",
             description="{} has approved a permission".format(self.employee_name),
             payload={
-                "url": "/employees/{}/leave/respond?id={}&type=permission".format(
+                "url": "/employees/{}/leave/respond?id={}&type=permission&tab=permission".format(
                     res["employee_id"], res["id"]
                 )
             },
@@ -496,7 +496,7 @@ class LeaveController:
             description="Permission has been requested for you by {}".format(
                 self.employee_name
             ),
-            payload={"url": "/leave/history"},
+            payload={"url": "/leave/history?tab=permission"},
             ui_action="action",
             type="leave",
             source="leave_request",
@@ -511,7 +511,7 @@ class LeaveController:
             title="Permission Request",
             description="{} has requested permission".format(user["info"]["name"]),
             payload={
-                "url": "/employees/{}/leave/respond?id={}&type=permission".format(
+                "url": "/employees/{}/leave/respond?id={}&type=permission&tab=permission".format(
                     res["employee_id"], res["id"]
                 )
             },
@@ -529,7 +529,7 @@ class LeaveController:
             title="Permission Request",
             description="{} has requested permission".format(user["info"]["name"]),
             payload={
-                "url": "/employees/{}/leave/respond?id={}&type=permission".format(
+                "url": "/employees/{}/leave/respond?id={}&type=permission&tab=permission".format(
                     res["employee_id"], res["id"]
                 )
             },
@@ -586,7 +586,7 @@ class LeaveController:
         emp_notification = NotificationBase(
             title="Permission {}".format(res["status"].capitalize()),
             description="Your permission request has been {}".format(res["status"]),
-            payload={"url": "/leave/history"},
+            payload={"url": "/leave/history?tab=permission"},
             ui_action="action",
             type="leave",
             source="leave_request",
@@ -603,7 +603,7 @@ class LeaveController:
                 self.employee_name, res["status"]
             ),
             payload={
-                "url": "/employees/{}/leave/respond?id={}&type=permission".format(
+                "url": "/employees/{}/leave/respond?id={}&type=permission&tab=permission".format(
                     res["employee_id"], res["id"]
                 )
             },
@@ -623,7 +623,7 @@ class LeaveController:
                 self.employee_name, res["status"]
             ),
             payload={
-                "url": "/employees/{}/leave/respond?id={}&type=permission".format(
+                "url": "/employees/{}/leave/respond?id={}&type=permission&tab=permission".format(
                     res["employee_id"], res["id"]
                 )
             },

@@ -36,6 +36,22 @@ class Config(object):
 
     SALARY_COLLECTION = os.getenv("SALARY_COLLECTION") or "salary"
 
+    LEAVE_COLLECTION = os.getenv("LEAVE_COLLECTION") or "leave"
+
+    LOAN_COLLECTION = os.getenv("LOAN_COLLECTION") or "loan"
+
+    ROLES_COLLECTION = os.getenv("ROLES_COLLECTION") or "roles"
+
+    TEMP_JWT_ID_COLLECTION = os.getenv("TEMP_JWT_ID_COLLECTION") or "jtis"
+
+    ATTENDANCE_COLLECTION = os.getenv("ATTENDANCE_COLLECTION") or "attendance"
+
+    LOCATION_COLLECTION = os.getenv("LOCATION_COLLECTION") or "location"
+
+    LOAN_SCHEDULE_COLLECTION = os.getenv("LOAN_SCHEDULE_COLLECTION") or "loan_schedule"
+
+    NOTIFICATION_COLLECTION = os.getenv("NOTIFICATION_COLLECTION") or "notifications"
+
     MONTHLY_COMPENSATION_COLLECTION = (
         os.getenv("MONTHLY_COMPENSATION_COLLECTION") or "monthly_compensation"
     )
@@ -44,30 +60,21 @@ class Config(object):
         os.getenv("SALARY_INCENTIVES_COLLECTION") or "salary_incentives"
     )
 
-    NOTIFICATION_COLLECTION = os.getenv("NOTIFICATION_COLLECTION") or "notifications"
-    LEAVE_COLLECTION = os.getenv("LEAVE_COLLECTION") or "leave"
-
-    LOAN_COLLECTION = os.getenv("LOAN_COLLECTION") or "loan"
-    LOAN_SCHEDULE_COLLECTION = os.getenv("LOAN_SCHEDULE_COLLECTION") or "loan_schedule"
     SALARY_ADVANCE_COLLECTION = (
         os.getenv("SALARY_ADVANCE_COLLECTION") or "salary_advance"
     )
-
-    ROLES_COLLECTION = os.getenv("ROLES_COLLECTION") or "roles"
-
-    TEMP_JWT_ID_COLLECTION = os.getenv("TEMP_JWT_ID_COLLECTION") or "jtis"
 
     OTHER_SALARY_COMPONENTS_COLLECTION = (
         os.getenv("OTHER_SALARY_COMPONENTS_COLLECTION") or "other_salary_components"
     )
 
-    ATTENDANCE_COLLECTION = os.getenv("ATTENDANCE_COLLECTION") or "attendance"
-
-    LOCATION_COLLECTION = os.getenv("LOCATION_COLLECTION") or "location"
-
     RULES_AND_GUIDELINES_COLLECTION = (
         os.getenv("RULES_AND_GUIDELINES_COLLECTION") or "rules_and_guidelines"
     )
+
+    BRANCHES = ["HHP", "SAM"]
+
+    BRANCH_DROPDOWN = [{"label": x, "value": x} for x in BRANCHES]
 
 
 # class Settings(BaseModel):

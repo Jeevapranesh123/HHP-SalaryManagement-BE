@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Response, BackgroundTasks
 
 # Import all the Schemas
 from app.schemas.request import EmployeeCreateRequest, EmployeeUpdateRequest
@@ -14,6 +14,8 @@ from app.api.utils.employees import verify_login_token, verify_custom_master_tok
 # import UploadFile
 from fastapi import UploadFile, File
 
+from app.core.config import Config
+
 
 router = APIRouter()
 
@@ -23,11 +25,10 @@ async def get_branch(
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
-    # res = await auth_controller.get_branch(mongo_client, payload)
-    res = [
-        {"value": "head_office", "label": "Head Office"},
-        {"value": "factory", "label": "Factory"},
-    ]
+    obj = EmployeeController(payload, mongo_client)
+
+    res = await obj.get_branch()
+
     return {
         "message": "Branch fetched successfully",
         "status_code": 200,
@@ -43,9 +44,11 @@ async def set_branch(
     payload: dict = Depends(verify_login_token),
 ):
     obj = EmployeeController(payload, mongo_client)
+
     res = await obj.set_branch(employee_id, branch)
+
     return {
-        "message": "Branch set successfully",
+        "message": "Branch changed to " + branch,
         "status_code": 200,
         "data": res,
     }
@@ -88,11 +91,12 @@ async def get_all_employees(
 async def create(
     employee: EmployeeCreateRequest,
     response: Response,
+    background_tasks: BackgroundTasks,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_custom_master_token),
 ):
     obj = EmployeeController(payload, mongo_client)
-    res = await obj.create_employee(employee)
+    res = await obj.create_employee(employee, background_tasks)
 
     return EmployeeCreateResponse(
         message="Employee Created Successfully",
@@ -155,77 +159,14 @@ async def get_create_meta(
     payload: dict = Depends(verify_login_token),
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
 ):
+    obj = EmployeeController(payload, mongo_client)
+
+    data = await obj.get_create_meta(type)
+
     return {
         "message": "Success",
         "status_code": 200,
-        "data": {
-            "basic_information": {
-                "data": {
-                    "employee_id": {"type": "string", "required": True},
-                    "name": {"type": "string", "required": True},
-                    "email": {"type": "string", "required": True},
-                    "phone": {"type": "string", "required": True},
-                    "branch": {
-                        "type": "dropdown",
-                        "options": [
-                            {"label": "Head Office", "value": "head_office"},
-                            {"label": "Factory", "value": "factory"},
-                        ],
-                        "required": True,
-                    },
-                    "profile_image": {"type": "image", "required": True},
-                    "department": {"type": "string"},
-                    "designation": {"type": "string"},
-                    "is_marketing_staff": {
-                        "type": "radio",
-                        "options": [
-                            {"label": "Yes", "value": "Yes"},
-                            {"label": "No", "value": "No"},
-                        ],
-                    },
-                    "is_marketing_manager": {
-                        "type": "radio",
-                        "options": [
-                            {"label": "Yes", "value": "Yes"},
-                            {"label": "No", "value": "No"},
-                        ],
-                    },
-                    "marketing_manager": {"type": "string"},
-                },
-                "actions": [],
-            },
-            "bank_details": {
-                "data": {
-                    "bank_name": {"type": "string"},
-                    "account_number": {"type": "string"},
-                    "ifsc_code": {"type": "string"},
-                    "branch": {"type": "string"},
-                    "address": {"type": "string"},
-                },
-                "actions": [],
-            },
-            "address": {
-                "data": {
-                    "address_line_1": {"type": "string"},
-                    "address_line_2": {"type": "string"},
-                    "city": {"type": "string"},
-                    "state": {"type": "string"},
-                    "country": {"type": "string"},
-                    "pincode": {"type": "string"},
-                },
-                "actions": [],
-            },
-            "govt_id_proofs": {
-                "data": {
-                    "aadhar": {"type": "string"},
-                    "pan": {"type": "string"},
-                    "voter_id": {"type": "string"},
-                    "driving_license": {"type": "string"},
-                    "passport": {"type": "string"},
-                },
-                "actions": [],
-            },
-        },
+        "data": data,
     }
 
 

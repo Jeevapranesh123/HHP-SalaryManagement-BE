@@ -1,10 +1,17 @@
-from app.database import get_mongo, AsyncIOMotorClient
+from app.database import AsyncIOMotorClient
 from fastapi import HTTPException
 from app.schemas.marketing import LocationEntry
 
 from app.api.crud.marketing import MarketingCrud
 
 from app.api.crud.employees import get_employee
+
+from app.api.lib.Notification import Notification
+from app.schemas.notification import (
+    NotificationBase,
+    SendNotification,
+    NotificationMeta,
+)
 
 import datetime
 
@@ -109,16 +116,29 @@ class MarketingController:
         """Create a new location entry"""
 
         location_entry = location_entry.model_dump()
+        print(location_entry)
+        emp = await get_employee(location_entry["employee_id"], self.mongo_client)
 
-        # if (
-        #     not self.primary_role in ["marketing_manager", "MD"]
-        #     and not self.employee_id == location_entry["employee_id"]
-        # ):
-        #     print("Not enough permissions")
-        #     raise HTTPException(
-        #         status_code=403,
-        #         detail="Not Enough Permissions",
-        #     )
+        if not emp:
+            raise HTTPException(
+                status_code=404,
+                detail="Employee not found",
+            )
+
+        if (
+            not self.primary_role in ["MD"]
+            and not self.employee_id == location_entry["employee_id"]
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail="Not Enough Permissions",
+            )
+
+        if not self.primary_role in ["MD"] and not emp["is_marketing_staff"]:
+            raise HTTPException(
+                status_code=403,
+                detail="Not Enough Permissions",
+            )
 
         emp = await get_employee(location_entry["employee_id"], self.mongo_client)
 
@@ -129,16 +149,112 @@ class MarketingController:
                 detail="Employee not found",
             )
 
-        # if not emp["is_marketing_staff"]:
-        #     print("not marketing staff")
-        #     raise HTTPException(
-        #         status_code=403,
-        #         detail="Not Enough Permissions",
-        # )
-
         curd_obj = MarketingCrud(self.employee_id, self.mongo_client)
 
         res = await curd_obj.post_entry(location_entry)
+        print(res)
+        notification = Notification(
+            self.employee_id, "marketing_entry", self.mongo_client
+        )
+
+        notifiers = [
+            emp["employee_id"],
+            emp["marketing_manager"]
+            if emp["marketing_manager"]
+            else "marketing_manager",
+            "MD",
+        ]
+
+        entry_type = location_entry["type"].value.split("_")[1].capitalize()
+
+        emp_notification = NotificationBase(
+            title="Marketing Entry",
+            description="Marketing Check {} Entry by {}".format(
+                entry_type, emp["name"]
+            ),
+            payload={
+                "url": "/marketing/{}/view?entry_id={}".format(
+                    res["employee_id"], res["id"]
+                )
+            },
+            ui_action="action",
+            type="marketing",
+            source="marketing_entry",
+            target="{}".format(res["employee_id"]),
+            meta=NotificationMeta(
+                to=notifiers,
+                from_=self.employee_id,
+            ),
+        )
+
+        marketing_manager_notification = NotificationBase(
+            title="Marketing Entry",
+            description="Marketing Check {} Entry by {}".format(entry_type, emp["name"])
+            if self.primary_role == "employee"
+            else "Marketing Check {} Entry for {} by {}".format(
+                entry_type, emp["name"], self.employee_id
+            ),
+            payload={
+                "url": "/marketing/{}/view?entry_id={}".format(
+                    res["employee_id"], res["id"]
+                )
+            },
+            ui_action="action",
+            type="marketing",
+            source="marketing_entry",
+            target="{}".format(emp["marketing_manager"]),
+            meta=NotificationMeta(
+                to=notifiers,
+                from_=self.employee_id,
+            ),
+        )
+
+        md_notification = NotificationBase(
+            title="Marketing Entry",
+            description="Marketing Check {} Entry by {}".format(entry_type, emp["name"])
+            if self.primary_role == "employee"
+            else "Marketing Check {} Entry for {} by {}".format(
+                entry_type, emp["name"], self.employee_id
+            ),
+            payload={
+                "url": "/marketing/{}/view?entry_id={}".format(
+                    res["employee_id"], res["id"]
+                )
+            },
+            ui_action="action",
+            type="marketing",
+            source="marketing_entry",
+            target="MD",
+            meta=NotificationMeta(
+                to=notifiers,
+                from_=self.employee_id,
+            ),
+        )
+
+        notifier = []
+
+        if self.primary_role == "employee":
+            notifier.append(marketing_manager_notification)
+            notifier.append(md_notification)
+
+        elif self.primary_role == "marketing_manager":
+            if self.employee_id == emp["employee_id"]:
+                notifier.append(md_notification)
+                pass
+            else:
+                notifier.append(emp_notification)
+                notifier.append(md_notification)
+
+        elif self.primary_role == "MD":
+            if self.employee_id == emp["employee_id"]:
+                pass
+            else:
+                notifier.append(emp_notification)
+                notifier.append(marketing_manager_notification)
+
+        send = SendNotification(notifier=notifier)
+
+        await notification.send_notification(send)
 
         return res
 

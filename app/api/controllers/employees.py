@@ -1,4 +1,4 @@
-from fastapi import HTTPException, UploadFile, File
+from fastapi import HTTPException, UploadFile, File, Depends, BackgroundTasks
 
 from app.database import AsyncIOMotorClient
 
@@ -18,10 +18,10 @@ from app.api.lib.RabbitMQ import RabbitMQ
 from app.api.lib.MinIO import MinIO
 from app.api.lib.SendGrid import SendGrid
 
+import asyncio
+
 
 from datetime import timedelta
-
-import datetime
 
 
 MONGO_DATABASE = Config.MONGO_DATABASE
@@ -46,6 +46,9 @@ class EmployeeController:
         self.employee_id = payload["employee_id"]
         self.employee_role = payload["primary_role"]
         self.mongo_client = mongo_client
+
+    async def get_branch(self):
+        return Config.BRANCH_DROPDOWN
 
     async def upload_profile_image(self, employee_id, file: UploadFile = File(...)):
         if file.content_type not in ["image/jpeg", "image/png"]:
@@ -87,7 +90,85 @@ class EmployeeController:
 
         return emp
 
-    async def create_employee(self, employee: EmployeeCreateRequest):
+    async def get_create_meta(self, type):
+        data = {
+            "basic_information": {
+                "data": {
+                    "employee_id": {"type": "string", "required": True},
+                    "name": {"type": "string", "required": True},
+                    "email": {"type": "string", "required": True},
+                    "phone": {"type": "string", "required": True},
+                    "branch": {
+                        "type": "dropdown",
+                        "options": Config.BRANCH_DROPDOWN,
+                        "required": True,
+                    },
+                    "profile_image": {"type": "image", "required": True},
+                    "department": {"type": "string"},
+                    "designation": {"type": "string"},
+                    "is_marketing_staff": {
+                        "type": "radio",
+                        "options": [
+                            {"label": "Yes", "value": "Yes"},
+                            {"label": "No", "value": "No"},
+                        ],
+                        # "required": True,
+                    },
+                    "is_marketing_manager": {
+                        "type": "radio",
+                        "options": [
+                            {"label": "Yes", "value": "Yes"},
+                            {"label": "No", "value": "No"},
+                        ],
+                        # "required": True,
+                    },
+                    "marketing_manager": {"type": "string"},
+                },
+                "actions": [],
+            },
+            "bank_details": {
+                "data": {
+                    "bank_name": {"type": "string", "required": True},
+                    "account_number": {"type": "string", "required": True},
+                    "ifsc_code": {"type": "string", "required": True},
+                    "branch": {"type": "string", "required": True},
+                    "address": {"type": "string", "required": True},
+                },
+                "actions": [],
+            },
+            "address": {
+                "data": {
+                    "address_line_1": {"type": "string"},
+                    "address_line_2": {"type": "string"},
+                    "city": {"type": "string"},
+                    "state": {"type": "string"},
+                    "country": {"type": "string"},
+                    "pincode": {"type": "string"},
+                },
+                "actions": [],
+            },
+            "govt_id_proofs": {
+                "data": {
+                    "aadhar": {"type": "string"},
+                    "pan": {"type": "string"},
+                    "voter_id": {"type": "string"},
+                    "driving_license": {"type": "string"},
+                    "passport": {"type": "string"},
+                },
+                "actions": [],
+            },
+        }
+
+        if type is not None and type == "update":
+            data["basic_information"]["data"]["profile_image"]["required"] = False
+            data["basic_information"]["data"]["employee_id"]["editable"] = False
+            data["basic_information"]["data"]["email"]["editable"] = False
+
+        return data
+
+    async def create_employee(
+        self, employee: EmployeeCreateRequest, background_tasks: BackgroundTasks
+    ):
         is_valid, message = await validate_new_employee(employee, self.mongo_client)
         if not is_valid:
             raise HTTPException(status_code=400, detail=message)
@@ -137,10 +218,12 @@ class EmployeeController:
 
         sendgrid = SendGrid()
 
-        await sendgrid.send_onboarding_email(
-            emp["email"],
-            emp["name"],
-            emp["password"],
+        def background_onboarding_email_task(email: str, name: str, password: str):
+            asyncio.run(sendgrid.send_onboarding_email(email, name, password))
+
+        print(emp["email"], emp["name"], emp["password"])
+        background_tasks.add_task(
+            background_onboarding_email_task, emp["email"], emp["name"], emp["password"]
         )
         # sal_obj = SalaryController(self.payload, self.mongo_client)
 
@@ -164,9 +247,7 @@ class EmployeeController:
         res, emp = await employee_crud.get_employee_with_computed_fields(
             employee_id, self.mongo_client
         )
-        import pprint
 
-        pprint.pprint(emp)
         is_marketing_staff = emp.get("is_marketing_staff", None)
         is_marketing_manager = emp.get("is_marketing_manager", None)
 
@@ -174,11 +255,18 @@ class EmployeeController:
             res["basic_information"]["is_marketing_staff"] = (
                 "Yes" if emp["is_marketing_staff"] else "No"
             )
+            # res["basic_information"]["is_marketing_staff"] = (
+            #     True if emp["is_marketing_staff"] else False
+            # )
 
         if is_marketing_manager is not None:
             res["basic_information"]["is_marketing_manager"] = (
                 "Yes" if emp["is_marketing_manager"] else "No"
             )
+
+            # res["basic_information"]["is_marketing_manager"] = (
+            #     True if emp["is_marketing_manager"] else False
+            # )
 
         res["basic_information"]["marketing_manager"] = emp["marketing_manager"]
 
@@ -190,6 +278,10 @@ class EmployeeController:
             res["monthly_compensation"].pop("other_special_allowance")
             res.pop("loan_and_advance")
             res.pop("salary_incentives")
+
+        import pprint
+
+        pprint.pprint(res)
 
         return res
 

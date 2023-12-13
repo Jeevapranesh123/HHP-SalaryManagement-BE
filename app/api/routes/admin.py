@@ -44,10 +44,7 @@ async def get_rules(
     obj = AdminController(payload, mongo_client)
     res = await obj.get_rules()
 
-    if res:
-        return {"message": "Rules fetched successfully", "data": res}
-
-    return {"message": "Rules fetching failed"}
+    return {"message": "Rules fetched successfully", "data": res}
 
 
 @router.put("/rules")
@@ -76,7 +73,7 @@ async def get_guidelines(
 
     obj = AdminController(payload, mongo_client)
     res = await obj.get_guidelines()
-    print(res)
+
     return {"message": "Guidelines fetched successfully", "data": res}
 
 
@@ -109,7 +106,7 @@ async def get_roles(
 
     if res:
         return {"message": "Roles fetched successfully", "data": res}
-    print(res)
+
     return {"message": "Roles fetching failed"}
 
 
@@ -124,10 +121,7 @@ async def get_employee_role(
     obj = AdminController(payload, mongo_client)
     res = await obj.get_employee_role(employee_id)
 
-    if res:
-        return {"message": "Roles fetched successfully", "data": res}
-    print(res)
-    return {"message": "Roles fetching failed"}
+    return {"data": res}
 
 
 # FIXME: Assign role and remove role should be restricted, use a separate validator to accept both JWT and Custom Token for backend Uses
@@ -142,7 +136,6 @@ async def assign_role(
 
     if res:
         return {
-            "message": "Role assigned successfully",
             "status_code": 200,
         }
 
@@ -161,7 +154,6 @@ async def remove_role(
 
     if res:
         return {
-            "message": "Role deleted successfully",
             "status_code": 200,
         }
 

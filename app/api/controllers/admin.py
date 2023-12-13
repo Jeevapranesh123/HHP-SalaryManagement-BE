@@ -4,6 +4,8 @@ from app.api.crud.admin import AdminCrud
 
 from app.schemas.admin import Rules, Guidelines
 
+import pprint
+
 
 class AdminController:
     def __init__(self, payload, mongo_client: AsyncIOMotorClient):
@@ -68,7 +70,15 @@ class AdminController:
     async def post_guidelines(self, guidelines: Guidelines):
         crud_obj = AdminCrud(self.payload, self.mongo_client)
         guidelines = guidelines.model_dump()
-        return await crud_obj.post_guidelines(guidelines)
+        pprint.pprint(guidelines)
+        processed_guidelines = {"guidelines": []}
+        for guideline in guidelines["guidelines"]:
+            processed_guidelines["guidelines"].append(
+                {"id": guideline["id"], "content": guideline["content"].strip().title()}
+            )
+
+        pprint.pprint(processed_guidelines)
+        return await crud_obj.post_guidelines(processed_guidelines)
 
     async def get_roles(self):
         crud_obj = AdminCrud(self.payload, self.mongo_client)

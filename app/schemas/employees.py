@@ -3,6 +3,8 @@ from typing import List, Optional
 from fastapi import HTTPException
 from enum import Enum
 
+from app.core.config import Config
+
 
 class BankDetails(BaseModel):
     bank_name: str
@@ -29,9 +31,11 @@ class GovtIDProofs(BaseModel):
     passport: Optional[str] = None
 
 
-class BranchEnum(str, Enum):
-    HO = "head_office"
-    FACTORY = "factory"
+# class BranchEnum(str, Enum):
+#     HHP = "hhp"
+#     SAM = "sam"
+
+BranchEnum = Enum("BranchEnum", {branch: branch for branch in Config.BRANCHES})
 
 
 class EmployeeBase(BaseModel):  # TODO: Add relevant fields in the future
@@ -39,7 +43,7 @@ class EmployeeBase(BaseModel):  # TODO: Add relevant fields in the future
     name: str
     email: str
     phone: str = "0000000000"
-    branch: BranchEnum = BranchEnum.HO
+    branch: BranchEnum
     is_marketing_staff: Optional[bool] = False
     is_marketing_manager: Optional[bool] = False
     marketing_manager: Optional[str] = None

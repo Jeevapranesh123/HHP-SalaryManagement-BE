@@ -43,7 +43,10 @@ class AdminCrud:
             RULES_AND_GUIDELINES_COLLECTION
         ].find_one({"id": "rules"}, {"_id": 0})
 
-        return rules
+        if rules:
+            return rules
+
+        return []
 
     async def get_guidelines(self):
         guidelines = await self.mongo_client[MONGO_DATABASE][
