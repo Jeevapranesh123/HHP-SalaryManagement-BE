@@ -14,6 +14,8 @@ from app.api.lib.MinIO import MinIO
 
 from app.api.lib.RabbitMQ import RabbitMQ
 
+from app.api.lib.SendGrid import SendGrid
+
 from app.api.lib.Notification import Notification
 from app.schemas.notification import (
     NotificationBase,
@@ -153,6 +155,10 @@ async def forgot_password(forgot_password_request, mongo_client: AsyncIOMotorCli
         forgot_password_request.email, mongo_client
     )
 
+    employee = await employee_crud.get_employee(
+        user["employee_id"], mongo_client=mongo_client
+    )
+
     if not user:
         raise HTTPException(status_code=400, detail="User with email does not exist")
 
@@ -171,7 +177,10 @@ async def forgot_password(forgot_password_request, mongo_client: AsyncIOMotorCli
         mongo_client=mongo_client,
     )
 
-    # TODO: Send email with token to user
+    sendgrid = SendGrid()
+
+    await sendgrid.send_forgot_password_email(user["email"], employee["name"], token)
+
     return {"token": token}
 
 

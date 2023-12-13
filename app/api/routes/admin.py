@@ -76,7 +76,7 @@ async def get_guidelines(
 
     obj = AdminController(payload, mongo_client)
     res = await obj.get_guidelines()
-
+    print(res)
     return {"message": "Guidelines fetched successfully", "data": res}
 
 

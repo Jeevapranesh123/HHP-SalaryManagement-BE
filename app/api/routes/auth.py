@@ -57,10 +57,9 @@ async def forgot_password(
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
 ):
     res = await auth_controller.forgot_password(forgot_password_request, mongo_client)
-
+    print(res)
     return ForgotPasswordResponse(
         status_code=200,
-        token=res["token"],
     )
 
 

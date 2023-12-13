@@ -421,12 +421,50 @@ async def get_employee_with_salary(employee_id: str, mongo_client: AsyncIOMotorC
     return None
 
 
-async def get_all_employees(branch, mongo_client):
-    emps = mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].find(
-        {"branch": branch}, {"employee_id": 1, "name": 1, "email": 1, "_id": 0}
+async def get_all_employees(mongo_client, **kwargs):
+    branch = kwargs.get("branch", None)
+    role = kwargs.get("role", None)
+
+    pipeline = [
+        {"$match": {"branch": branch}},
+        {
+            "$lookup": {
+                "from": "users",
+                "localField": "employee_id",
+                "foreignField": "employee_id",
+                "as": "user_info",
+            }
+        },
+        {"$addFields": {"user_info": {"$arrayElemAt": ["$user_info", 0]}}},
+        {
+            "$lookup": {
+                "from": "roles",
+                "localField": "user_info.primary_role",
+                "foreignField": "_id",
+                "as": "primary_role",
+            }
+        },
+        {"$addFields": {"primary_role": {"$arrayElemAt": ["$primary_role", 0]}}},
+        {"$addFields": {"role": "$primary_role.role"}},
+    ]
+    project = {
+        "_id": 0,
+        "employee_id": 1,
+        "name": 1,
+        "email": 1,
+    }
+    if role:
+        project.update({"role": 1})
+
+    pipeline.append({"$project": project})
+
+    emp = (
+        await mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION]
+        .aggregate(pipeline)
+        .to_list(None)
     )
 
-    return [e async for e in emps]
+    return emp
 
 
 async def update_employee(employee_id: str, employee_details, mongo_client):

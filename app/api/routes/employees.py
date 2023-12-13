@@ -70,11 +70,12 @@ async def get_employee(
 
 @router.get("/")
 async def get_all_employees(
+    role: bool = None,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
     obj = EmployeeController(payload, mongo_client)
-    res = await obj.get_all_employees()
+    res = await obj.get_all_employees(role=role)
 
     return {
         "message": "Success",
@@ -170,6 +171,7 @@ async def get_create_meta(
                             {"label": "Head Office", "value": "head_office"},
                             {"label": "Factory", "value": "factory"},
                         ],
+                        "required": True,
                     },
                     "profile_image": {"type": "image", "required": True},
                     "department": {"type": "string"},

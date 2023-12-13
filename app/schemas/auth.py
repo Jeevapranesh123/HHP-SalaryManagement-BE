@@ -63,7 +63,6 @@ class ForgotPasswordRequest(BaseModel):
 
 class ForgotPasswordResponse(BaseResponse):
     # FIXME: Remove the token from the response all the end of development
-    token: str
     message: str = "Email with reset token sent to user's email address"
 
 
