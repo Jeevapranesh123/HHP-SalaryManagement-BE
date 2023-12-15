@@ -62,7 +62,7 @@ async def disconnect(sid):
 
 
 @sio.event
-async def notification(sid, data):
+async def mark_as_read(sid, data):
     print("Received notification", data)
 
 

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Response, Request, HTTPException
 from app.database import get_mongo, AsyncIOMotorClient
 
 
-from app.schemas.admin import Rules, Guidelines
+from app.schemas.admin import Rules, Guidelines, ReportType
 
 from app.api.controllers.admin import AdminController
 
@@ -158,3 +158,17 @@ async def remove_role(
         }
 
     raise HTTPException(status_code=400, detail="Role deletion failed")
+
+
+@router.get("/report/meta")
+async def get_report_meta(
+    type: ReportType = None,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    """Create a new location entry"""
+
+    obj = AdminController(payload, mongo_client)
+    res = await obj.get_report_meta(type)
+
+    return {"message": "Report meta fetched successfully", "data": res}
