@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  traefik:
+    container_name: traefik_staging
+    hostname: traefik-staging
+    ports:
+      - "80:80"
+      - "8080:8080" # Traefik dashboard (optional, for monitoring)
+    command:
+      - "--log.level=DEBUG" # More verbose logging for staging
+      - "--api.insecure=true" # Keeping API insecure for staging
+      - "--providers.docker=true"
+    labels:
+      - "traefik.http.routers.traefik.rule=Host(`traefik-salary.zuvatech.com`)" # Update the host for staging
+      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+
+    networks:
+      - hindustan_applications
+
+networks:
+  hindustan_applications:
+    external: true

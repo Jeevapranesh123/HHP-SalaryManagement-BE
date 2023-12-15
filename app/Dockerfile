@@ -17,6 +17,8 @@ COPY app app
 
 COPY .env .
 
+COPY roles.json .
+
 # Expose the port the app runs on
 EXPOSE 80
 
