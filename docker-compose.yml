@@ -43,7 +43,11 @@ services:
       - MONGO_HOST=lab.zuvatech.com
       - MONGO_PORT=27017
 
-  socket:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`backend.localhost`)"
+
+  socketio:
     build: .
     command: uvicorn socketio_manager.main:app --reload --port 9000 --host 0.0.0.0
     # volumes:
@@ -57,6 +61,11 @@ services:
     environment:
       - MONGO_HOST=lab.zuvatech.com
       - MONGO_PORT=27017
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.socketio.rule=Host(`socketio.localhost`)"
+      
 
 volumes:
   mongo_data:
