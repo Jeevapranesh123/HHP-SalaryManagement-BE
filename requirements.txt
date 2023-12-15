@@ -23,7 +23,7 @@ httptools==0.6.1
 identify==2.5.31
 idna==3.4
 loguru==0.7.2
-minio==7.2.1
+minio
 motor==3.3.1
 mypy-extensions==1.0.0
 nodeenv==1.8.0

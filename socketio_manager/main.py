@@ -16,7 +16,7 @@ rabbitmq_instances = {}
 sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
 
 # Wrap with ASGI application
-app = socketio.ASGIApp(sio)
+SocketServer = socketio.ASGIApp(sio)
 
 
 # Event handler for new connections
