@@ -1,5 +1,6 @@
 import os
 from sendgrid import SendGridAPIClient
+from app.core.config import Config
 from sendgrid.helpers.mail import Mail
 
 template_config = {
@@ -18,10 +19,12 @@ TEMPLATE_DIR = os.path.join(os.getcwd(), "app/templates")
 
 class SendGrid:
     def __init__(self):
-        self.sg_client = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
-        self.sender = "contact@zuvatech.com"
-        self.portal_link = "http://localhost:3000/"
-        self.reset_password_link = "http://localhost:3000/reset-password?token={}"
+        self.sg_client = SendGridAPIClient(Config.SENDGRID_API_KEY)
+        self.sender = Config.SENDGRID_SENDER
+        self.portal_link = Config.SENDGRID_PORTAL_LINK
+        self.reset_password_link = (
+            Config.SENDGRID_PORTAL_LINK + "/reset-password?token={}"
+        )
         self.template_config = template_config
         self.TEMPLATE_DIR = TEMPLATE_DIR
 
