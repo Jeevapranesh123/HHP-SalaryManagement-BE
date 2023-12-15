@@ -2,6 +2,23 @@ version: '3'
 
 services:
 
+  traefik:
+    image: traefik
+    container_name: "traefik"
+    command:
+      - "--log.level=INFO"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      # - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8081:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
   mongodb:
     image: mongo
     ports:
@@ -43,7 +60,11 @@ services:
       - MONGO_HOST=mongodb
       - MONGO_PORT=27017
 
-  socket:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`backend.localhost`)"
+
+  socketio:
     build: .
     command: uvicorn socketio_manager.main:app --reload --port 9000 --host 0.0.0.0
     # volumes:
@@ -57,6 +78,11 @@ services:
     environment:
       - MONGO_HOST=mongodb
       - MONGO_PORT=27017
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.socketio.rule=Host(`socketio.localhost`)"
+      
 
 volumes:
   mongo_data:

@@ -64,6 +64,7 @@ async def login(login_request, mongo_client: AsyncIOMotorClient):
             "primary_role": primary_role,
             "secondary_roles": secondary_roles,
             "employee_name": user["info"]["name"],
+            "is_marketing_staff": user["info"]["is_marketing_staff"],
         },
         token_type="access",
         mongo_client=mongo_client,
