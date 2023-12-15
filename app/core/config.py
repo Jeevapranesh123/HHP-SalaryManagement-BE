@@ -9,6 +9,10 @@ load_dotenv(".env")
 
 
 class Config(object):
+    SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+    SENDGRID_SENDER = os.getenv("SENDGRID_SENDER")
+    SENDGRID_PORTAL_LINK = os.getenv("SENDGRID_PORTAL_LINK")
+
     SECRET_KEY = os.getenv("SECRET_KEY")
     ALGORITHM = os.getenv("ALGORITHM")
 
