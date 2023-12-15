@@ -15,7 +15,7 @@ class MinIO:
             endpoint=endpoint,
             access_key=access_key,
             secret_key=secret_key,
-            secure=False,
+            secure=True,
         )
 
         try:

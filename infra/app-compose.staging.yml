@@ -6,6 +6,8 @@ services:
     container_name: backend_staging
     labels:
       - "traefik.http.routers.backend.rule=Host(`backend-salary.zuvatech.com`)"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls.certresolver=myresolver"
 
 
   socketio:
@@ -13,3 +15,5 @@ services:
     container_name: socketio_staging
     labels:
       - "traefik.http.routers.socketio.rule=Host(`socketio-salary.zuvatech.com`)"
+      - "traefik.http.routers.socketio.entrypoints=websecure"
+      - "traefik.http.routers.socketio.tls.certresolver=myresolver"

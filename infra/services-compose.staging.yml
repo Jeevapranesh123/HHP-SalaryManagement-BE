@@ -4,16 +4,25 @@ services:
   mongodb:
     labels:
       - "traefik.http.routers.mongodb.rule=Host(`mongo-salary.zuvatech.com`)"
+      - "traefik.http.routers.mongodb.entrypoints=websecure"
+      - "traefik.http.routers.mongodb.tls.certresolver=myresolver"
     container_name: mongodb_staging
 
   rabbitmq:
     labels:
       - "traefik.http.routers.rabbitmq.rule=Host(`rabbitmq-salary.zuvatech.com`)"
+      - "traefik.http.routers.rabbitmq.entrypoints=websecure"
+      - "traefik.http.routers.rabbitmq.tls.certresolver=myresolver"
     container_name: rabbitmq_staging
 
   minio:
     labels:
       - "traefik.http.routers.minio-api.rule=Host(`api.minio.zuvatech.com`)"
+      - "traefik.http.routers.minio-api.entrypoints=websecure"
+      - "traefik.http.routers.minio-api.tls.certresolver=myresolver"
+      
       - "traefik.http.routers.minio-console.rule=Host(`console.minio.zuvatech.com`)"
+      - "traefik.http.routers.minio-console.entrypoints=websecure"
+      - "traefik.http.routers.minio-console.tls.certresolver=myresolver"
 
     container_name: minio_staging
