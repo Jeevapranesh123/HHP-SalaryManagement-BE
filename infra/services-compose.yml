@@ -7,8 +7,6 @@ services:
     restart: unless-stopped
     hostname: mongodb
     container_name: mongodb
-    ports:
-      - "27017:27017"
     volumes:
       - mongodb_data:/data/db
 

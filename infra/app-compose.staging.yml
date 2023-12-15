@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  backend:
+    hostname: backend-staging
+    container_name: backend_staging
+    labels:
+      - "traefik.http.routers.backend.rule=Host(`backend-salary.zuvatech.com`)"
+
+
+  socketio:
+    hostname: socketio-staging
+    container_name: socketio_staging
+    labels:
+      - "traefik.http.routers.socketio.rule=Host(`socketio-salary.zuvatech.com`)"

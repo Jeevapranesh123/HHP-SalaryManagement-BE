@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  mongodb:
+    labels:
+      - "traefik.http.routers.mongodb.rule=Host(`mongo-salary.zuvatech.com`)"
+    container_name: mongodb_staging
+
+  rabbitmq:
+    labels:
+      - "traefik.http.routers.rabbitmq.rule=Host(`rabbitmq-salary.zuvatech.com`)"
+    container_name: rabbitmq_staging
+
+  minio:
+    labels:
+      - "traefik.http.routers.minio.rule=Host(`minio-salary.zuvatech.com`)"
+    container_name: minio_staging

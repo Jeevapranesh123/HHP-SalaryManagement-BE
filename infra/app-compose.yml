@@ -4,7 +4,7 @@ services:
 
   backend:
       build:
-        context: .
+        context: ..
         dockerfile: app/Dockerfile
       hostname: backend
       container_name: backend
@@ -17,7 +17,7 @@ services:
 
   socketio:
     build:
-      context: .
+      context: ..
       dockerfile: socketio_manager/Dockerfile
     hostname: socketio
     container_name: socketio

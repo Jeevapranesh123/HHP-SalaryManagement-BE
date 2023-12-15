@@ -1,0 +1,3 @@
+*.sh
+.gitignore
+.pre-commit-config.yaml
