@@ -1,5 +1,11 @@
 from minio import Minio
 from app.core.config import Config
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+ENVIRONMENT = os.getenv("ENVIRONMENT")
 
 
 class MinIO:
@@ -15,7 +21,9 @@ class MinIO:
             endpoint=endpoint,
             access_key=access_key,
             secret_key=secret_key,
-            secure=True,
+            secure=True
+            if ENVIRONMENT == "production" or ENVIRONMENT == "staging"
+            else False,
         )
 
         try:

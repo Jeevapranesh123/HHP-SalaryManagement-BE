@@ -2,7 +2,13 @@ from fastapi import APIRouter, Depends, Response, Request, HTTPException
 from app.database import get_mongo, AsyncIOMotorClient
 
 
-from app.schemas.admin import Rules, Guidelines, ReportType
+from app.schemas.admin import (
+    Rules,
+    Guidelines,
+    ReportType,
+    BankSalaryBatchCreateRequest,
+    BankSalaryBatchCreateResponse,
+)
 
 from app.api.controllers.admin import AdminController
 
@@ -172,3 +178,60 @@ async def get_report_meta(
     res = await obj.get_report_meta(type)
 
     return {"message": "Report meta fetched successfully", "data": res}
+
+
+@router.post("/report/bank_salary/batch")
+async def create_bank_salary_batch(
+    BankSalaryBatchCreateRequest: BankSalaryBatchCreateRequest,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    """Create a new location entry"""
+
+    obj = AdminController(payload, mongo_client)
+    res = await obj.create_bank_salary_batch(BankSalaryBatchCreateRequest)
+    return BankSalaryBatchCreateResponse(
+        message="Bank salary batch created successfully", status=True, data=res
+    )
+
+
+@router.get("/report/bank_salary/batch/{batch_id}")
+async def get_bank_salary_batch(
+    batch_id: str,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    """Create a new location entry"""
+
+    obj = AdminController(payload, mongo_client)
+    res = await obj.get_bank_salary_batch(batch_id)
+    return BankSalaryBatchCreateResponse(
+        message="Bank salary batch fetched successfully", status=True, data=res
+    )
+
+
+@router.get("/report/bank_salary/batch")
+async def get_bank_salary_batch_list(
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    """Create a new location entry"""
+
+    obj = AdminController(payload, mongo_client)
+    res = await obj.get_bank_salary_batch_list()
+    # return BankSalaryBatchCreateResponse(message="Bank salary batch list fetched successfully",status=True,data=res)
+    return {"message": "Bank salary batch list fetched successfully", "data": res}
+
+
+@router.delete("/report/bank_salary/batch/{batch_id}")
+async def delete_bank_salary_batch(
+    batch_id: str,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    """Create a new location entry"""
+
+    obj = AdminController(payload, mongo_client)
+    res = await obj.delete_bank_salary_batch(batch_id)
+    # return BankSalaryBatchCreateResponse(message="Bank salary batch deleted successfully",status=True,data=res)
+    return {"message": "Bank salary batch deleted successfully"}
