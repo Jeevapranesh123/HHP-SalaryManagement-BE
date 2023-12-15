@@ -20,11 +20,14 @@ from app.api.crons.salary import SalaryCron
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 
-mq = RabbitMQ()
+try:
+    mq = RabbitMQ()
 
-mq.ensure_exchange("employee_notification")
+    mq.ensure_exchange("employee_notification")
 
-mq.connection.close()
+    mq.connection.close()
+except Exception as e:
+    print(e)
 
 app = FastAPI(
     title="HHP Salary Management APIs",

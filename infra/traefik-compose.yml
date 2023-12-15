@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  traefik:
+    image: traefik
+    restart: unless-stopped
+    container_name: traefik
+    hostname: traefik
+    command:
+      - "--log.level=INFO"
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedByDefault=false"
+      - "--entrypoints.web.address=:80"
+      # Additional Traefik configurations...
+    ports:
+      - "80:80"
+      - "8080:8080" # Traefik dashboard (optional, for monitoring)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - hindustan_applications
+
+networks:
+  hindustan_applications:
+    external: true

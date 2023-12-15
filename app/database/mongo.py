@@ -13,21 +13,35 @@ class MongoManger:
     client: AsyncIOMotorClient = None
 
     def __init__(self):
-        self.mongo_uri = "mongodb://{}:{}@{}:{}".format(
-            Config.MONGO_USERNAME,
-            Config.MONGO_PASSWORD,
+        print(
             Config.MONGO_HOST,
             Config.MONGO_PORT,
+            Config.MONGO_USERNAME,
+            Config.MONGO_PASSWORD,
         )
+        self.mongo_uri = None
+
+        if ENV == "dev":
+            self.mongo_uri = "mongodb://{}:{}/".format(
+                Config.MONGO_HOST, Config.MONGO_PORT
+            )
+
+        elif ENV == "prod" or ENV == "staging":
+            self.mongo_uri = "mongodb://{}:{}@{}:{}".format(
+                Config.MONGO_USERNAME,
+                Config.MONGO_PASSWORD,
+                Config.MONGO_HOST,
+                Config.MONGO_PORT,
+            )
+
+        else:
+            self.mongo_uri = "mongodb://{}:{}/".format(
+                Config.MONGO_HOST, Config.MONGO_PORT
+            )
 
     async def connect_to_database(self):
         logger.info("Connect to the MongoDB...")
-        if ENV == "dev":
-            self.client = AsyncIOMotorClient(Config.MONGO_HOST)
-        elif ENV == "prod":
-            self.client = AsyncIOMotorClient(self.mongo_uri)
-        else:
-            raise Exception("ENV not set properly")
+        self.client = AsyncIOMotorClient(self.mongo_uri)
         logger.info("Successfully connected to the MongoDB!")
 
     async def close_database_connection(self):

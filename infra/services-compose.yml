@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+
+  mongodb:
+    image: mongo
+    restart: unless-stopped
+    hostname: mongodb
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: hindustan
+      MONGO_INITDB_ROOT_PASSWORD: hindustan
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mongodb.rule=Host(`mongo.localhost`)"
+      - "traefik.http.services.mongodb.loadbalancer.server.port=27017"
+    networks:
+      - hindustan_applications
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: unless-stopped
+    hostname: rabbitmq
+    container_name: rabbitmq
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq # Persist data
+    environment:
+      - RABBITMQ_DEFAULT_USER=root # Set the desired username
+      - RABBITMQ_DEFAULT_PASS=zuvaLabs # Set the desired password
+      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbitmq_management
+      - RABBITMQ_PLUGINS=rabbitmq_web_stomp
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.localhost`)"
+      - "traefik.http.services.rabbitmq.loadbalancer.server.port=15672"
+    networks:
+      - hindustan_applications
+
+  minio:
+    image: minio/minio
+    restart: unless-stopped
+    hostname: minio
+    container_name: minio
+    volumes:
+      - minio_data:/data
+
+    environment:
+      MINIO_ROOT_USER: root
+      MINIO_ROOT_PASSWORD: zuvaLabs
+    command: server /data --console-address ":9090"
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.minio.rule=Host(`minio.localhost`)"
+      - "traefik.http.services.minio.loadbalancer.server.port=9090"
+    networks:
+      - hindustan_applications
+
+networks:
+  hindustan_applications:
+    external: true
+
+volumes:
+  mongodb_data:
+  rabbitmq_data:
+  minio_data:
+
