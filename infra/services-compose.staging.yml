@@ -13,5 +13,7 @@ services:
 
   minio:
     labels:
-      - "traefik.http.routers.minio.rule=Host(`minio-salary.zuvatech.com`)"
+      - "traefik.http.routers.minio-api.rule=Host(`api.minio.zuvatech.com`)"
+      - "traefik.http.routers.minio-console.rule=Host(`console.minio.zuvatech.com`)"
+
     container_name: minio_staging

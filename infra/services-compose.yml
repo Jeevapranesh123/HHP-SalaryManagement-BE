@@ -56,8 +56,16 @@ services:
 
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.minio.rule=Host(`minio.localhost`)"
-      - "traefik.http.services.minio.loadbalancer.server.port=9090"
+    
+      # Console
+      - "traefik.http.routers.minio-console.rule=Host(`console.minio.localhost`)"
+      - "traefik.http.routers.minio-console.service=minio-console"
+      - "traefik.http.services.minio-console.loadbalancer.server.port=9090"
+
+      # API
+      - "traefik.http.routers.minio-api.rule=Host(`api.minio.localhost`)"
+      - "traefik.http.routers.minio-api.service=minio-api"
+      - "traefik.http.services.minio-api.loadbalancer.server.port=9000"
     networks:
       - hindustan_applications
 
