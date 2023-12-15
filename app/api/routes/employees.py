@@ -71,7 +71,7 @@ async def get_employee(
     }
 
 
-@router.get("/")
+@router.get("")
 async def get_all_employees(
     role: bool = None,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
