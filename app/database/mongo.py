@@ -53,7 +53,8 @@ class MongoManger:
 
     async def create_roles(self):
         # Read JSON file
-        import os 
+        import os
+
         print(os.getcwd())
         print(os.listdir())
         with open("roles.json") as f:
@@ -62,4 +63,6 @@ class MongoManger:
         # Insert data into collection
         for i in data["roles"]:
             print(i)
-            self.client[Config.MONGO_DATABASE]["roles"].update_one({"role": i["role"]}, {"$set": i}, upsert=True)
+            self.client[Config.MONGO_DATABASE]["roles"].update_one(
+                {"role": i["role"]}, {"$set": i}, upsert=True
+            )

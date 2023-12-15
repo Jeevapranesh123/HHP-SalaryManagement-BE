@@ -2,6 +2,7 @@ from pydantic import BaseModel, root_validator
 import datetime
 from typing import List, Dict
 from enum import Enum
+import uuid
 
 
 class Rules(BaseModel):
@@ -33,3 +34,32 @@ class ReportType(str, Enum):
     other_special_allowance = "other_special_allowance"
     leave = "leave"
     all = "all"
+
+
+class BankSalaryBatch(BaseModel):
+    batch_name: str
+    employee_ids: List[str]
+
+
+class BankSalaryBatchInDB(BankSalaryBatch):
+    id: str = str(uuid.uuid4()).replace("-", "")
+    created_at: datetime.datetime = datetime.datetime.now()
+    created_by: str = "MD"
+    updated_at: datetime.datetime = None
+    updated_by: str = None
+
+
+class BankSalaryBatchCreateRequest(BankSalaryBatch):
+    pass
+
+
+class BankSalaryBatchResponse(BaseModel):
+    batch_id: str
+    batch_name: str
+    employee_ids: List[str]
+
+
+class BankSalaryBatchCreateResponse(BaseModel):
+    message: str
+    status: bool
+    data: BankSalaryBatchResponse

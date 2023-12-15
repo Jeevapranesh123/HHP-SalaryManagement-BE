@@ -2,7 +2,14 @@ from app.database import get_mongo, AsyncIOMotorClient
 
 from app.api.crud.admin import AdminCrud
 
-from app.schemas.admin import Rules, Guidelines
+from app.schemas.admin import (
+    Rules,
+    Guidelines,
+    ReportType,
+    BankSalaryBatchCreateRequest,
+    BankSalaryBatchInDB,
+    BankSalaryBatch,
+)
 
 import pprint
 
@@ -285,3 +292,35 @@ class AdminController:
                 }
 
         return data
+
+    async def create_bank_salary_batch(self, create_bank_salary_batch):
+        crud_obj = AdminCrud(self.payload, self.mongo_client)
+
+        bank_salary_batch_in_db = BankSalaryBatchInDB(**create_bank_salary_batch.dict())
+
+        bank_salary_batch_in_db.employee_ids = [
+            employee_id.strip() for employee_id in bank_salary_batch_in_db.employee_ids
+        ]
+
+        bank_salary_batch_in_db = bank_salary_batch_in_db.model_dump()
+
+        res = await crud_obj.create_bank_salary_batch(bank_salary_batch_in_db)
+        res["batch_id"] = res.pop("id")
+        return res
+
+    async def get_bank_salary_batch(self, batch_id):
+        crud_obj = AdminCrud(self.payload, self.mongo_client)
+        res = await crud_obj.get_bank_salary_batch(batch_id)
+        res["batch_id"] = res.pop("id")
+
+        return res
+
+    async def get_bank_salary_batch_list(self):
+        crud_obj = AdminCrud(self.payload, self.mongo_client)
+        res = await crud_obj.get_bank_salary_batch_list()
+        return res
+
+    async def delete_bank_salary_batch(self, batch_id):
+        crud_obj = AdminCrud(self.payload, self.mongo_client)
+        res = await crud_obj.delete_bank_salary_batch(batch_id)
+        return res

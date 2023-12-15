@@ -93,3 +93,42 @@ class AdminCrud:
             return employee[0]
 
         return None
+
+    async def create_bank_salary_batch(self, bank_salary_batch):
+        batch = await self.mongo_client[MONGO_DATABASE]["bank_salary_batch"].insert_one(
+            bank_salary_batch
+        )
+        bank_salary_batch.pop("_id")
+        return bank_salary_batch
+
+    async def get_bank_salary_batch(self, batch_id):
+        batch = await self.mongo_client[MONGO_DATABASE]["bank_salary_batch"].find_one(
+            {"id": batch_id}, {"_id": 0}
+        )
+
+        if batch:
+            return batch
+
+        return None
+
+    async def get_bank_salary_batch_list(self):
+        batch = (
+            await self.mongo_client[MONGO_DATABASE]["bank_salary_batch"]
+            .find({}, {"_id": 0})
+            .to_list(length=None)
+        )
+
+        if batch:
+            return batch
+
+        return None
+
+    async def delete_bank_salary_batch(self, batch_id):
+        batch = await self.mongo_client[MONGO_DATABASE]["bank_salary_batch"].delete_one(
+            {"id": batch_id}
+        )
+
+        if batch:
+            return batch
+
+        return None
