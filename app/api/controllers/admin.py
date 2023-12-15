@@ -144,7 +144,8 @@ class AdminController:
                 data = {
                     "increment": {
                         "data": {
-                            "year": {"type": "year", "required": True},
+                            "start_year": {"type": "year", "required": True},
+                            "end_year": {"type": "year", "required": True},
                         },
                         "actions": [
                             {
@@ -164,7 +165,8 @@ class AdminController:
                 data = {
                     "bonus": {
                         "data": {
-                            "year": {"type": "year", "required": True},
+                            "start_year": {"type": "year", "required": True},
+                            "end_year": {"type": "year", "required": True},
                         },
                         "actions": [
                             {
@@ -184,7 +186,8 @@ class AdminController:
                 data = {
                     "allowance": {
                         "data": {
-                            "year": {"type": "year", "required": True},
+                            "start_year": {"type": "year", "required": True},
+                            "end_year": {"type": "year", "required": True},
                         },
                         "actions": [
                             {
@@ -204,7 +207,8 @@ class AdminController:
                 data = {
                     "attendance_special_allowance": {
                         "data": {
-                            "year": {"type": "year", "required": True},
+                            "start_year": {"type": "year", "required": True},
+                            "end_year": {"type": "year", "required": True},
                         },
                         "actions": [
                             {
@@ -224,7 +228,8 @@ class AdminController:
                 data = {
                     "other_special_allowance": {
                         "data": {
-                            "year": {"type": "year", "required": True},
+                            "start_year": {"type": "year", "required": True},
+                            "end_year": {"type": "year", "required": True},
                         },
                         "actions": [
                             {
@@ -244,7 +249,8 @@ class AdminController:
                 data = {
                     "leave": {
                         "data": {
-                            "year": {"type": "year", "required": True},
+                            "start_year": {"type": "year", "required": True},
+                            "end_year": {"type": "year", "required": True},
                         },
                         "actions": [
                             {
@@ -264,7 +270,8 @@ class AdminController:
                 data = {
                     "all": {
                         "data": {
-                            "year": {"type": "year", "required": True},
+                            "start_year": {"type": "year", "required": True},
+                            "end_year": {"type": "year", "required": True},
                         },
                         "actions": [
                             {
