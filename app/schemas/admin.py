@@ -1,6 +1,7 @@
 from pydantic import BaseModel, root_validator
 import datetime
 from typing import List, Dict
+from enum import Enum
 
 
 class Rules(BaseModel):
@@ -21,3 +22,14 @@ class RulesInDB(Rules):
 
 class Guidelines(BaseModel):
     guidelines: List[Dict]
+
+
+class ReportType(str, Enum):
+    salary = "salary"
+    increment = "increment"
+    bonus = "bonus"
+    allowance = "allowance"
+    attendance_special_allowance = "attendance_special_allowance"
+    other_special_allowance = "other_special_allowance"
+    leave = "leave"
+    all = "all"

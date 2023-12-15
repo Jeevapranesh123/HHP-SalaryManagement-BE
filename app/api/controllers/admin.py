@@ -94,3 +94,187 @@ class AdminController:
         role = user["primary_role"]["role"]
 
         return role
+
+    async def get_report_meta(self, type=None):
+        if not type:
+            data = [
+                {"label": "Salary", "value": "salary"},
+                {"label": "Increment", "value": "increment"},
+                {"label": "Bonus", "value": "bonus"},
+                {"label": "Allowance", "value": "allowance"},
+                {
+                    "label": "Attendance Special Allowance",
+                    "value": "attendance_special_allowance",
+                },
+                {
+                    "label": "Other Special Allowance",
+                    "value": "other_special_allowance",
+                },
+                {"label": "Leave", "value": "leave"},
+                {"label": "All", "value": "all"},
+            ]
+
+        elif type != None:
+            if type == "salary":
+                data = {
+                    "salary": {
+                        "data": {
+                            "employee_id": {"type": "string", "required": True},
+                            "month": {
+                                "type": "month",
+                                "format": "YYYY-MM-DD",
+                                "required": True,
+                            },
+                        },
+                        "actions": [
+                            {
+                                "label": "Submit",
+                                "type": "button",
+                                "variant": "default",
+                                "action": {
+                                    "url": "/admin/report/salary",
+                                    "method": "GET",
+                                },
+                            }
+                        ],
+                    }
+                }
+
+            elif type == "increment":
+                data = {
+                    "increment": {
+                        "data": {
+                            "year": {"type": "year", "required": True},
+                        },
+                        "actions": [
+                            {
+                                "label": "Submit",
+                                "type": "button",
+                                "variant": "default",
+                                "action": {
+                                    "url": "/admin/report/increment",
+                                    "method": "GET",
+                                },
+                            }
+                        ],
+                    }
+                }
+
+            elif type == "bonus":
+                data = {
+                    "bonus": {
+                        "data": {
+                            "year": {"type": "year", "required": True},
+                        },
+                        "actions": [
+                            {
+                                "label": "Submit",
+                                "type": "button",
+                                "variant": "default",
+                                "action": {
+                                    "url": "/admin/report/bonus",
+                                    "method": "GET",
+                                },
+                            }
+                        ],
+                    }
+                }
+
+            elif type == "allowance":
+                data = {
+                    "allowance": {
+                        "data": {
+                            "year": {"type": "year", "required": True},
+                        },
+                        "actions": [
+                            {
+                                "label": "Submit",
+                                "type": "button",
+                                "variant": "default",
+                                "action": {
+                                    "url": "/admin/report/allowance",
+                                    "method": "GET",
+                                },
+                            }
+                        ],
+                    }
+                }
+
+            elif type == "attendance_special_allowance":
+                data = {
+                    "attendance_special_allowance": {
+                        "data": {
+                            "year": {"type": "year", "required": True},
+                        },
+                        "actions": [
+                            {
+                                "label": "Submit",
+                                "type": "button",
+                                "variant": "default",
+                                "action": {
+                                    "url": "/admin/report/attendance_special_allowance",
+                                    "method": "GET",
+                                },
+                            }
+                        ],
+                    }
+                }
+
+            elif type == "other_special_allowance":
+                data = {
+                    "other_special_allowance": {
+                        "data": {
+                            "year": {"type": "year", "required": True},
+                        },
+                        "actions": [
+                            {
+                                "label": "Submit",
+                                "type": "button",
+                                "variant": "default",
+                                "action": {
+                                    "url": "/admin/report/other_special_allowance",
+                                    "method": "GET",
+                                },
+                            }
+                        ],
+                    }
+                }
+
+            elif type == "leave":
+                data = {
+                    "leave": {
+                        "data": {
+                            "year": {"type": "year", "required": True},
+                        },
+                        "actions": [
+                            {
+                                "label": "Submit",
+                                "type": "button",
+                                "variant": "default",
+                                "action": {
+                                    "url": "/admin/report/leave",
+                                    "method": "GET",
+                                },
+                            }
+                        ],
+                    }
+                }
+
+            elif type == "all":
+                data = {
+                    "all": {
+                        "data": {
+                            "year": {"type": "year", "required": True},
+                        },
+                        "actions": [
+                            {
+                                "label": "Submit",
+                                "type": "button",
+                                "variant": "default",
+                                "action": {"url": "/admin/report/all", "method": "GET"},
+                            }
+                        ],
+                    }
+                }
+
+        return data
