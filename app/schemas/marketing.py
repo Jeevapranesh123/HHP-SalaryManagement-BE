@@ -1,4 +1,4 @@
-from pydantic import BaseModel, root_validator, validator
+from pydantic import BaseModel, root_validator, validator, Field, root_validator
 import uuid
 import datetime
 from typing import Optional
@@ -31,7 +31,8 @@ class LocationEntry(BaseModel):
 class LocationEntryInDB(LocationEntry):
     date: datetime.datetime
     time: datetime.datetime
-    id: str = str(uuid.uuid4()).replace("-", "")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()).replace("-", ""))
+
     created_at: Optional[datetime.datetime] = datetime.datetime.now()
     created_by: Optional[str] = "system"
     updated_at: Optional[str] = None

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import uuid
 from datetime import datetime
 from typing import List
@@ -38,7 +38,8 @@ class NotificationMeta(BaseModel):
 
 
 class NotificationBase(BaseModel):
-    id: str = str(uuid.uuid4()).replace("-", "")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()).replace("-", ""))
+
     title: str
     description: str
     payload: dict

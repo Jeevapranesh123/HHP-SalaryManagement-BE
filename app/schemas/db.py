@@ -11,6 +11,7 @@ from app.schemas.loan import LoanBase, LoanApplicationStatus
 import datetime
 from typing import Optional
 import uuid
+from pydantic import BaseModel, Field
 
 
 def first_day_of_current_month():
@@ -23,7 +24,8 @@ class EmployeeInDB(EmployeeBase):
 
 
 class SalaryInDB(SalaryBase):
-    id: str = str(uuid.uuid4()).replace("-", "")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()).replace("-", ""))
+
     month: datetime.datetime = first_day_of_current_month()
     created_at: datetime.datetime = datetime.datetime.now()
     created_by: str = "admin"
@@ -32,7 +34,8 @@ class SalaryInDB(SalaryBase):
 
 
 class MonthlyCompensationInDB(MonthlyCompensationBase):
-    id: str = str(uuid.uuid4()).replace("-", "")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()).replace("-", ""))
+
     month: datetime.datetime = first_day_of_current_month()
     created_at: datetime.datetime = datetime.datetime.now()
     created_by: str = "admin"
@@ -41,7 +44,8 @@ class MonthlyCompensationInDB(MonthlyCompensationBase):
 
 
 class SalaryIncentivesInDB(SalaryIncentivesBase):
-    id: str = str(uuid.uuid4()).replace("-", "")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()).replace("-", ""))
+
     month: datetime.datetime = first_day_of_current_month()
     created_at: datetime.datetime = datetime.datetime.now()
     created_by: str = "admin"
@@ -50,7 +54,8 @@ class SalaryIncentivesInDB(SalaryIncentivesBase):
 
 
 class LeaveInDB(LeaveBase):
-    id: str = str(uuid.uuid4()).replace("-", "")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()).replace("-", ""))
+
     type: str = "leave"
     leave_type: str = "casual"
     start_date: datetime.datetime
@@ -66,7 +71,8 @@ class LeaveInDB(LeaveBase):
 
 
 class PermissionInDB(PermissionBase):
-    id: str = str(uuid.uuid4()).replace("-", "")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()).replace("-", ""))
+
     type: str = "permission"
     leave_type: str = "permission"
     start_time: datetime.datetime
@@ -82,7 +88,8 @@ class PermissionInDB(PermissionBase):
 
 
 class LoanInDB(LoanBase):
-    id: str = str(uuid.uuid4()).replace("-", "")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()).replace("-", ""))
+
     type: str = "loan"
     month: datetime.datetime
     status: Optional[LoanApplicationStatus] = "pending"
@@ -96,7 +103,8 @@ class LoanInDB(LoanBase):
 
 
 class SalaryAdvanceInDB(SalaryAdvanceBase):
-    id: str = str(uuid.uuid4()).replace("-", "")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()).replace("-", ""))
+
     month: datetime.datetime
     type: str = "salary_advance"
     status: Optional[SalaryAdvanceApplicationStatus] = "pending"
