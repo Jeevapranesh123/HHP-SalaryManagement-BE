@@ -39,12 +39,12 @@ class MongoManger:
         logger.info("Connect to the MongoDB...")
         self.client = AsyncIOMotorClient(self.mongo_uri)
         await self.create_roles()
-        # await self.create_indexes()
+        await self.create_indexes()
         logger.info("Successfully connected to the MongoDB!")
 
     async def close_database_connection(self):
         logger.info("Close MongoDB connection...")
-        # await self.drop_indexes()
+        await self.drop_indexes()
         self.client.close()
         logger.info("The MongoDB connection is closed!")
 
