@@ -1,4 +1,4 @@
-from pydantic import BaseModel, root_validator
+from pydantic import BaseModel, root_validator, Field
 import datetime
 from typing import List, Dict
 from enum import Enum
@@ -42,7 +42,7 @@ class BankSalaryBatch(BaseModel):
 
 
 class BankSalaryBatchInDB(BankSalaryBatch):
-    id: str = str(uuid.uuid4()).replace("-", "")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()).replace("-", ""))
     created_at: datetime.datetime = datetime.datetime.now()
     created_by: str = "MD"
     updated_at: datetime.datetime = None

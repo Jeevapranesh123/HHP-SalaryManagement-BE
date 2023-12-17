@@ -220,7 +220,7 @@ async def get_bank_salary_batch_list(
     obj = AdminController(payload, mongo_client)
     res = await obj.get_bank_salary_batch_list()
     # return BankSalaryBatchCreateResponse(message="Bank salary batch list fetched successfully",status=True,data=res)
-    return {"message": "Bank salary batch list fetched successfully", "data": res}
+    return {"data": res}
 
 
 @router.delete("/report/bank_salary/batch/{batch_id}")
