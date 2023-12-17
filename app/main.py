@@ -20,6 +20,8 @@ from app.api.crons.salary import SalaryCron
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+from sentry_sdk.crons import monitor
+
 import sentry_sdk
 
 from dotenv import load_dotenv
@@ -40,6 +42,7 @@ if os.getenv("ENVIRONMENT") == "prod" or os.getenv("ENVIRONMENT") == "staging":
         dsn=os.getenv("SENTRY_DSN"),
         traces_sample_rate=1.0,
         profiles_sample_rate=1.0,
+        enable_tracing=True,
     )
 
 app = FastAPI(
@@ -51,12 +54,14 @@ app = FastAPI(
 scheduler = AsyncIOScheduler()
 
 
+@monitor(monitor_slug="attendance-job")
 async def attendance_job():
     obj = Attendance(mongo.client)
     list = await obj.post_attendance()
     print("Attendance Job Ran")
 
 
+@monitor(monitor_slug="salary-job")
 async def salary_job():
     obj = SalaryCron(mongo.client)
     await obj.update_basic_salary()
