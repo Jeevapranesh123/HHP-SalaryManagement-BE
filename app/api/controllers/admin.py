@@ -348,3 +348,8 @@ class AdminController:
         )
         res["batch_id"] = res.pop("id")
         return res
+
+    async def get_bank_salary_batch_list_all(self):
+        crud_obj = AdminCrud(self.payload, self.mongo_client)
+        res = await crud_obj.get_bank_salary_batch_list_all()
+        return res

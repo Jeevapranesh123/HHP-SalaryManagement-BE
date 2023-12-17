@@ -195,6 +195,19 @@ async def create_bank_salary_batch(
     )
 
 
+@router.get("/report/bank_salary/batch/all")
+async def get_bank_salary_batch_list_all(
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    """Create a new location entry"""
+
+    obj = AdminController(payload, mongo_client)
+    res = await obj.get_bank_salary_batch_list_all()
+    # return BankSalaryBatchCreateResponse(message="Bank salary batch list fetched successfully",status=True,data=res)
+    return {"data": res}
+
+
 @router.get("/report/bank_salary/batch/{batch_id}")
 async def get_bank_salary_batch(
     batch_id: str,
