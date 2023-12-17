@@ -132,3 +132,15 @@ class AdminCrud:
             return batch
 
         return None
+
+    async def update_bank_salary_batch(self, batch_id, bank_salary_batch):
+        batch = await self.mongo_client[MONGO_DATABASE][
+            "bank_salary_batch"
+        ].find_one_and_update(
+            {"id": batch_id}, {"$set": bank_salary_batch}, return_document=True
+        )
+
+        if batch:
+            return batch
+
+        return None

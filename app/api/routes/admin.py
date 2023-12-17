@@ -223,6 +223,21 @@ async def get_bank_salary_batch_list(
     return {"data": res}
 
 
+@router.put("/report/bank_salary/batch/{batch_id}")
+async def update_bank_salary_batch(
+    batch_id: str,
+    BankSalaryBatchCreateRequest: BankSalaryBatchCreateRequest,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    """Create a new location entry"""
+    obj = AdminController(payload, mongo_client)
+    res = await obj.update_bank_salary_batch(batch_id, BankSalaryBatchCreateRequest)
+    return BankSalaryBatchCreateResponse(
+        message="Bank salary batch updated successfully", status=True, data=res
+    )
+
+
 @router.delete("/report/bank_salary/batch/{batch_id}")
 async def delete_bank_salary_batch(
     batch_id: str,

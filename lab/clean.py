@@ -1,6 +1,7 @@
 import pymongo
 
-client = pymongo.MongoClient("localhost", 27017)
+# client = pymongo.MongoClient("localhost", 27017)
+client = pymongo.MongoClient("mongodb://hindustan:hindustan@lab.zuvatech.com:27017/")
 
 db = client["hhp-esm"]
 
