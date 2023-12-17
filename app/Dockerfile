@@ -19,6 +19,8 @@ COPY .env .
 
 COPY roles.json .
 
+COPY lab/index.json .
+
 # Expose the port the app runs on
 EXPOSE 80
 
