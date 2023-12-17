@@ -2,11 +2,19 @@ from app.database import get_mongo, AsyncIOMotorClient
 
 from app.core.config import Config
 
+from app.core import pipelines
+
+import pprint
+
 
 MONGO_DATABASE = Config.MONGO_DATABASE
 RULES_AND_GUIDELINES_COLLECTION = Config.RULES_AND_GUIDELINES_COLLECTION
 ROLES_COLLECTION = Config.ROLES_COLLECTION
 USERS_COLLECTION = Config.USERS_COLLECTION
+EMPLOYEE_COLLECTION = Config.EMPLOYEE_COLLECTION
+SALARY_INCENTIVES_COLLECTION = Config.SALARY_INCENTIVES_COLLECTION
+MONTHLY_COMPENSATION_COLLECTION = Config.MONTHLY_COMPENSATION_COLLECTION
+LEAVE_COLLECTION = Config.LEAVE_COLLECTION
 
 
 class AdminCrud:
@@ -111,10 +119,10 @@ class AdminCrud:
 
         return None
 
-    async def get_bank_salary_batch_list(self):
+    async def get_bank_salary_batch_list(self, branch):
         batch = (
             await self.mongo_client[MONGO_DATABASE]["bank_salary_batch"]
-            .find({}, {"_id": 0})
+            .find({"branch": branch}, {"_id": 0})
             .to_list(length=None)
         )
 
@@ -134,6 +142,8 @@ class AdminCrud:
         return None
 
     async def update_bank_salary_batch(self, batch_id, bank_salary_batch):
+        if bank_salary_batch.get("branch"):
+            bank_salary_batch.pop("branch")
         batch = await self.mongo_client[MONGO_DATABASE][
             "bank_salary_batch"
         ].find_one_and_update(
@@ -145,10 +155,10 @@ class AdminCrud:
 
         return None
 
-    async def get_bank_salary_batch_list_all(self):
+    async def get_bank_salary_batch_list_all(self, branch):
         batch = (
             await self.mongo_client[MONGO_DATABASE]["bank_salary_batch"]
-            .find({}, {"_id": 0})
+            .find({"branch": branch}, {"_id": 0})
             .to_list(length=None)
         )
         res = {}
@@ -159,3 +169,135 @@ class AdminCrud:
         if batch:
             return res
         return {}
+
+    async def get_salary_report(self, employee_id, month):
+        pipeline = await pipelines.get_employee_with_salary_details(employee_id, month)
+
+        # pprint.pprint(pipeline)
+
+        res = (
+            await self.mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION]
+            .aggregate(pipeline)
+            .to_list(length=None)
+        )
+
+        if res:
+            return res[0]
+
+        return {}
+
+    async def get_bank_salary_data(self, employee_ids, month):
+        pipeline = await pipelines.get_employee_with_salary_details(employee_ids, month)
+
+        res = (
+            await self.mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION]
+            .aggregate(pipeline)
+            .to_list(length=None)
+        )
+
+        if res:
+            return res
+
+        return []
+
+    async def get_increment_report_data(self, start_date, end_date):
+        pipeline = await pipelines.get_increment_report(start_date, end_date)
+
+        res = (
+            await self.mongo_client[MONGO_DATABASE][SALARY_INCENTIVES_COLLECTION]
+            .aggregate(pipeline)
+            .to_list(length=None)
+        )
+
+        if res:
+            return res
+
+        return []
+
+    async def get_bonus_report_data(self, start_date, end_date):
+        pipeline = await pipelines.get_bonus_report(start_date, end_date)
+
+        res = (
+            await self.mongo_client[MONGO_DATABASE][SALARY_INCENTIVES_COLLECTION]
+            .aggregate(pipeline)
+            .to_list(length=None)
+        )
+
+        if res:
+            return res
+
+        return []
+
+    async def get_allowance_report_data(self, start_date, end_date):
+        pipeline = await pipelines.get_allowance_report(start_date, end_date)
+
+        res = (
+            await self.mongo_client[MONGO_DATABASE][SALARY_INCENTIVES_COLLECTION]
+            .aggregate(pipeline)
+            .to_list(length=None)
+        )
+
+        if res:
+            return res
+
+        return []
+
+    async def get_attendance_special_allowance_report_data(self, start_date, end_date):
+        pipeline = await pipelines.get_attendance_special_allowance_report(
+            start_date, end_date
+        )
+
+        res = (
+            await self.mongo_client[MONGO_DATABASE][MONTHLY_COMPENSATION_COLLECTION]
+            .aggregate(pipeline)
+            .to_list(length=None)
+        )
+
+        if res:
+            return res
+
+        return []
+
+    async def get_other_special_allowance_report_data(self, start_date, end_date):
+        pipeline = await pipelines.get_other_special_allowance_report(
+            start_date, end_date
+        )
+
+        res = (
+            await self.mongo_client[MONGO_DATABASE][MONTHLY_COMPENSATION_COLLECTION]
+            .aggregate(pipeline)
+            .to_list(length=None)
+        )
+
+        if res:
+            return res
+
+        return []
+
+    async def get_leave_report_data(self, start_date, end_date):
+        pipeline = await pipelines.get_leave_report(start_date, end_date)
+
+        res = (
+            await self.mongo_client[MONGO_DATABASE][LEAVE_COLLECTION]
+            .aggregate(pipeline)
+            .to_list(length=None)
+        )
+
+        if res:
+            return res
+
+        return []
+
+    async def get_permission_report_data(self, start_date, end_date):
+        pipeline = await pipelines.get_permission_report(start_date, end_date)
+
+        res = (
+            await self.mongo_client[MONGO_DATABASE][LEAVE_COLLECTION]
+            .aggregate(pipeline)
+            .to_list(length=None)
+        )
+
+        if res:
+            return res
+
+        return []

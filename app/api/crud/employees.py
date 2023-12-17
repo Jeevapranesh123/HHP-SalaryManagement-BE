@@ -10,6 +10,7 @@ import uuid
 from fastapi import HTTPException
 from app.api.utils import *
 from datetime import datetime, timezone, timedelta
+from app.core import pipelines
 
 
 MONGO_DATABASE = Config.MONGO_DATABASE
@@ -20,8 +21,8 @@ LEAVE_COLLECTION = Config.LEAVE_COLLECTION
 ATTENDANCE_COLLECTION = Config.ATTENDANCE_COLLECTION
 
 
-async def get_employee_with_computed_fields(employee_id, mongo_client):
-    emp = await get_employee_with_salary(employee_id, mongo_client)
+async def get_employee_with_computed_fields(employee_id, mongo_client, month=None):
+    emp = await get_employee_with_salary(employee_id, mongo_client, month)
 
     salary_base = SalaryBase(**emp)
     salary_base = salary_base.model_dump(exclude={"employee_id"})
@@ -207,203 +208,20 @@ async def get_employee(employee_id: str, mongo_client: AsyncIOMotorClient):
     return None
 
 
-async def get_employee_with_salary(employee_id: str, mongo_client: AsyncIOMotorClient):
-    current_month = first_day_of_current_month()
+async def get_employee_with_salary(
+    employee_id: str, mongo_client: AsyncIOMotorClient, month=None
+):
+    if not month:
+        current_month = first_day_of_current_month()
 
-    pipeline = [
-        {
-            "$match": {
-                "employee_id": employee_id,
-            }
-        },
-        {
-            "$lookup": {
-                "from": "salary",
-                "localField": "employee_id",
-                "foreignField": "employee_id",
-                "as": "salary_info",
-                "let": {"employee_id": "$employee_id", "targetDate": current_month},
-                "pipeline": [
-                    {
-                        "$match": {
-                            "$expr": {
-                                "$and": [
-                                    {"$eq": ["$employee_id", "$$employee_id"]},
-                                    {"$eq": ["$month", "$$targetDate"]},
-                                ]
-                            }
-                        }
-                    }
-                ],
-            }
-        },
-        {
-            "$lookup": {
-                "from": "monthly_compensation",
-                "localField": "employee_id",
-                "foreignField": "employee_id",
-                "as": "monthly_compensation_info",
-                "let": {"employee_id": "$employee_id", "targetDate": current_month},
-                "pipeline": [
-                    {
-                        "$match": {
-                            "$expr": {
-                                "$and": [
-                                    {"$eq": ["$employee_id", "$$employee_id"]},
-                                    {"$eq": ["$month", "$$targetDate"]},
-                                ]
-                            }
-                        }
-                    }
-                ],
-            }
-        },
-        {
-            "$lookup": {
-                "from": "loan_schedule",
-                "localField": "employee_id",
-                "foreignField": "employee_id",
-                "as": "loan_schedule_info",
-                "let": {"employee_id": "$employee_id", "targetMonth": current_month},
-                "pipeline": [
-                    {
-                        "$match": {
-                            "$expr": {
-                                "$and": [
-                                    {"$eq": ["$employee_id", "$$employee_id"]},
-                                    {"$eq": ["$month", "$$targetMonth"]},
-                                ]
-                            }
-                        }
-                    },
-                    {"$group": {"_id": "$month", "sum": {"$sum": "$amount"}}},
-                ],
-            }
-        },
-        {
-            "$lookup": {
-                "from": "salary_advance",
-                "localField": "employee_id",
-                "foreignField": "employee_id",
-                "as": "salary_advance_info",
-                "let": {"employeeId": "$employee_id", "targetDate": current_month},
-                "pipeline": [
-                    {
-                        "$match": {
-                            "$expr": {
-                                "$and": [
-                                    {"$eq": ["$employee_id", "$$employeeId"]},
-                                    {"$eq": ["$month", "$$targetDate"]},
-                                    {"$eq": ["$status", "approved"]},
-                                ]
-                            }
-                        }
-                    },
-                    {"$group": {"_id": "$month", "sum": {"$sum": "$amount"}}},
-                ],
-            }
-        },
-        {
-            "$lookup": {
-                "from": "salary_incentives",
-                "localField": "employee_id",
-                "foreignField": "employee_id",
-                "as": "salary_incentives_info",
-                "let": {"employeeId": "$employee_id", "targetDate": current_month},
-                "pipeline": [
-                    {
-                        "$match": {
-                            "$expr": {
-                                "$and": [
-                                    {"$eq": ["$employee_id", "$$employeeId"]},
-                                    {"$eq": ["$month", "$$targetDate"]},
-                                ]
-                            }
-                        }
-                    }
-                ],
-            }
-        },
-        {
-            "$addFields": {
-                "salary": {"$arrayElemAt": ["$salary_info", 0]},
-                "monthly_compensation": {
-                    "$arrayElemAt": ["$monthly_compensation_info", 0]
-                },
-                "salary_advance": {"$arrayElemAt": ["$salary_advance_info", 0]},
-                "loan": {"$arrayElemAt": ["$loan_schedule_info", 0]},
-                "salary_incentives": {"$arrayElemAt": ["$salary_incentives_info", 0]},
-            }
-        },
-        {
-            "$addFields": {
-                "gross_salary": {"$ifNull": ["$salary.gross_salary", 0]},
-                "pf": {"$ifNull": ["$salary.pf", 0]},
-                "esi": {"$ifNull": ["$salary.esi", 0]},
-                "loss_of_pay": {"$ifNull": ["$monthly_compensation.loss_of_pay", 0]},
-                "leave_cashback": {
-                    "$ifNull": ["$monthly_compensation.leave_cashback", 0]
-                },
-                "last_year_leave_cashback": {
-                    "$ifNull": ["$monthly_compensation.last_year_leave_cashback", 0]
-                },
-                "attendance_special_allowance": {
-                    "$ifNull": ["$monthly_compensation.attendance_special_allowance", 0]
-                },
-                "other_special_allowance": {
-                    "$ifNull": ["$monthly_compensation.other_special_allowance", 0]
-                },
-                "overtime": {"$ifNull": ["$monthly_compensation.overtime", 0]},
-                "salary_advance": {"$ifNull": ["$salary_advance.sum", 0]},
-                "loan": {"$ifNull": ["$loan.sum", 0]},
-                "allowance": {"$ifNull": ["$salary_incentives.allowance", 0]},
-                "increment": {"$ifNull": ["$salary_incentives.increment", 0]},
-                "bonus": {"$ifNull": ["$salary_incentives.bonus", 0]},
-            }
-        },
-        {
-            "$project": {
-                "salary_info": 0,
-                "monthly_compensation_info": 0,
-                "salary_incentives_info": 0,
-                "salary": 0,
-                "monthly_compensation": 0,
-                "salary_incentives": 0,
-                "loan_schedule_info": 0,
-                "salary_advance_info": 0,
-            }
-        },
-        {
-            "$addFields": {
-                "net_salary": {
-                    "$subtract": [
-                        {
-                            "$add": [
-                                "$gross_salary",
-                                "$attendance_special_allowance",
-                                "$leave_cashback",
-                                "$last_year_leave_cashback",
-                                "$other_special_allowance",
-                                "$overtime",
-                                "$allowance",
-                                "$increment",
-                                "$bonus",
-                            ]
-                        },
-                        {
-                            "$add": [
-                                "$pf",
-                                "$esi",
-                                "$loss_of_pay",
-                                "$salary_advance",
-                                "$loan",
-                            ]
-                        },
-                    ]
-                }
-            }
-        },
-    ]
+    else:
+        current_month = month
+
+    # Change in pipeline should be done here
+    pipeline = await pipelines.get_employee_with_salary_details(
+        employee_id, current_month
+    )
+
     emp = mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].aggregate(pipeline)
 
     data = [e async for e in emp]

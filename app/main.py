@@ -1,6 +1,7 @@
 import sys
 
 sys.dont_write_bytecode = True
+import os
 from fastapi import FastAPI, Request, Response, Depends
 from app.api import api_router
 from app.core.errors import http_error_handler
@@ -19,6 +20,11 @@ from app.api.crons.salary import SalaryCron
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+import sentry_sdk
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 try:
     mq = RabbitMQ()
@@ -29,9 +35,16 @@ try:
 except Exception as e:
     print(e)
 
+if os.getenv("ENVIRONMENT") == "prod" or os.getenv("ENVIRONMENT") == "staging":
+    sentry_sdk.init(
+        dsn=os.getenv("SENTRY_DSN"),
+        traces_sample_rate=1.0,
+        profiles_sample_rate=1.0,
+    )
+
 app = FastAPI(
     title="HHP Salary Management APIs",
-    description="This is a very fancy project, with auto docs for the API and everything",
+    description="This is the API documentation for the HHP Salary Management System",
     version="0.0.1",
 )
 
@@ -41,6 +54,7 @@ scheduler = AsyncIOScheduler()
 async def attendance_job():
     obj = Attendance(mongo.client)
     list = await obj.post_attendance()
+    print("Attendance Job Ran")
 
 
 async def salary_job():
@@ -49,10 +63,9 @@ async def salary_job():
     print("Salary Job Ran")
 
 
-scheduler.add_job(salary_job, "cron", hour=14, minute=52, second=0)
+scheduler.add_job(salary_job, "cron", day="last", hour=23, minute=59)
 
-
-# scheduler.add_job(attendance_job, "cron", minute="*/2")
+scheduler.add_job(attendance_job, "cron", hour=18, minute=0)
 
 scheduler.start()
 
@@ -71,6 +84,16 @@ app.add_middleware(StatusCodeMiddleware)
 @app.on_event("startup")
 async def startup():
     await mongo.connect_to_database()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    await mongo.close_database_connection()
+
+
+@app.get("/sentry-debug")
+async def trigger_error():
+    division_by_zero = 1 / 0
 
 
 @app.get("/")

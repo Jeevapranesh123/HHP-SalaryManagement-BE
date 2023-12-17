@@ -296,7 +296,7 @@ async def update_salary_incentives(
 ):
     employee_id = SalaryIncentivesCreateRequest.employee_id
 
-    month = first_day_of_current_month()
+    month = first_day_of_current_month(1, 2024)
 
     existing_record = await mongo_client[MONGO_DATABASE][
         SALARY_INCENTIVES_COLLECTION

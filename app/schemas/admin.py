@@ -42,6 +42,7 @@ class BankSalaryBatch(BaseModel):
 
 
 class BankSalaryBatchInDB(BankSalaryBatch):
+    branch: str
     id: str = Field(default_factory=lambda: str(uuid.uuid4()).replace("-", ""))
     created_at: datetime.datetime = datetime.datetime.now()
     created_by: str = "MD"
@@ -56,6 +57,7 @@ class BankSalaryBatchCreateRequest(BankSalaryBatch):
 class BankSalaryBatchResponse(BaseModel):
     batch_id: str
     batch_name: str
+    branch: str
     employee_ids: List[str]
 
 
