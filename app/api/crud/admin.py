@@ -144,3 +144,18 @@ class AdminCrud:
             return batch
 
         return None
+
+    async def get_bank_salary_batch_list_all(self):
+        batch = (
+            await self.mongo_client[MONGO_DATABASE]["bank_salary_batch"]
+            .find({}, {"_id": 0})
+            .to_list(length=None)
+        )
+        res = {}
+
+        for i in batch:
+            res[i["id"]] = i["employee_ids"]
+
+        if batch:
+            return res
+        return {}
