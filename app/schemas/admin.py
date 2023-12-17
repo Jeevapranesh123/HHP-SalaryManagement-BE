@@ -63,3 +63,7 @@ class BankSalaryBatchCreateResponse(BaseModel):
     message: str
     status: bool
     data: BankSalaryBatchResponse
+
+
+class BankSalaryBatchUpdateRequest(BankSalaryBatch):
+    batch_id: str

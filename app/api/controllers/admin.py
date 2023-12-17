@@ -2,6 +2,8 @@ from app.database import get_mongo, AsyncIOMotorClient
 
 from app.api.crud.admin import AdminCrud
 
+from fastapi import HTTPException, Depends, APIRouter
+
 from app.schemas.admin import (
     Rules,
     Guidelines,
@@ -323,4 +325,26 @@ class AdminController:
     async def delete_bank_salary_batch(self, batch_id):
         crud_obj = AdminCrud(self.payload, self.mongo_client)
         res = await crud_obj.delete_bank_salary_batch(batch_id)
+        return res
+
+    async def update_bank_salary_batch(self, batch_id, update_bank_salary_batch):
+        crud_obj = AdminCrud(self.payload, self.mongo_client)
+
+        batch = await crud_obj.get_bank_salary_batch(batch_id)
+
+        if not batch:
+            raise HTTPException(status_code=404, detail="Bank salary batch not found")
+
+        # bank_salary_batch_in_db = BankSalaryBatchInDB(**update_bank_salary_batch.dict())
+
+        # bank_salary_batch_in_db.employee_ids = [
+        #     employee_id.strip() for employee_id in bank_salary_batch_in_db.employee_ids
+        # ]
+
+        # bank_salary_batch_in_db = bank_salary_batch_in_db.model_dump()
+
+        res = await crud_obj.update_bank_salary_batch(
+            batch_id, update_bank_salary_batch.model_dump()
+        )
+        res["batch_id"] = res.pop("id")
         return res
