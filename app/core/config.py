@@ -78,6 +78,8 @@ class Config(object):
 
     BRANCH_DROPDOWN = [{"label": x, "value": x} for x in BRANCHES]
 
+    INDEX_CONFIG_FILE_LOCATION = os.getenv("INDEX_CONFIG_FILE_LOCATION")
+
 
 # class Settings(BaseModel):
 #     authjwt_secret_key: str = "secret"

@@ -23,6 +23,8 @@ from app.schemas.auth import (
     RemoveRoleReq,
 )
 
+import datetime
+
 
 from app.api.utils.employees import verify_login_token, verify_custom_master_token
 
@@ -267,209 +269,21 @@ async def delete_bank_salary_batch(
     return {"message": "Bank salary batch deleted successfully"}
 
 
-@router.get("/report/download/salary")
+@router.get("/report/download/{report_type}")
 async def download_report(
+    report_type: str,
+    request: Request,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),
 ):
-    # obj = AdminController(payload, mongo_client)
-    # res = await obj.download_report()
-    # return {"data": res}
-    # return {"data": "res"}
-    df = pd.DataFrame()
+    query_params = request.query_params
+    print(report_type, query_params)
+    obj = AdminController(payload, mongo_client)
+    output = await obj.download_report(report_type, query_params)
 
-    # Save the empty DataFrame as an Excel file
-    file_path = "empty_salary_report.xlsx"
-    df.to_excel(file_path, index=False)
-
-    # Return the Excel file in response
-    return FileResponse(
-        file_path,
+    headers = {"Content-Disposition": "attachment; filename=report.xlsx"}
+    return Response(
+        content=output.read(),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        filename="empty_salary_report.xlsx",
-    )
-
-
-@router.get("/report/download/increment")
-async def download_increment_report(
-    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
-    payload: dict = Depends(verify_login_token),
-):
-    # obj = AdminController(payload, mongo_client)
-    # res = await obj.download_increment_report()
-    # return {"data": res}
-    # return {"data": "res"}
-    df = pd.DataFrame()
-
-    # Save the empty DataFrame as an Excel file
-    file_path = "empty_salary_report.xlsx"
-    df.to_excel(file_path, index=False)
-
-    # Return the Excel file in response
-    return FileResponse(
-        file_path,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        filename="empty_salary_report.xlsx",
-    )
-
-
-@router.get("/report/download/bonus")
-async def download_attendance_report(
-    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
-    payload: dict = Depends(verify_login_token),
-):
-    # obj = AdminController(payload, mongo_client)
-    # res = await obj.download_attendance_report()
-    # return {"data": res}
-    # return {"data": "res"}
-    df = pd.DataFrame()
-
-    # Save the empty DataFrame as an Excel file
-    file_path = "empty_salary_report.xlsx"
-    df.to_excel(file_path, index=False)
-
-    # Return the Excel file in response
-    return FileResponse(
-        file_path,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        filename="empty_salary_report.xlsx",
-    )
-
-
-@router.get("/report/download/allowance")
-async def download_leave_report(
-    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
-    payload: dict = Depends(verify_login_token),
-):
-    # obj = AdminController(payload, mongo_client)
-    # res = await obj.download_leave_report()
-    # return {"data": res}
-    # return {"data": "res"}
-    df = pd.DataFrame()
-
-    # Save the empty DataFrame as an Excel file
-    file_path = "empty_salary_report.xlsx"
-    df.to_excel(file_path, index=False)
-
-    # Return the Excel file in response
-    return FileResponse(
-        file_path,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        filename="empty_salary_report.xlsx",
-    )
-
-
-@router.get("/report/download/attendance_special_allowance")
-async def download_special_allowance_report(
-    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
-    payload: dict = Depends(verify_login_token),
-):
-    # obj = AdminController(payload, mongo_client)
-    # res = await obj.download_special_allowance_report()
-    # return {"data": res}
-    # return {"data": "res"}
-    df = pd.DataFrame()
-
-    # Save the empty DataFrame as an Excel file
-    file_path = "empty_salary_report.xlsx"
-    df.to_excel(file_path, index=False)
-
-    # Return the Excel file in response
-    return FileResponse(
-        file_path,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        filename="empty_salary_report.xlsx",
-    )
-
-
-@router.get("/report/download/other_special_allowance")
-async def download_other_special_allowance_report(
-    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
-    payload: dict = Depends(verify_login_token),
-):
-    # obj = AdminController(payload, mongo_client)
-    # res = await obj.download_other_special_allowance_report()
-    # return {"data": res}
-    # return {"data": "res"}
-    df = pd.DataFrame()
-
-    # Save the empty DataFrame as an Excel file
-    file_path = "empty_salary_report.xlsx"
-    df.to_excel(file_path, index=False)
-
-    # Return the Excel file in response
-    return FileResponse(
-        file_path,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        filename="empty_salary_report.xlsx",
-    )
-
-
-@router.get("/report/download/leave")
-async def download_leave_report(
-    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
-    payload: dict = Depends(verify_login_token),
-):
-    # obj = AdminController(payload, mongo_client)
-    # res = await obj.download_leave_report()
-    # return {"data": res}
-    # return {"data": "res"}
-    df = pd.DataFrame()
-
-    # Save the empty DataFrame as an Excel file
-    file_path = "empty_salary_report.xlsx"
-    df.to_excel(file_path, index=False)
-
-    # Return the Excel file in response
-    return FileResponse(
-        file_path,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        filename="empty_salary_report.xlsx",
-    )
-
-
-@router.get("/report/download/all")
-async def download_all_report(
-    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
-    payload: dict = Depends(verify_login_token),
-):
-    # obj = AdminController(payload, mongo_client)
-    # res = await obj.download_all_report()
-    # return {"data": res}
-    # return {"data": "res"}
-    df = pd.DataFrame()
-
-    # Save the empty DataFrame as an Excel file
-    file_path = "empty_salary_report.xlsx"
-    df.to_excel(file_path, index=False)
-
-    # Return the Excel file in response
-    return FileResponse(
-        file_path,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        filename="empty_salary_report.xlsx",
-    )
-
-
-@router.get("/report/download/bank_salary")
-async def download_bank_salary_report(
-    batch_id: str,
-    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
-    payload: dict = Depends(verify_login_token),
-):
-    # obj = AdminController(payload, mongo_client)
-    # res = await obj.download_bank_salary_report(batch_id)
-    # return {"data": res}
-    # return {"data": "res"}
-    df = pd.DataFrame()
-
-    # Save the empty DataFrame as an Excel file
-    file_path = "empty_salary_report.xlsx"
-    df.to_excel(file_path, index=False)
-
-    # Return the Excel file in response
-    return FileResponse(
-        file_path,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        filename="empty_salary_report.xlsx",
+        headers=headers,
     )

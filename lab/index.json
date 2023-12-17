@@ -1,9 +1,67 @@
 {
-    "employees":["employee_id","name","email","phone"],
-    "users":["employee_id","uuid","email"],
-    "monthly_compensation":["employee_id","month"],
-    "salary_incentives":["employee_id","month"],
-    "salary":["employee_id"],
-    "salary_advance":[],
-    "leave":["employee_id","start_date","end_date"]
+    "indexes":[
+        {
+            "collection":"bank_salary_batch",
+            "fields":["batch_name","branch"],
+            "unique":true
+        },
+        {
+            "collection":"employees",
+            "fields":["employee_id","name","email","phone"],
+            "unique":true
+        },
+        {
+            "collection":"users",
+            "fields":["employee_id","uuid","email"],
+            "unique":true
+
+        },
+        {
+            "collection":"monthly_compensation",
+            "fields":["employee_id","month"],
+            "unique":true
+
+        },
+        {
+            "collection":"salary_incentives",
+            "fields":["employee_id","month"],
+            "unique":true
+
+        },
+        {
+            "collection":"salary",
+            "fields":["employee_id","month"],
+            "unique":true
+        },
+        {
+            "collection":"salary_advance",
+            "fields":[],
+            "unique":true
+
+        },
+        {
+            "collection":"leave",
+            "fields":["employee_id","start_date","end_date"],
+            "unique":true
+
+        },
+        {
+            "collection":"loan_schedule",
+            "fields":["employee_id","month","loan_id"],
+            "unique":true
+
+        },
+        {
+            "collection":"roles",
+            "fields":["role"],
+            "unique":true
+
+        },
+        {
+            "collection":"attendance",
+            "fields":["employee_id","date"],
+            "unique":true
+
+        }
+    ]
 }
