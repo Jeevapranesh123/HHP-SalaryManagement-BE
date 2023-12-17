@@ -66,3 +66,9 @@ class MongoManger:
             self.client[Config.MONGO_DATABASE]["roles"].update_one(
                 {"role": i["role"]}, {"$set": i}, upsert=True
             )
+
+    async def create_indexes(self):
+        pass
+
+    async def drop_indexes(self):
+        pass
