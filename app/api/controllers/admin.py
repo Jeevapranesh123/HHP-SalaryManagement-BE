@@ -141,7 +141,7 @@ class AdminController:
                                 "type": "button",
                                 "variant": "default",
                                 "action": {
-                                    "url": "/admin/report/salary",
+                                    "url": "/admin/report/download/salary",
                                     "method": "GET",
                                 },
                             }
@@ -162,7 +162,7 @@ class AdminController:
                                 "type": "button",
                                 "variant": "default",
                                 "action": {
-                                    "url": "/admin/report/increment",
+                                    "url": "/admin/report/download/increment",
                                     "method": "GET",
                                 },
                             }
@@ -183,7 +183,7 @@ class AdminController:
                                 "type": "button",
                                 "variant": "default",
                                 "action": {
-                                    "url": "/admin/report/bonus",
+                                    "url": "/admin/report/download/bonus",
                                     "method": "GET",
                                 },
                             }
@@ -204,7 +204,7 @@ class AdminController:
                                 "type": "button",
                                 "variant": "default",
                                 "action": {
-                                    "url": "/admin/report/allowance",
+                                    "url": "/admin/report/download/allowance",
                                     "method": "GET",
                                 },
                             }
@@ -225,7 +225,7 @@ class AdminController:
                                 "type": "button",
                                 "variant": "default",
                                 "action": {
-                                    "url": "/admin/report/attendance_special_allowance",
+                                    "url": "/admin/report/download/attendance_special_allowance",
                                     "method": "GET",
                                 },
                             }
@@ -246,7 +246,7 @@ class AdminController:
                                 "type": "button",
                                 "variant": "default",
                                 "action": {
-                                    "url": "/admin/report/other_special_allowance",
+                                    "url": "/admin/report/download/other_special_allowance",
                                     "method": "GET",
                                 },
                             }
@@ -267,7 +267,7 @@ class AdminController:
                                 "type": "button",
                                 "variant": "default",
                                 "action": {
-                                    "url": "/admin/report/leave",
+                                    "url": "/admin/report/download/leave",
                                     "method": "GET",
                                 },
                             }
@@ -287,7 +287,10 @@ class AdminController:
                                 "label": "Submit",
                                 "type": "button",
                                 "variant": "default",
-                                "action": {"url": "/admin/report/all", "method": "GET"},
+                                "action": {
+                                    "url": "/admin/report/download/all",
+                                    "method": "GET",
+                                },
                             }
                         ],
                     }

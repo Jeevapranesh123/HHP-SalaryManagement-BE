@@ -1,4 +1,6 @@
 {
+    "employees":["employee_id","name","email","phone"],
+    "users":["employee_id","uuid","email"],
     "monthly_compensation":["employee_id","month"],
     "salary_incentives":["employee_id","month"],
     "salary":["employee_id"],
