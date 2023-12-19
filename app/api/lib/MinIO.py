@@ -22,7 +22,7 @@ class MinIO:
             access_key=access_key,
             secret_key=secret_key,
             secure=True
-            if ENVIRONMENT == "production" or ENVIRONMENT == "staging"
+            if ENVIRONMENT == "prod" or ENVIRONMENT == "staging"
             else False,
         )
 
