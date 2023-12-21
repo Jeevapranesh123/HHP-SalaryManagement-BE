@@ -30,6 +30,18 @@ from pytz import timezone
 import datetime
 
 
+import logging
+
+logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
+
+logger = logging.getLogger(__name__)
+
+import random
+
+import string
+
+import time
+
 load_dotenv()
 
 try:
@@ -55,6 +67,24 @@ app = FastAPI(
     version="0.0.1",
 )
 
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    idem = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
+    logger.info(f"rid={idem} start request path={request.url.path}")
+    start_time = time.time()
+
+    response = await call_next(request)
+
+    process_time = (time.time() - start_time) * 1000
+    formatted_process_time = "{0:.2f}".format(process_time)
+    logger.info(
+        f"rid={idem} completed_in={formatted_process_time}ms status_code={response.status_code}"
+    )
+
+    return response
+
+
 local_tz = timezone("Asia/Kolkata")
 
 scheduler = AsyncIOScheduler(timezone=local_tz)
@@ -68,7 +98,6 @@ async def attendance_job():
         print("Attendance Job Ran", datetime.datetime.now())
 
 
-
 async def salary_job():
     with monitor(monitor_slug="salary-increment-job"):
         obj = SalaryCron(mongo.client)
@@ -77,6 +106,7 @@ async def salary_job():
 
 
 scheduler.add_job(salary_job, "cron", day="last", hour=23, minute=00, second=00)
+
 
 scheduler.add_job(attendance_job, "cron", hour=18, minute=00, second=00)
 
