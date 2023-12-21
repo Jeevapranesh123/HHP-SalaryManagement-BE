@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  mongodb:
+    labels:
+      - "traefik.http.routers.mongodb.rule=Host(`mongo.services.hindustanhydraulic.org`)"
+      - "traefik.http.routers.mongodb.entrypoints=websecure"
+      - "traefik.http.routers.mongodb.tls.certresolver=myresolver"
+    container_name: mongodb_prod
+
+  rabbitmq:
+    labels:
+      - "traefik.http.routers.rabbitmq.rule=Host(`mq.services.hindustanhydraulic.org`)"
+      - "traefik.http.routers.rabbitmq.entrypoints=websecure"
+      - "traefik.http.routers.rabbitmq.tls.certresolver=myresolver"
+    container_name: rabbitmq_prod
+
+  minio:
+    labels:
+      - "traefik.http.routers.minio-api.rule=Host(`api.minio.services.hindustanhydraulic.org`)"
+      - "traefik.http.routers.minio-api.entrypoints=websecure"
+      - "traefik.http.routers.minio-api.tls.certresolver=myresolver"
+      
+      - "traefik.http.routers.minio-console.rule=Host(`console.minio.services.hindustanhydraulic.org`)"
+      - "traefik.http.routers.minio-console.entrypoints=websecure"
+      - "traefik.http.routers.minio-console.tls.certresolver=myresolver"
+
+    container_name: minio_prod
