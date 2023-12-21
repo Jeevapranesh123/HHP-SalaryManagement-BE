@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  backend:
+    hostname: backend-prod
+    container_name: backend_prod
+    labels:
+      - "traefik.http.routers.backend.rule=Host(`socketio.services.hindustanhydraulic.org`)"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls.certresolver=myresolver"
+
+
+  socketio:
+    hostname: socketio-prod
+    container_name: socketio_prod
+    labels:
+      - "traefik.http.routers.socketio.rule=Host(`hr.backend.hindustanhydraulic.org`)"
+      - "traefik.http.routers.socketio.entrypoints=websecure"
+      - "traefik.http.routers.socketio.tls.certresolver=myresolver"
