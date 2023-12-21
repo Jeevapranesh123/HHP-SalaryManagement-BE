@@ -1,6 +1,10 @@
 # Use an official Python runtime as a parent image
 FROM python:3.9-slim
 
+# Set the timezone to Asia/Kolkata
+ENV TZ=Asia/Kolkata
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1

@@ -27,6 +27,8 @@ import sentry_sdk
 from dotenv import load_dotenv
 from pytz import timezone
 
+import datetime
+
 
 import logging
 
@@ -90,14 +92,14 @@ scheduler = AsyncIOScheduler(timezone=local_tz)
 
 # @monitor(monitor_slug="attendance-job")
 async def attendance_job():
-    with monitor(monitor_slug="attendance-job"):
+    with monitor(monitor_slug="attendance-marking-job"):
         obj = Attendance(mongo.client)
         list = await obj.post_attendance()
-        print("Attendance Job Ran")
+        print("Attendance Job Ran", datetime.datetime.now())
 
 
 async def salary_job():
-    with monitor(monitor_slug="salary_increment-job"):
+    with monitor(monitor_slug="salary-increment-job"):
         obj = SalaryCron(mongo.client)
         await obj.update_basic_salary()
         print("Salary Job Ran")
@@ -149,8 +151,9 @@ async def ping():
 
 @app.get("/attendance")
 async def test():
-    obj = Attendance(mongo.client)
-    await obj.post_attendance()
+    # obj = Attendance(mongo.client)
+    # await obj.post_attendance()
+    await attendance_job()
 
 
 @app.get("/increment")
