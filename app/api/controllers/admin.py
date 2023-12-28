@@ -112,8 +112,11 @@ class AdminController:
         crud_obj = AdminCrud(self.payload, self.mongo_client)
 
         user = await crud_obj.get_employee_role(employee_id)
+        if user.get("primary_role"):
+            role = user["primary_role"]["role"]
 
-        role = user["primary_role"]["role"]
+        else:
+            role = None
 
         return role
 

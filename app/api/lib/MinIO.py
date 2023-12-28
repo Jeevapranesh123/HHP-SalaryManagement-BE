@@ -21,9 +21,7 @@ class MinIO:
             endpoint=endpoint,
             access_key=access_key,
             secret_key=secret_key,
-            secure=True
-            if ENVIRONMENT == "prod" or ENVIRONMENT == "staging"
-            else False,
+            secure=True if ENVIRONMENT == "prod" or ENVIRONMENT == "staging" else False,
         )
 
         try:
