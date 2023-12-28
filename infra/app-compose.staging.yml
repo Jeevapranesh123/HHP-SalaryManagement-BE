@@ -1,19 +1,19 @@
 version: "3.8"
 
 services:
-  backend:
-    hostname: backend-staging
-    container_name: backend_staging
+  backend_salary_management:
+    hostname: backend_salary_management-staging
+    container_name: backend_salary_management_staging
     labels:
-      - "traefik.http.routers.backend.rule=Host(`backend-salary.zuvatech.com`)"
-      - "traefik.http.routers.backend.entrypoints=websecure"
-      - "traefik.http.routers.backend.tls.certresolver=myresolver"
+      - "traefik.http.routers.backend_salary_management.rule=Host(`backend-salary.zuvatech.com`)"
+      - "traefik.http.routers.backend_salary_management.entrypoints=websecure"
+      - "traefik.http.routers.backend_salary_management.tls.certresolver=myresolver"
 
 
-  socketio:
-    hostname: socketio-staging
-    container_name: socketio_staging
+  socketio_salary_management:
+    hostname: socketio_salary_management-staging
+    container_name: socketio_salary_management_staging
     labels:
-      - "traefik.http.routers.socketio.rule=Host(`socketio-salary.zuvatech.com`)"
-      - "traefik.http.routers.socketio.entrypoints=websecure"
-      - "traefik.http.routers.socketio.tls.certresolver=myresolver"
+      - "traefik.http.routers.socketio_salary_management.rule=Host(`socketio-salary.zuvatech.com`)"
+      - "traefik.http.routers.socketio_salary_management.entrypoints=websecure"
+      - "traefik.http.routers.socketio_salary_management.tls.certresolver=myresolver"

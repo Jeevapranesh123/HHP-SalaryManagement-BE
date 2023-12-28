@@ -1,19 +1,19 @@
 version: "3.8"
 
 services:
-  backend:
-    hostname: backend-prod
-    container_name: backend_prod
+  backend_salary_management:
+    hostname: backend_salary_management-prod
+    container_name: backend_salary_management_prod
     labels:
-      - "traefik.http.routers.backend.rule=Host(`socketio.services.hindustanhydraulic.org`)"
+      - "traefik.http.routers.backend.rule=Host(`hr.backend.hindustanhydraulic.org`)"
       - "traefik.http.routers.backend.entrypoints=websecure"
       - "traefik.http.routers.backend.tls.certresolver=myresolver"
 
 
-  socketio:
-    hostname: socketio-prod
-    container_name: socketio_prod
+  socketio_salary_management:
+    hostname: socketio_salary_management-prod
+    container_name: socketio_salary_management_prod
     labels:
-      - "traefik.http.routers.socketio.rule=Host(`hr.backend.hindustanhydraulic.org`)"
-      - "traefik.http.routers.socketio.entrypoints=websecure"
-      - "traefik.http.routers.socketio.tls.certresolver=myresolver"
+      - "traefik.http.routers.socketio_salary_management.rule=Host(`socketio.services.hindustanhydraulic.org`)"
+      - "traefik.http.routers.socketio_salary_management.entrypoints=websecure"
+      - "traefik.http.routers.socketio_salary_management.tls.certresolver=myresolver"

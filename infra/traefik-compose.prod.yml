@@ -11,7 +11,7 @@ services:
       - "8080:8080" # Traefik dashboard (optional, for monitoring)
     command:
       - "--log.level=DEBUG"
-      # - "--api.insecure=true" # Consider securing this in production
+      - "--api.insecure=true" # Consider securing this in production
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false" # Avoid exposing containers by default
       - "--entrypoints.web.address=:80"
@@ -32,7 +32,9 @@ services:
       - "traefik.http.routers.traefik.tls.certresolver=myresolver"
       - "traefik.http.routers.traefik.service=api@internal"
 
-      - "traefik.http.middlewares.auth.basicauth.users=hindustan:$apr1$C48xC4Wx$7r094Cuiz6oYe77.tLj0Q/"
+      # # - "traefik.http.middlewares.auth.basicauth.users=hindustan:$apr1$C48xC4Wx$7r094Cuiz6oYe77.tLj0Q/"
+      - "traefik.http.middlewares.admin-auth.basicauth.users=hindustan:$$apr1$$3233nJC5$$r2xijCPvWuLavsWq1rFTV0"
+
 
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       - "traefik.http.routers.http-catchall.rule=HostRegexp(`{any:.*}`)"

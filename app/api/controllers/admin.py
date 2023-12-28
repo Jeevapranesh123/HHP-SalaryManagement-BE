@@ -112,7 +112,7 @@ class AdminController:
         crud_obj = AdminCrud(self.payload, self.mongo_client)
 
         user = await crud_obj.get_employee_role(employee_id)
-
+        
         role = user["primary_role"]["role"]
 
         return role
