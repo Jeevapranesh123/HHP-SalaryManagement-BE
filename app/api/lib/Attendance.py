@@ -80,10 +80,10 @@ class Attendance:
                     employee_id=employee_id, date=today, status="absent"
                 ).model_dump()
             )
-
-        await self.mongo_client[MONGO_DATABASE][ATTENDANCE_COLLECTION].insert_many(
-            attendance_list
-        )
+        if len(attendance_list)!=0:
+            await self.mongo_client[MONGO_DATABASE][ATTENDANCE_COLLECTION].insert_many(
+                attendance_list
+            )
 
         return attendance_list
 

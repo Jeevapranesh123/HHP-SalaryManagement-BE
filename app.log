@@ -1,0 +1,6 @@
+2023-12-19 22:27:55 - uvicorn.error - INFO - Will watch for changes in these directories: ['/Users/jeeva/Developer/Hindustan-Hydraulics/Salary-Management']
+2023-12-19 22:27:55 - uvicorn.error - INFO - Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2023-12-19 22:27:55 - uvicorn.error - INFO - Started reloader process [38399] using WatchFiles
+2023-12-19 22:27:56 - uvicorn.error - INFO - Started server process [38401]
+2023-12-19 22:27:56 - uvicorn.error - INFO - Waiting for application startup.
+2023-12-19 22:27:56 - uvicorn.error - INFO - Application startup complete.

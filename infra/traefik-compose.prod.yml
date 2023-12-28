@@ -1,0 +1,47 @@
+version: "3.8"
+
+services:
+  traefik:
+    container_name: traefik_prod
+    hostname: traefik-prod
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443" # HTTPS port
+      - "8080:8080" # Traefik dashboard (optional, for monitoring)
+    command:
+      - "--log.level=DEBUG"
+      - "--api.insecure=true" # Consider securing this in production
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false" # Avoid exposing containers by default
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+
+      - "--log.level=INFO"
+      - "--log.filePath=/traefik/file.log"
+      - "--accessLog.filePath=/traefik//access.log"
+
+
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=jpranesh14@gmail.com" # Replace with your email
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.hindustanhydraulic.org`)"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.tls.certresolver=myresolver"
+      - "traefik.http.routers.traefik.service=api@internal"
+
+      # # - "traefik.http.middlewares.auth.basicauth.users=hindustan:$apr1$C48xC4Wx$7r094Cuiz6oYe77.tLj0Q/"
+      - "traefik.http.middlewares.admin-auth.basicauth.users=hindustan:$$apr1$$3233nJC5$$r2xijCPvWuLavsWq1rFTV0"
+
+
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.routers.http-catchall.rule=HostRegexp(`{any:.*}`)"
+      - "traefik.http.routers.http-catchall.entrypoints=web"
+      - "traefik.http.routers.http-catchall.middlewares=redirect-to-https@docker"
+
+
+    volumes:
+      - "./letsencrypt-prod:/letsencrypt" # Mount for Let's Encrypt storage
+      - "./traefik:/traefik"

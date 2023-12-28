@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+
+  mongodb:
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: hindustan
+      MONGO_INITDB_ROOT_PASSWORD: 9uSERcUJMVYlACOH
+    labels:
+      - "traefik.http.routers.mongodb.rule=Host(`mongo.services.hindustanhydraulic.org`)"
+      - "traefik.http.routers.mongodb.entrypoints=websecure"
+      - "traefik.http.routers.mongodb.tls.certresolver=myresolver"
+    container_name: mongodb_prod
+
+  rabbitmq:
+    environment:
+        - RABBITMQ_DEFAULT_USER=hindustan # Set the desired username
+        - RABBITMQ_DEFAULT_PASS=lZkC7h20nDnDOERK # Set the desired password
+    labels:
+      - "traefik.http.routers.rabbitmq.rule=Host(`mq.services.hindustanhydraulic.org`)"
+      - "traefik.http.routers.rabbitmq.entrypoints=websecure"
+      - "traefik.http.routers.rabbitmq.tls.certresolver=myresolver"
+    container_name: rabbitmq_prod
+
+  minio:
+    environment:
+        MINIO_ROOT_USER: hindustan
+        MINIO_ROOT_PASSWORD: ZSKcwhnmtsaER8Q6
+    labels:
+      - "traefik.http.routers.minio-api.rule=Host(`api.minio.services.hindustanhydraulic.org`)"
+      - "traefik.http.routers.minio-api.entrypoints=websecure"
+      - "traefik.http.routers.minio-api.tls.certresolver=myresolver"
+      
+      - "traefik.http.routers.minio-console.rule=Host(`console.minio.services.hindustanhydraulic.org`)"
+      - "traefik.http.routers.minio-console.entrypoints=websecure"
+      - "traefik.http.routers.minio-console.tls.certresolver=myresolver"
+
+    container_name: minio_prod

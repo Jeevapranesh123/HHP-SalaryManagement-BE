@@ -2,29 +2,29 @@ version: "3.8"
 
 services:
 
-  backend:
+  backend_salary_management:
       build:
         context: ..
         dockerfile: app/Dockerfile
-      hostname: backend
-      container_name: backend
+      hostname: backend_salary_management
+      container_name: backend_salary_management
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.backend.rule=Host(`backend.localhost`)"
-        - "traefik.http.services.backend.loadbalancer.server.port=80"
+        - "traefik.http.routers.backend_salary_management.rule=Host(`backend_salary_management.localhost`)"
+        - "traefik.http.services.backend_salary_management.loadbalancer.server.port=80"
       networks:
         - hindustan_applications
 
-  socketio:
+  socketio_salary_management:
     build:
       context: ..
       dockerfile: socketio_manager/Dockerfile
-    hostname: socketio
-    container_name: socketio
+    hostname: socketio_salary_management
+    container_name: socketio_salary_management
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.socketio.rule=Host(`socketio.localhost`)"
-      - "traefik.http.services.socketio.loadbalancer.server.port=80"
+      - "traefik.http.routers.socketio_salary_management.rule=Host(`socketio.localhost`)"
+      - "traefik.http.services.socketio_salary_management.loadbalancer.server.port=80"
     networks:
       - hindustan_applications
 
