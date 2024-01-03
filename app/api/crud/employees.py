@@ -40,7 +40,8 @@ async def get_employee_with_computed_fields(employee_id, mongo_client, month=Non
         total_leave_days
     ) = total_permission_hours = monthly_permission_hours = 0
 
-    current_month = first_day_of_current_month()
+    # current_month = first_day_of_current_month()
+    current_month = first_day_of_last_month()
 
     docs = mongo_client[MONGO_DATABASE][LEAVE_COLLECTION].find(
         {
@@ -69,6 +70,7 @@ async def get_employee_with_computed_fields(employee_id, mongo_client, month=Non
     )
 
     last_day = last_day_of_current_month()
+    current_month = first_day_of_current_month()
     attendance = mongo_client[MONGO_DATABASE][ATTENDANCE_COLLECTION].find(
         {"employee_id": employee_id, "date": {"$gte": current_month, "$lte": last_day}}
     )
@@ -212,7 +214,8 @@ async def get_employee_with_salary(
     employee_id: str, mongo_client: AsyncIOMotorClient, month=None
 ):
     if not month:
-        current_month = first_day_of_current_month()
+        # current_month = first_day_of_current_month()
+        current_month = first_day_of_last_month()
 
     else:
         current_month = month

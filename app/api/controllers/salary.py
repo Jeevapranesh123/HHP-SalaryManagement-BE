@@ -29,7 +29,7 @@ from app.schemas.notification import (
     NotificationMeta,
 )
 
-from app.api.utils import first_day_of_current_month
+from app.api.utils import *
 
 
 from app.core.config import Config
