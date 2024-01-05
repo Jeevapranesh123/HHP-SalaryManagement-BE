@@ -76,7 +76,6 @@ class MongoManger:
         collections = await self.client[Config.MONGO_DATABASE].list_collection_names()
         logger.info("Dropping Indexes")
         for collection in collections:
-            print(collection)
             if collection == "Get Profile":
                 continue
             await self.client[Config.MONGO_DATABASE][collection].drop_indexes()

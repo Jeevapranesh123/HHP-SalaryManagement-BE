@@ -277,7 +277,7 @@ async def download_report(
     payload: dict = Depends(verify_login_token),
 ):
     query_params = request.query_params
-    print(report_type, query_params)
+
     obj = AdminController(payload, mongo_client)
     output = await obj.download_report(report_type, query_params)
 

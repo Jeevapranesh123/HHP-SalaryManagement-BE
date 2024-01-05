@@ -221,7 +221,6 @@ class EmployeeController:
         def background_onboarding_email_task(email: str, name: str, password: str):
             asyncio.run(sendgrid.send_onboarding_email(email, name, password))
 
-        print(emp["email"], emp["name"], emp["password"])
         background_tasks.add_task(
             background_onboarding_email_task, emp["email"], emp["name"], emp["password"]
         )
@@ -280,8 +279,6 @@ class EmployeeController:
             res.pop("salary_incentives")
 
         import pprint
-
-        pprint.pprint(res)
 
         return res
 

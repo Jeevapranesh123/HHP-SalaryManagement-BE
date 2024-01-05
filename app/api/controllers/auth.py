@@ -181,7 +181,7 @@ async def forgot_password(forgot_password_request, mongo_client: AsyncIOMotorCli
     sendgrid = SendGrid()
 
     await sendgrid.send_forgot_password_email(user["email"], employee["name"], token)
-    print(token)
+
     return {"token": token}
 
 
@@ -225,8 +225,6 @@ async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient)
 
     minutes = monthly_permission_hours.split(" ")[2]
     minutes = int(minutes)
-
-    print(monthly_absent_days, monthly_permission_hours)
 
     alert = []
     # FIXME: Store the rules in the database and fetch them here

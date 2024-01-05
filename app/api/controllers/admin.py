@@ -426,7 +426,7 @@ class AdminController:
         query_params_check = all(
             key in query_params for key in meta[report_type]["data"].keys()
         )
-        print(query_params_check)
+
         if not query_params_check:
             raise HTTPException(status_code=400, detail="Invalid query parameters")
 
@@ -453,7 +453,6 @@ class AdminController:
 
             for workbook in workbooks:
                 for sheet in workbook.worksheets:
-                    print(sheet.title)
                     new_sheet = wb.create_sheet(sheet.title)
 
                     for row in sheet.iter_rows():
@@ -1029,7 +1028,7 @@ class AdminController:
 
     async def build_all_report(self, query_params):
         wb = []
-        print(query_params)
+
         # wb.append(await self.build_salary_report(query_params))
         wb.append(await self.build_increment_report(query_params))
         wb.append(await self.build_bonus_report(query_params))
@@ -1037,5 +1036,5 @@ class AdminController:
         wb.append(await self.build_attendance_special_allowance_report(query_params))
         wb.append(await self.build_other_special_allowance_report(query_params))
         wb.append(await self.build_leave_report(query_params))
-        print(wb)
+
         return wb

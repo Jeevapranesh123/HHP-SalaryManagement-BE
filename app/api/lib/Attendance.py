@@ -49,7 +49,6 @@ class Attendance:
 
         if leave_record:
             for record in leave_record:
-                print(record)
                 end_date = record.get("end_date")
                 start_date = record.get("start_date")
 
