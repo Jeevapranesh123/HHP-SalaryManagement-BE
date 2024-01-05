@@ -149,11 +149,13 @@ class LeaveController:
 
         notifier = []
 
-        if self.employee_role == "HR":
-            notifier = [emp_notification, md_notification]
+        # if self.employee_role == "HR":
+        #     notifier = [emp_notification, md_notification]
 
-        elif self.employee_role == "MD":
-            notifier = [emp_notification, hr_notification]
+        # elif self.employee_role == "MD":
+        #     notifier = [emp_notification, hr_notification]
+
+        notifier = [emp_notification]
 
         send = SendNotification(notifier=notifier)
 
@@ -341,11 +343,13 @@ class LeaveController:
 
         notifier = []
 
-        if self.employee_role == "HR":
-            notifier = [emp_notification, md_notification]
+        # if self.employee_role == "HR":
+        #     notifier = [emp_notification, md_notification]
 
-        elif self.employee_role == "MD":
-            notifier = [emp_notification, hr_notification]
+        # elif self.employee_role == "MD":
+        #     notifier = [emp_notification, hr_notification]
+
+        notifier = [emp_notification]
 
         send = SendNotification(notifier=notifier)
 
@@ -440,12 +444,13 @@ class LeaveController:
 
         notifier = []
 
-        if self.employee_role == "HR":
-            notifier = [emp_notification, md_notification]
+        # if self.employee_role == "HR":
+        #     notifier = [emp_notification, md_notification]
 
-        elif self.employee_role == "MD":
-            notifier = [emp_notification, hr_notification]
+        # elif self.employee_role == "MD":
+        #     notifier = [emp_notification, hr_notification]
 
+        notifier = [emp_notification]
         send = SendNotification(notifier=notifier)
 
         await notification.send_notification(send)
@@ -639,11 +644,13 @@ class LeaveController:
 
         notifier = []
 
-        if self.employee_role == "HR":
-            notifier = [emp_notification, md_notification]
+        # if self.employee_role == "HR":
+        #     notifier = [emp_notification, md_notification]
 
-        elif self.employee_role == "MD":
-            notifier = [emp_notification, hr_notification]
+        # elif self.employee_role == "MD":
+        #     notifier = [emp_notification, hr_notification]
+
+        notifier = [emp_notification]
 
         send = SendNotification(notifier=notifier)
 

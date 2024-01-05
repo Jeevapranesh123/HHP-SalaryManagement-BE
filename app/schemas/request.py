@@ -80,6 +80,11 @@ class EmployeeCreateRequest(EmployeeBase):
             if isinstance(value, str):
                 values[key] = value.strip()
 
+        if " " in values.get("employee_id"):
+            raise HTTPException(
+                status_code=400, detail="Employee ID cannot contain spaces"
+            )
+
         return values
 
 
@@ -235,10 +240,10 @@ class LeaveCreateRequest(LeaveBase):
         if end_date_str:
             end_date_obj = datetime.datetime.strptime(end_date_str, "%Y-%m-%d").date()
 
-        if start_date_obj < today:
-            raise HTTPException(
-                status_code=400, detail="Start date cannot be in the past"
-            )
+        # if start_date_obj < today:
+        #     raise HTTPException(
+        #         status_code=400, detail="Start date cannot be in the past"
+        #     )
         if start_date_str and end_date_str:
             if start_date_obj > end_date_obj:
                 raise HTTPException(
@@ -266,6 +271,7 @@ class LeaveResponse(str, Enum):
 
 class LeaveRespondRequest(BaseModel):
     id: str
+    loss_of_pay: int = None
     status: LeaveResponse
     remarks: Optional[str] = None
 
@@ -301,13 +307,13 @@ class PermissionCreateRequest(PermissionBase):
                 raise ValidationError(f"Invalid end_time format: {end_time}")
 
         date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
-        if date_obj < today.date():
-            raise HTTPException(status_code=400, detail="Date cannot be in the past")
+        # if date_obj < today.date():
+        #     raise HTTPException(status_code=400, detail="Date cannot be in the past")
 
-        if date_obj == today.date() and start_time < now:
-            raise HTTPException(
-                status_code=400, detail="Start time cannot be in the past"
-            )
+        # if date_obj == today.date() and start_time < now:
+        #     raise HTTPException(
+        #         status_code=400, detail="Start time cannot be in the past"
+        #     )
 
         if start_time > end_time:
             raise HTTPException(

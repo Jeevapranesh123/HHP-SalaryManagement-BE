@@ -14,7 +14,7 @@ from app.schemas.db import (
     MonthlyCompensationInDB,
     SalaryIncentivesInDB,
 )
-from app.api.utils import first_day_of_current_month
+from app.api.utils import *
 
 import uuid
 import datetime
@@ -203,7 +203,8 @@ async def update_salary(
 ):
     employee_id = SalaryCreateRequest.employee_id
 
-    month = first_day_of_current_month()
+    # month = first_day_of_current_month()
+    month = first_day_of_last_month()
 
     existing_salary = await mongo_client[MONGO_DATABASE][SALARY_COLLECTION].find_one(
         {"employee_id": employee_id, "month": month}, {"_id": 0}
@@ -244,7 +245,8 @@ async def update_monthly_compensation(
 ):
     employee_id = MonthlyCompensationCreateRequest.employee_id
 
-    month = first_day_of_current_month()
+    # month = first_day_of_current_month()
+    month = first_day_of_last_month()
 
     existing_record = await mongo_client[MONGO_DATABASE][
         MONTHLY_COMPENSATION_COLLECTION
@@ -296,7 +298,8 @@ async def update_salary_incentives(
 ):
     employee_id = SalaryIncentivesCreateRequest.employee_id
 
-    month = first_day_of_current_month()
+    # month = first_day_of_current_month()
+    month = first_day_of_last_month()
 
     existing_record = await mongo_client[MONGO_DATABASE][
         SALARY_INCENTIVES_COLLECTION

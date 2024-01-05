@@ -42,6 +42,7 @@ class LeaveBase(BaseModel):
     start_date: datetime.date
     end_date: Optional[datetime.date] = None
     no_of_days: Optional[int] = None
+    loss_of_pay: Optional[int] = None
     reason: Optional[str] = ""
     remarks: Optional[str] = ""
 

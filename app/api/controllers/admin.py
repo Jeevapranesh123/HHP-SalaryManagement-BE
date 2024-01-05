@@ -490,7 +490,8 @@ class AdminController:
             raise HTTPException(status_code=404, detail="Batch not found")
 
         employee_ids = batch["employee_ids"]
-        month = first_day_of_current_month()
+        # month = first_day_of_current_month()
+        month = first_day_of_last_month()
 
         data = await self.build_bank_salary_report(employee_ids, month)
         return data

@@ -51,7 +51,8 @@ class SalaryCron:
         for emp in employee_list:
             employee_id = emp["employee_id"]
 
-            month = first_day_of_current_month()
+            # month = first_day_of_current_month()
+            month = first_day_of_last_month()
 
             basic_salary = await self.mongo_client[MONGO_DATABASE][
                 SALARY_COLLECTION

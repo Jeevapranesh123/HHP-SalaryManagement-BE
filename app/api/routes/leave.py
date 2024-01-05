@@ -128,6 +128,7 @@ async def get_meta(
                             "required": False,
                         },
                         "no_of_days": {"type": "number", "required": True},
+                        "loss_of_pay": {"type": "number", "required": False},
                         "reason": {"type": "textarea", "required": True},
                         "remarks": {"type": "textarea", "required": True},
                     },
@@ -196,6 +197,8 @@ async def get_meta(
 
         data["data"]["type"]["leave"]["data"].pop("remarks")
         data["data"]["type"]["permission"]["data"].pop("remarks")
+
+        data["data"]["type"]["leave"]["data"].pop("loss_of_pay")
 
     elif access_type == "post":
         data["data"]["type"]["leave"]["actions"] = leave_post_action

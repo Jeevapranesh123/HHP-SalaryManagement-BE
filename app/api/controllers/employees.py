@@ -380,3 +380,12 @@ class EmployeeController:
             {"email": True},
             {"phone": True},
         ]
+
+    async def delete_employee(self, employee_id: str):
+        emp = await employee_crud.get_employee(employee_id, self.mongo_client)
+        if not emp:
+            raise HTTPException(status_code=404, detail="Employee not found")
+
+        await employee_crud.delete_employee(employee_id, self.mongo_client)
+
+        return {"message": "Employee Deleted Successfully", "status_code": 200}
