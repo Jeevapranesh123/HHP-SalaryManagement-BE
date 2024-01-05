@@ -237,6 +237,8 @@ async def get_bank_salary_batch_list(
     obj = AdminController(payload, mongo_client)
     res = await obj.get_bank_salary_batch_list()
     # return BankSalaryBatchCreateResponse(message="Bank salary batch list fetched successfully",status=True,data=res)
+    if not res:
+        return {"data": []}
     return {"data": res}
 
 
@@ -250,6 +252,7 @@ async def update_bank_salary_batch(
     """Create a new location entry"""
     obj = AdminController(payload, mongo_client)
     res = await obj.update_bank_salary_batch(batch_id, BankSalaryBatchCreateRequest)
+    print(res)
     return BankSalaryBatchCreateResponse(
         message="Bank salary batch updated successfully", status=True, data=res
     )
