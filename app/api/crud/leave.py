@@ -109,6 +109,7 @@ async def respond_leave(leave, mongo_client: AsyncIOMotorClient, responder):
         )
 
     data_change = {
+        "loss_of_pay": leave["loss_of_pay"],
         "status": leave["status"],
         "remarks": leave["remarks"],
         "approved_or_rejected_at": datetime.datetime.now(),

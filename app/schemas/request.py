@@ -271,6 +271,7 @@ class LeaveResponse(str, Enum):
 
 class LeaveRespondRequest(BaseModel):
     id: str
+    loss_of_pay: int = None
     status: LeaveResponse
     remarks: Optional[str] = None
 

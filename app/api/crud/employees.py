@@ -298,3 +298,15 @@ async def update_employee(employee_id: str, employee_details, mongo_client):
         return employee_details
 
     return None
+
+
+async def delete_employee(employee_id, mongo_client):
+    await mongo_client[MONGO_DATABASE][EMPLOYEE_COLLECTION].delete_one(
+        {"employee_id": employee_id}
+    )
+
+    await mongo_client[MONGO_DATABASE][USERS_COLLECTION].delete_one(
+        {"employee_id": employee_id}
+    )
+
+    return True

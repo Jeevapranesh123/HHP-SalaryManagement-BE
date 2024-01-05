@@ -16,6 +16,8 @@ from fastapi import UploadFile, File
 
 from app.core.config import Config
 
+from app.api.utils.auth import role_required
+
 
 router = APIRouter()
 
@@ -103,6 +105,22 @@ async def create(
         status_code=201,
         data=res,
     )
+
+
+@role_required(["MD"])
+@router.delete("/{employee_id}")
+async def delete(
+    employee_id: str,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_custom_master_token),
+):
+    obj = EmployeeController(payload, mongo_client)
+    res = await obj.delete_employee(employee_id)
+
+    return {
+        "message": "Employee Deleted Successfully",
+        "status_code": 200,
+    }
 
 
 @router.post("/profile_image")

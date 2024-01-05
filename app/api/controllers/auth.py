@@ -226,14 +226,16 @@ async def get_logged_in_user(employee_id: str, mongo_client: AsyncIOMotorClient)
     minutes = monthly_permission_hours.split(" ")[2]
     minutes = int(minutes)
 
+    print(monthly_absent_days, monthly_permission_hours)
+
     alert = []
     # FIXME: Store the rules in the database and fetch them here
     if monthly_absent_days > 1:
         alert.append(
             {
                 "title": "Leave Exceeded",
-                "description": "You have exceeded your monthly leave limit of {} days".format(
-                    1
+                "description": "You have exceeded your monthly leave limit of {} days, excess days: {}, loss_of_pay per day :{}".format(
+                    1, monthly_absent_days - 1, 100
                 ),
             }
         )

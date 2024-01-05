@@ -425,19 +425,19 @@ class SalaryController:
 
         user_role = user["primary_role"]["role"]
 
-        if self.employee_role == "MD":
-            if user_role == "HR":
-                pass
-            else:
-                if salary_in_create.pf != 0 or salary_in_create.esi != 0:
-                    notifier.append(hr_notification)
+        # if self.employee_role == "MD":
+        #     if user_role == "HR":
+        #         pass
+        #     else:
+        #         if salary_in_create.pf != 0 or salary_in_create.esi != 0:
+        #             notifier.append(hr_notification)
 
-        elif self.employee_role == "HR":
-            if user_role == "MD":
-                pass
+        # elif self.employee_role == "HR":
+        #     if user_role == "MD":
+        #         pass
 
-            else:
-                notifier.append(md_notification)
+        #     else:
+        #         notifier.append(md_notification)
 
         send = SendNotification(
             notifier=notifier,
@@ -541,17 +541,17 @@ class SalaryController:
 
         user_role = user["primary_role"]["role"]
 
-        if self.employee_role == "MD":
-            if user_role == "HR":
-                pass
-            else:
-                notifier.append(hr_notification)
+        # if self.employee_role == "MD":
+        #     if user_role == "HR":
+        #         pass
+        #     else:
+        #         notifier.append(hr_notification)
 
-        elif self.employee_role == "HR":
-            if user_role == "MD":
-                pass
-            else:
-                notifier.append(md_notification)
+        # elif self.employee_role == "HR":
+        #     if user_role == "MD":
+        #         pass
+        #     else:
+        #         notifier.append(md_notification)
 
         send = SendNotification(
             notifier=notifier,

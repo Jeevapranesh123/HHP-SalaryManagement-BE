@@ -116,7 +116,7 @@ class MarketingController:
         """Create a new location entry"""
 
         location_entry = location_entry.model_dump()
-        print(location_entry)
+
         emp = await get_employee(location_entry["employee_id"], self.mongo_client)
 
         if not emp:
@@ -235,15 +235,15 @@ class MarketingController:
 
         if self.primary_role == "employee":
             notifier.append(marketing_manager_notification)
-            notifier.append(md_notification)
+            # notifier.append(md_notification)
 
         elif self.primary_role == "marketing_manager":
             if self.employee_id == emp["employee_id"]:
-                notifier.append(md_notification)
+                # notifier.append(md_notification)
                 pass
             else:
                 notifier.append(emp_notification)
-                notifier.append(md_notification)
+                # notifier.append(md_notification)
 
         elif self.primary_role == "MD":
             if self.employee_id == emp["employee_id"]:
