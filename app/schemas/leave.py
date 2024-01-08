@@ -56,3 +56,10 @@ class PermissionBase(BaseModel):
     no_of_hours: float
     reason: Optional[str] = ""
     remarks: Optional[str] = ""
+
+
+class LateEntryBase(BaseModel):
+    employee_id: str
+    no_of_hours: float
+    loss_of_pay: int
+    reason: Optional[str] = ""

@@ -40,7 +40,7 @@ async def get_salary_advance_history(
 ):
     salary_advance_history = (
         await mongo_client[MONGO_DATABASE][SALARY_ADVANCE_COLLECTION]
-        .find({"employee_id": employee_id}, {"_id": 0})
+        .find({"employee_id": employee_id} if employee_id else {}, {"_id": 0})
         .sort("requested_at", -1)
         .to_list(length=100)
     )

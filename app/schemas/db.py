@@ -6,7 +6,12 @@ from app.schemas.salary import (
     MonthlyCompensationBase,
     SalaryIncentivesBase,
 )
-from app.schemas.leave import LeaveBase, PermissionBase, LeaveApplicationStatus
+from app.schemas.leave import (
+    LeaveBase,
+    PermissionBase,
+    LeaveApplicationStatus,
+    LateEntryBase,
+)
 from app.schemas.loan import LoanBase, LoanApplicationStatus
 import datetime
 from typing import Optional
@@ -44,6 +49,16 @@ class MonthlyCompensationInDB(MonthlyCompensationBase):
 
 
 class SalaryIncentivesInDB(SalaryIncentivesBase):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()).replace("-", ""))
+
+    month: datetime.datetime = first_day_of_current_month()
+    created_at: datetime.datetime = datetime.datetime.now()
+    created_by: str = "admin"
+    updated_at: datetime.datetime = None
+    updated_by: str = None
+
+
+class LateEntryInDB(LateEntryBase):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()).replace("-", ""))
 
     month: datetime.datetime = first_day_of_current_month()

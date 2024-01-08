@@ -55,6 +55,10 @@ def last_day_of_last_month():
     month = now.month - 1
     year = now.year
 
+    if month == 0:
+        month = 12
+        year -= 1
+
     if ((year % 400 == 0) and (year % 100 == 0)) or (
         (year % 4 == 0) and (year % 100 != 0)
     ):

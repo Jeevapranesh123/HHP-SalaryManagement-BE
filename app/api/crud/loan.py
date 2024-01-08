@@ -17,7 +17,7 @@ LOAN_SCHEDULE_COLLECTION = Config.LOAN_SCHEDULE_COLLECTION
 async def get_loan_history(employee_id, status, mongo_client: AsyncIOMotorClient):
     loan_history = (
         await mongo_client[MONGO_DATABASE][LOAN_COLLECTION]
-        .find({"employee_id": employee_id}, {"_id": 0})
+        .find({"employee_id": employee_id} if employee_id else {}, {"_id": 0})
         .sort("requested_at", -1)
         .to_list(length=100)
     )

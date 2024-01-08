@@ -117,6 +117,18 @@ class PostLeaveResponse(BaseResponse):
     data: LeaveResponse
 
 
+class LateEntryResponse(BaseModel):
+    message: str = "Late entry posted successfully"
+    id: str
+    employee_id: str
+    no_of_hours: float
+    loss_of_pay: float
+
+
+class PostLateEntryResponse(BaseResponse):
+    data: LateEntryResponse
+
+
 class RequestLeaveResponse(BaseResponse):
     data: LeaveResponse
 

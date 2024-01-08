@@ -3,7 +3,7 @@ from app.core.config import Config
 from fastapi import HTTPException
 
 from app.schemas.leave import LeaveBase, PermissionBase
-from app.schemas.db import LeaveInDB, PermissionInDB
+from app.schemas.db import LeaveInDB, PermissionInDB, LateEntryInDB
 
 import datetime
 
@@ -11,13 +11,16 @@ import uuid
 
 MONGO_DATABASE = Config.MONGO_DATABASE
 LEAVE_COLLECTION = Config.LEAVE_COLLECTION
+LATE_ENTRY_COLLECTION = Config.LATE_ENTRY_COLLECTION
 
 
 async def get_leave_history(employee_id, status, mongo_client: AsyncIOMotorClient):
     leave_history = (
         await mongo_client[MONGO_DATABASE][LEAVE_COLLECTION]
         .find(
-            {"employee_id": employee_id, "leave_type": {"$ne": "permission"}},
+            {"employee_id": employee_id, "leave_type": {"$ne": "permission"}}
+            if employee_id
+            else {"leave_type": {"$ne": "permission"}},
             {"_id": 0},
         )
         .sort("requested_at", -1)
@@ -43,7 +46,12 @@ async def get_leave(leave_id, mongo_client: AsyncIOMotorClient):
 async def get_permission_history(employee_id, status, mongo_client: AsyncIOMotorClient):
     permission_history = (
         await mongo_client[MONGO_DATABASE][LEAVE_COLLECTION]
-        .find({"employee_id": employee_id, "leave_type": "permission"}, {"_id": 0})
+        .find(
+            {"employee_id": employee_id, "leave_type": "permission"}
+            if employee_id
+            else {"leave_type": "permission"},
+            {"_id": 0},
+        )
         .sort("requested_at", -1)
         .to_list(length=100)
     )
@@ -179,3 +187,20 @@ async def respond_permission(permission, mongo_client: AsyncIOMotorClient, respo
 
     update.pop("_id")
     return update
+
+
+async def post_late_entry(late_entry, mongo_client: AsyncIOMotorClient, **kwargs):
+    late_entry = late_entry.model_dump()
+    late_entry["id"] = str(uuid.uuid4()).replace("-", "")
+
+    late_entry["created_at"] = datetime.datetime.now()
+    late_entry["created_by"] = kwargs.get("posted_by", "admin")
+
+    late_entry_in_db = LateEntryInDB(**late_entry)
+
+    if await mongo_client[MONGO_DATABASE][LATE_ENTRY_COLLECTION].update_one(
+        {"employee_id": late_entry_in_db.employee_id, "month": late_entry_in_db.month},
+        {"$set": late_entry_in_db.model_dump()},
+        upsert=True,
+    ):
+        return late_entry_in_db.model_dump()

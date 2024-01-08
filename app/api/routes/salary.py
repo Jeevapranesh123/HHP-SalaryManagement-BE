@@ -26,6 +26,8 @@ from app.schemas.response import (
 from app.schemas.employees import StatusEnum
 from app.api.utils.employees import verify_login_token
 
+from typing import Optional
+
 import datetime
 
 router = APIRouter()
@@ -294,7 +296,7 @@ async def respond_advance(
 
 @router.get("/advance/history", status_code=200)
 async def get_salary_advance_history(
-    employee_id: str,
+    employee_id: Optional[str] = None,
     status: StatusEnum = None,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),

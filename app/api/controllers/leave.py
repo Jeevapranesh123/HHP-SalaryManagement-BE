@@ -6,8 +6,9 @@ from app.schemas.request import (
     LeaveRespondRequest,
     PermissionCreateRequest,
     PermissionRespondRequest,
+    LateEntryCreateRequest,
 )
-from app.schemas.leave import LeaveBase, PermissionBase
+from app.schemas.leave import LeaveBase, PermissionBase, LateEntryBase
 
 from app.api.crud import leave as leave_crud
 from app.api.crud import employees as employee_crud
@@ -655,5 +656,28 @@ class LeaveController:
         send = SendNotification(notifier=notifier)
 
         await notification.send_notification(send)
+
+        return res
+
+    async def post_late_entry(self, LateEntryCreateRequest: LateEntryCreateRequest):
+        late_entry_in_create = LateEntryBase(**LateEntryCreateRequest.model_dump())
+
+        emp = await employee_crud.get_employee(
+            late_entry_in_create.employee_id, self.mongo_client
+        )
+
+        if not emp:
+            raise HTTPException(
+                status_code=404,
+                detail="Employee '{}' not found".format(
+                    late_entry_in_create.employee_id
+                ),
+            )
+
+        res = await leave_crud.post_late_entry(
+            late_entry_in_create,
+            self.mongo_client,
+            posted_by=self.employee_id,
+        )
 
         return res

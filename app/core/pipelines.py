@@ -48,6 +48,14 @@ async def get_employee_with_salary_details(employee_id, month):
         },
         {
             "$lookup": {
+                "from": "late_entry",
+                "localField": "employee_id",
+                "foreignField": "employee_id",
+                "as": "late_entry",
+            }
+        },
+        {
+            "$lookup": {
                 "from": "loan_schedule",
                 "localField": "employee_id",
                 "foreignField": "employee_id",
@@ -121,6 +129,7 @@ async def get_employee_with_salary_details(employee_id, month):
                 "salary_advance": {"$arrayElemAt": ["$salary_advance_info", 0]},
                 "loan": {"$arrayElemAt": ["$loan_schedule_info", 0]},
                 "salary_incentives": {"$arrayElemAt": ["$salary_incentives_info", 0]},
+                "late_entry": {"$arrayElemAt": ["$late_entry", 0]},
             }
         },
         {
@@ -147,6 +156,7 @@ async def get_employee_with_salary_details(employee_id, month):
                 "allowance": {"$ifNull": ["$salary_incentives.allowance", 0]},
                 "increment": {"$ifNull": ["$salary_incentives.increment", 0]},
                 "bonus": {"$ifNull": ["$salary_incentives.bonus", 0]},
+                "late_entry": {"$ifNull": ["$late_entry.loss_of_pay", 0]},
             }
         },
         {
@@ -185,6 +195,7 @@ async def get_employee_with_salary_details(employee_id, month):
                                 "$loss_of_pay",
                                 "$salary_advance",
                                 "$loan",
+                                "$late_entry",
                             ]
                         },
                     ]

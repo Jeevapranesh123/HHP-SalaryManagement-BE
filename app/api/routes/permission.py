@@ -19,6 +19,8 @@ from app.api.utils.employees import verify_login_token
 from app.api.utils.auth import role_required
 from app.schemas.employees import StatusEnum
 
+from typing import Optional
+
 
 router = APIRouter()
 
@@ -66,7 +68,7 @@ async def respond_permission(
 
 @router.get("/history")
 async def get_permission_history(
-    employee_id: str,
+    employee_id: Optional[str] = None,
     status: StatusEnum = None,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),

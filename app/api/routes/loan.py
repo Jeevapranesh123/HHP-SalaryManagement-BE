@@ -23,6 +23,8 @@ from app.schemas.response import (
 
 from app.schemas.employees import StatusEnum
 
+from typing import Optional
+
 
 router = APIRouter()
 
@@ -242,7 +244,7 @@ async def adjust_loan(
 
 @router.get("/history")
 async def get_loan_history(
-    employee_id: str,
+    employee_id: Optional[str] = None,
     status: StatusEnum = None,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),

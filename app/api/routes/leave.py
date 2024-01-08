@@ -3,19 +3,26 @@ from fastapi import APIRouter, Depends, Response, Request
 # import DB Utils
 from app.database import get_mongo, AsyncIOMotorClient
 
-from app.schemas.request import LeaveCreateRequest, LeaveRespondRequest
+from app.schemas.request import (
+    LeaveCreateRequest,
+    LeaveRespondRequest,
+    LateEntryCreateRequest,
+)
 
 from app.schemas.response import (
     PostLeaveResponse,
     RequestLeaveResponse,
     LeaveRespondResponse,
     LeaveHistoryResponse,
+    PostLateEntryResponse,
 )
 
 from app.api.controllers.leave import LeaveController
 from app.api.utils.employees import verify_login_token
 from app.api.utils.auth import role_required
 from app.schemas.employees import StatusEnum
+
+from typing import Optional
 
 
 router = APIRouter()
@@ -98,6 +105,15 @@ async def get_meta(
         }
     ]
 
+    late_entry_post_action = [
+        {
+            "label": "Submit",
+            "type": "button",
+            "variant": "default",
+            "action": {"url": "/leave/late_entry/", "method": "POST"},
+        }
+    ]
+
     data = {
         "message": "Leave meta fetched successfully",
         "status_code": 200,
@@ -166,7 +182,39 @@ async def get_meta(
                         "remarks": {"type": "textarea", "required": True},
                     }
                 },
-            }
+                "late_entry": {
+                    "data": {
+                        "employee_id": {
+                            "type": "string",
+                            "required": True,
+                            "editable": False,
+                        },
+                        "month": {
+                            "type": "month",
+                            "format": "YYYY-MM-DD",
+                            # "value": "{}".format(
+                            #     datetime.datetime.now().strftime("%Y-%m-%d")
+                            # ),
+                            "required": True,
+                        },
+                        "no_of_hours": {
+                            "type": "number",
+                            "required": True,
+                            "editable": True,
+                        },
+                        "loss_of_pay": {
+                            "type": "number",
+                            "required": True,
+                            "editable": True,
+                        },
+                        "reason": {
+                            "type": "textarea",
+                            "required": True,
+                            "editable": True,
+                        },
+                    }
+                },
+            },
         },
     }
 
@@ -189,9 +237,12 @@ async def get_meta(
         data["data"]["type"]["leave"]["actions"] = leave_respond_action
         data["data"]["type"]["permission"]["actions"] = permission_respond_action
 
+        data["data"]["type"].pop("late_entry")
+
     elif access_type == "request":
         data["data"]["type"]["leave"]["actions"] = leave_request_action
         data["data"]["type"]["permission"]["actions"] = permission_request_action
+
         data["data"]["type"]["leave"]["data"]["employee_id"]["editable"] = False
         data["data"]["type"]["permission"]["data"]["employee_id"]["editable"] = False
 
@@ -200,9 +251,13 @@ async def get_meta(
 
         data["data"]["type"]["leave"]["data"].pop("loss_of_pay")
 
+        data["data"]["type"].pop("late_entry")
+
     elif access_type == "post":
         data["data"]["type"]["leave"]["actions"] = leave_post_action
         data["data"]["type"]["permission"]["actions"] = permission_post_action
+        data["data"]["type"]["late_entry"]["actions"] = late_entry_post_action
+
         data["data"]["type"]["leave"]["data"]["employee_id"]["editable"] = False
         data["data"]["type"]["permission"]["data"]["employee_id"]["editable"] = False
         data["data"]["type"]["leave"]["data"].pop("reason")
@@ -228,6 +283,21 @@ async def post_leave(
     res = await leave_controller.post_leave(LeaveCreateRequest)
     return PostLeaveResponse(
         message="Leave posted successfully", status_code=200, data=res
+    )
+
+
+@router.post("/late_entry")
+@role_required(["HR", "MD"])
+async def post_late_entry(
+    LateEntryCreateRequest: LateEntryCreateRequest,
+    mongo_client: AsyncIOMotorClient = Depends(get_mongo),
+    payload: dict = Depends(verify_login_token),
+):
+    leave_controller = LeaveController(payload, mongo_client)
+    print(LateEntryCreateRequest)
+    res = await leave_controller.post_late_entry(LateEntryCreateRequest)
+    return PostLateEntryResponse(
+        message="Late entry posted successfully", status_code=200, data=res
     )
 
 
@@ -260,7 +330,7 @@ async def respond_leave(
 
 @router.get("/history")
 async def get_leave_history(
-    employee_id: str,
+    employee_id: Optional[str] = None,
     status: StatusEnum = None,
     mongo_client: AsyncIOMotorClient = Depends(get_mongo),
     payload: dict = Depends(verify_login_token),

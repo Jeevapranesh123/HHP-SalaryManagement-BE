@@ -13,7 +13,7 @@ from app.schemas.salary import (
     SalaryIncentivesBase,
     MonthlyCompensationBase,
 )
-from app.schemas.leave import LeaveBase, PermissionBase
+from app.schemas.leave import LeaveBase, PermissionBase, LateEntryBase
 from app.schemas.loan import LoanBase, LoanAdjustmentBase
 
 from enum import Enum
@@ -274,6 +274,10 @@ class LeaveRespondRequest(BaseModel):
     loss_of_pay: int = None
     status: LeaveResponse
     remarks: Optional[str] = None
+
+
+class LateEntryCreateRequest(LateEntryBase):
+    pass
 
 
 class PermissionCreateRequest(PermissionBase):

@@ -69,8 +69,9 @@ async def get_employee_with_computed_fields(employee_id, mongo_client, month=Non
         str(timedelta(hours=total_permission_hours)).split(":")[1],
     )
 
-    last_day = last_day_of_current_month()
-    current_month = first_day_of_current_month()
+    last_day = last_day_of_last_month()
+    current_month = first_day_of_last_month()
+    print(current_month, last_day)
     attendance = mongo_client[MONGO_DATABASE][ATTENDANCE_COLLECTION].find(
         {"employee_id": employee_id, "date": {"$gte": current_month, "$lte": last_day}}
     )
@@ -110,6 +111,9 @@ async def get_employee_with_computed_fields(employee_id, mongo_client, month=Non
         "loan_and_advance": {
             "loan": emp["loan"],
             "salary_advance": emp["salary_advance"],
+        },
+        "late_entry": {
+            "late_hours_loss_of_pay": emp["late_entry"],
         },
         "leaves_and_permissions": {
             "total_leave_days": total_leave_days,
